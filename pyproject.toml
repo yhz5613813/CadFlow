@@ -3,7 +3,7 @@ name = "cadflow"
 version = "0.1.0"
 description = "CadFlow Python frontend with a session-oriented C++ backend"
 readme = "README.md"
-license = "AGPL-3.0-only"
+license = "MIT"
 license-files = ["LICENSE", "NOTICE-OCCT.md"]
 requires-python = ">=3.10,<3.14"
 keywords = ["cad", "modeling", "3d", "opencascade", "cpp"]

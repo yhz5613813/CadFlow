@@ -26,7 +26,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 DEFAULT_PACKAGE_NAME = "cadflow"
 DEFAULT_SKILL_NAME = "cadflow"
-DEFAULT_LICENSE = "AGPL-3.0"
+DEFAULT_LICENSE = "MIT"
 DOCS_PATH = Path("docs")
 LICENSE_PATH = Path("LICENSE")
 

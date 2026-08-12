@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from typing import Any, Sequence
 
 from .native import NativeSession, ShapeHandle
+from .feedback import Diagnostic, OperationReport, OperationResult
+from .frame import Workplane
 
 
 @dataclass(frozen=True)
@@ -59,6 +61,42 @@ class Shape:
 
     def export_stl(self, path: str, *, binary: bool = True) -> None:
         self._session.export_stl(self._handle, path, binary=binary)
+
+    def describe(self, *, detail: str = "summary") -> dict[str, object]:
+        """Return a JSON-safe shape summary for inspection and Agent feedback."""
+        if detail not in {"summary", "mesh"}:
+            raise ValueError("detail must be 'summary' or 'mesh'")
+        result: dict[str, object] = {
+            "kind": self.kind,
+            "volume": self.volume,
+            "area": self.area,
+            "length": self.length,
+            "center_of_mass": list(self.center_of_mass),
+            "bbox": list(self.bbox),
+            "topology": dict(self.topology),
+        }
+        if detail == "mesh":
+            result["mesh"] = self.mesh()
+        return result
+
+    def validate(self) -> OperationReport:
+        """Perform inexpensive, backend-neutral checks on a native shape."""
+        diagnostics: list[Diagnostic] = []
+        try:
+            values = (*self.bbox, self.volume, self.area)
+            if not all(float(value) == float(value) for value in values):
+                diagnostics.append(Diagnostic("error", "shape.non_finite", "Shape contains a non-finite measurement."))
+            solids = int(self.topology.get("solids", 0))
+            if self.kind not in {"wire", "face", "surface"} and solids != 1:
+                diagnostics.append(Diagnostic(
+                    "warning", "shape.multiple_solids",
+                    f"Expected one solid, found {solids}.",
+                    "Use a boolean union or select the intended solid explicitly.",
+                ))
+        except Exception as error:
+            diagnostics.append(Diagnostic("error", "shape.query_failed", str(error)))
+        status = "invalid" if any(item.severity == "error" for item in diagnostics) else "valid"
+        return OperationReport("validate", status, output={"kind": self.kind}, diagnostics=tuple(diagnostics))
 
 
 class Model:
@@ -322,6 +360,116 @@ class Model:
     ) -> Shape:
         self._same_model(shape)
         return Shape(self.session, self.session.scale(shape._handle, factor, center))
+
+    def workplane(
+        self,
+        origin: Sequence[float] = (0, 0, 0),
+        normal: Sequence[float] = (0, 0, 1),
+        x_dir: Sequence[float] = (1, 0, 0),
+    ) -> Workplane:
+        return Workplane(origin, normal, x_dir, model=self)
+
+    def sketch(self, name: str | None = None, *, workplane: Workplane | None = None):
+        from .sketch_api import SketchDocument
+        if workplane is not None and getattr(workplane, "_model", self) not in {None, self}:
+            raise ValueError("workplane belongs to another Model")
+        return SketchDocument.create(name, frame=workplane.frame if workplane else None)
+
+    def capabilities(self) -> dict[str, object]:
+        """Describe available operations without exposing private handles."""
+        return {
+            "frontend": [
+                "primitives", "profiles", "sketch", "workplane", "features",
+                "booleans", "transforms", "inspection", "exchange", "feedback",
+            ],
+            "native_operations": sorted(
+                operation for operation in (
+                    "box", "cylinder", "sphere", "cone", "polyline", "circle_profile",
+                    "arc", "interpolate", "helix", "face", "extrude", "revolve",
+                    "loft", "sweep", "fillet", "chamfer", "shell", "cut", "union",
+                    "intersect", "translate", "rotate", "mirror", "scale",
+                ) if self.session is not None
+            ),
+            "selection": {"indices": True, "semantic": False},
+            "units": "caller-defined consistent numeric units",
+        }
+
+    def preflight(self, operation: str, *args: object, **kwargs: object) -> OperationReport:
+        """Check common Agent mistakes before invoking a native operation."""
+        diagnostics: list[Diagnostic] = []
+        for value in (*args, *kwargs.values()):
+            if isinstance(value, Shape) and value._session is not self.session:
+                diagnostics.append(Diagnostic("error", "session.mismatch", "All shapes must belong to this Model."))
+        if operation in {"fillet", "chamfer"}:
+            selection = kwargs.get("edges", kwargs.get("edge_indices"))
+            if selection is None and len(args) > 2:
+                selection = args[2]
+            if selection is not None:
+                try:
+                    count = int(self._shape_from_args(args).topology.get("edges", 0))
+                    indices = [int(index) for index in selection]
+                except (TypeError, ValueError) as error:
+                    diagnostics.append(Diagnostic(
+                        "error", "selection.invalid", str(error),
+                        "Pass a sequence of zero-based edge indices.",
+                    ))
+                    indices = []
+                    count = 0
+                invalid = [index for index in indices if index < 0 or index >= count]
+                if invalid:
+                    diagnostics.append(Diagnostic(
+                        "error", "selection.index_out_of_range",
+                        f"Edge indices out of range: {invalid}.",
+                        "Query shape.topology before selecting edges.",
+                    ))
+        if operation == "shell":
+            thickness = kwargs.get("thickness", args[1] if len(args) > 1 else None)
+            if thickness is not None and float(thickness) <= 0:
+                diagnostics.append(Diagnostic("error", "parameter.invalid", "Shell thickness must be positive."))
+        status = "ready" if not diagnostics else "blocked"
+        return OperationReport(operation, status, diagnostics=tuple(diagnostics))
+
+    def apply(self, operation: str, *args: object, **kwargs: object) -> OperationResult:
+        """Invoke a named Model operation and return its result with a report."""
+        preflight = self.preflight(operation, *args, **kwargs)
+        if not preflight.ok:
+            return OperationResult(None, preflight)
+        try:
+            value = self._apply_target(operation, args, kwargs)
+            if isinstance(value, Shape):
+                output = value.describe()
+            elif isinstance(value, OperationReport):
+                output = value.to_dict()
+            else:
+                output = {"value": value}
+            report = OperationReport(operation, "success", output=output)
+            return OperationResult(value, report)
+        except Exception as error:
+            report = OperationReport(
+                operation, "failed",
+                diagnostics=(Diagnostic("error", "operation.failed", str(error)),),
+            )
+            return OperationResult(None, report)
+
+    def _apply_target(self, operation: str, args: tuple[object, ...], kwargs: dict[str, object]):
+        query_names = {"kind", "volume", "area", "length", "center_of_mass", "bbox", "topology", "describe", "validate"}
+        if operation in query_names:
+            shape = self._shape_from_args(args)
+            value = getattr(shape, operation)
+            if callable(value):
+                return value(**kwargs)
+            if kwargs:
+                raise TypeError(f"query '{operation}' does not accept keyword arguments")
+            return value
+        target = getattr(self, operation)
+        return target(*args, **kwargs)
+
+    @staticmethod
+    def _shape_from_args(args: tuple[object, ...]) -> Shape:
+        for value in args:
+            if isinstance(value, Shape):
+                return value
+        raise ValueError("operation requires a Shape argument")
 
     def close(self) -> None:
         if self._owns_session:

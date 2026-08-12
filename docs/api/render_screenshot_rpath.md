@@ -3,7 +3,7 @@
 ## API Definition
 
 ```python
-def render_screenshot_rpath(shapes: Union[Solid, Sequence[Solid]], output_path: str, highlight_tags: Optional[Sequence[str]] = None, tag_labels: Optional[Dict[str, str]] = None, image_size: Tuple[int, int] = (1400, 900), view: Union[Tuple[float, float], str] = 'auto', show_axes: bool = True, show_legend: bool = True, zoom: float = 4.0, show_callouts: bool = True) -> str
+def render_screenshot_rpath(shapes: Union[Solid, Sequence[Solid]], output_path: str, highlight_tags: Optional[Sequence[str]] = None, tag_labels: Optional[Dict[str, str]] = None, image_size: Tuple[int, int] = (1400, 900), view: Union[Tuple[float, float], str] = 'auto', show_axes: bool = True, show_legend: bool = True, zoom: float = 4.0, show_callouts: bool = True, tag_colors: Optional[Dict[str, Tuple[float, float, float]]] = None, background_color: Optional[Tuple[float, float, float]] = None, show_edges: bool = True) -> str
 ```
 
 *Source: operations.py*
@@ -15,3 +15,7 @@ def render_screenshot_rpath(shapes: Union[Solid, Sequence[Solid]], output_path: 
 ## Description
 
 Render SDK solids through the shared OCCT/VTK BREP renderer.
+
+`tag_colors` can override the RGB color of each highlighted tag,
+`background_color` selects a solid RGB background, and `show_edges=False`
+produces a clean shaded render without topology outlines.

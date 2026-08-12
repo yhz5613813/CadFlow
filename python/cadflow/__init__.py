@@ -22,6 +22,9 @@ from . import (
 )
 from .legacy import api as legacy_api_module
 from .native import NativeError, NativeSession, ShapeHandle
+from .feedback import Diagnostic, OperationReport, OperationResult
+from .frame import CoordinateFrame, Workplane, current_frame, use_frame
+from .sketch_api import SketchDocument
 from ._compat_aliases import install as _install_compat_aliases
 
 _install_compat_aliases(globals())
@@ -49,6 +52,12 @@ __all__ = [
     "Node",
     "Shape",
     "ShapeHandle",
+    "CoordinateFrame",
+    "Diagnostic",
+    "OperationReport",
+    "OperationResult",
+    "SketchDocument",
+    "Workplane",
     "Router",
     "assembly",
     "compat",
@@ -69,6 +78,8 @@ __all__ = [
     "tolerances",
     "topology",
     "translators",
+    "current_frame",
+    "use_frame",
     "verifier",
 ]
 

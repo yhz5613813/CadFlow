@@ -53,6 +53,13 @@ signature.
 - Prefer the Model/Shape API for direct part creation. Use Graph only when a
   batch/replayable native operation program is explicitly needed; its operation
   names and argument order are documented in the reference.
+- For dimensioned profiles, use `model.workplane(...).sketch(...)`. A
+  `SketchDocument` preserves named entity references, solves through the
+  bundled `py-slvs` backend, and returns diagnostics/DOF before promotion.
+- Use `model.capabilities()`, `model.preflight(...)`, `model.apply(...)`,
+  `shape.describe()`, and `shape.validate()` as the Agent feedback loop. Treat
+  a blocked report as an instruction to inspect or repair inputs, not as a
+  reason to guess new geometry.
 - Do not silently fall back to a different geometry implementation when the
   native library is unavailable. Report the environment error and follow the
   repository build instructions instead.

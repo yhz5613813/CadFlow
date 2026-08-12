@@ -69,6 +69,51 @@ beveled = model.chamfer(shape, distance=0.5, edges=(0, 1))
 hollow = model.shell(shape, thickness=1.0, faces=(0,), tolerance=1e-3)
 ~~~
 
+## Workplanes and Constrained Sketches
+
+Workplanes and sketches are Python orchestration objects. The sketch solver
+uses the bundled `py-slvs` backend; native geometry is created only when a
+profile is lowered into the explicit `Model` session.
+
+~~~python
+with model.workplane(origin=(10, 0, 5), normal=(0, 1, 0)) as plane:
+    sketch = plane.sketch("mounting_profile")
+    sketch = (sketch.add_point("a", 0, 0)
+                    .add_point("b", 20, 0)
+                    .add_point("c", 20, 10)
+                    .add_point("d", 0, 10))
+    sketch = (sketch.add_line("ab", "a", "b")
+                    .add_line("bc", "b", "c")
+                    .add_line("cd", "c", "d")
+                    .add_line("da", "d", "a"))
+    sketch = sketch.constrain_fix("a")
+    result = sketch.inspect(strict=False)
+    face = sketch.to_native_face(model, strict=False)
+~~
+
+`SketchDocument` also exposes `add_circle`, `add_arc`, `add_bspline`, named
+references, and the established constraint methods (`constrain_horizontal`,
+`constrain_tangent`, `constrain_distance`, `constrain_radius`, and so on).
+`result.to_dict()` includes solver backend, status, degrees of freedom,
+residual, solved values, and diagnostics.
+
+## Agent Feedback
+
+~~~python
+model.capabilities()
+shape.describe()                  # JSON-safe geometry summary
+shape.validate().to_dict()        # validity and warnings
+model.preflight("fillet", shape, radius=1, edges=(0, 1))
+outcome = model.apply("cut", body, tool)
+if not outcome.report.ok:
+    print(outcome.report.to_dict())
+~~~
+
+`preflight()` checks session ownership, selection bounds, and common invalid
+parameters. `apply()` executes a named model operation and returns an
+`OperationResult` containing the value and a machine-readable
+`OperationReport`; it does not hide native errors or silently switch kernels.
+
 extrude takes a vector, not a scalar height. revolve uses degrees and a 3D
 axis/origin. Fillet, chamfer, and shell selections are optional zero-based
 indices; omit the selection only when the kernel should process all applicable

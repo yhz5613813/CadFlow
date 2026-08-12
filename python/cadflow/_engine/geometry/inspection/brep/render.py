@@ -464,6 +464,9 @@ def _render_sdk_screenshot_rpath(
     show_legend: bool = True,
     zoom: float = 4.0,
     show_callouts: bool = True,
+    tag_colors: Mapping[str, tuple[float, float, float]] | None = None,
+    background_color: tuple[float, float, float] | None = None,
+    show_edges: bool = True,
     linear_deflection: float = 0.35,
     angular_deflection: float = 0.22,
 ) -> Path:
@@ -487,10 +490,19 @@ def _render_sdk_screenshot_rpath(
         "#16a085",
         "#d35400",
     )
-    tag_colors = {
-        tag: _hex_rgb(palette[index % len(palette)])
-        for index, tag in enumerate(tags)
-    }
+    supplied_colors = dict(tag_colors or {})
+    unknown_color_tags = sorted(set(supplied_colors) - set(tags))
+    if unknown_color_tags:
+        raise ValueError(
+            "tag_colors contains tags outside highlight_tags: "
+            + ", ".join(unknown_color_tags)
+        )
+    resolved_tag_colors = {}
+    for index, tag in enumerate(tags):
+        color = supplied_colors.get(tag, _hex_rgb(palette[index % len(palette)]))
+        if len(color) != 3 or any(not 0.0 <= float(channel) <= 1.0 for channel in color):
+            raise ValueError("tag colors must contain three RGB values in [0, 1]")
+        resolved_tag_colors[tag] = tuple(float(channel) for channel in color)
     grouped_faces: dict[str | None, list[TopoDS_Shape]] = {None: []}
     label_points: dict[str, tuple[float, float, float]] = {}
     shapes: list[TopoDS_Shape] = []
@@ -514,12 +526,14 @@ def _render_sdk_screenshot_rpath(
 
     vtk, _, _ = _vtk_modules()
     renderer = vtk.vtkRenderer()
-    renderer.SetBackground(0.067, 0.067, 0.067)
+    resolved_background = background_color or (0.067, 0.067, 0.067)
+    if len(resolved_background) != 3 or any(
+        not 0.0 <= float(channel) <= 1.0 for channel in resolved_background
+    ):
+        raise ValueError("background_color must contain three RGB values in [0, 1]")
+    renderer.SetBackground(*resolved_background)
     renderer.SetUseFXAA(True)
-    window = vtk.vtkRenderWindow()
-    window.SetOffScreenRendering(1)
-    window.SetSize(int(image_size[0]), int(image_size[1]))
-    window.SetMultiSamples(4)
+    window = _offscreen_window(int(image_size[0]), int(image_size[1]))
     window.AddRenderer(renderer)
 
     base_faces = grouped_faces.pop(None, [])
@@ -537,11 +551,11 @@ def _render_sdk_screenshot_rpath(
         renderer.AddActor(
             _surface_actor(
                 _mesh_polydata(faces, linear_deflection, angular_deflection),
-                tag_colors[str(tag)],
+                resolved_tag_colors[str(tag)],
                 1.0,
             )
         )
-    edges = _edge_polydata(shapes, deflection=linear_deflection)
+    edges = _edge_polydata(shapes, deflection=linear_deflection) if show_edges else None
     if edges is not None:
         renderer.AddActor(_line_actor(edges, (0.78, 0.80, 0.84), 1.0))
 
@@ -561,7 +575,9 @@ def _render_sdk_screenshot_rpath(
         renderer.ResetCameraClippingRange()
 
     if show_legend and (tags or show_axes):
-        legend_items = [(tag, labels.get(tag, tag), tag_colors[tag]) for tag in tags]
+        legend_items = [
+            (tag, labels.get(tag, tag), resolved_tag_colors[tag]) for tag in tags
+        ]
         if show_axes:
             legend_items.extend(
                 (
@@ -587,7 +603,7 @@ def _render_sdk_screenshot_rpath(
             callout.SetPosition(*point)
             prop = callout.GetTextProperty()
             prop.SetColor(1.0, 0.82, 0.48)
-            prop.SetBackgroundColor(0.067, 0.067, 0.067)
+            prop.SetBackgroundColor(*resolved_background)
             prop.SetBackgroundOpacity(0.9)
             prop.SetFontSize(18)
             renderer.AddViewProp(callout)
@@ -596,7 +612,6 @@ def _render_sdk_screenshot_rpath(
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     _write_window(window, output)
-    window.Finalize()
     return output
 def _point_polydata(points: Sequence[Sequence[float]]):
     if not points:

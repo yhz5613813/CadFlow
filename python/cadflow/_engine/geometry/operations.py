@@ -9114,6 +9114,9 @@ def render_screenshot_rpath(
     show_legend: bool = True,
     zoom: float = 4.0,
     show_callouts: bool = True,
+    tag_colors: Optional[Dict[str, Tuple[float, float, float]]] = None,
+    background_color: Optional[Tuple[float, float, float]] = None,
+    show_edges: bool = True,
 ) -> str:
     """Render SDK solids through the shared OCCT/VTK BREP renderer."""
     try:
@@ -9135,6 +9138,9 @@ def render_screenshot_rpath(
                 show_legend=show_legend,
                 zoom=zoom,
                 show_callouts=show_callouts,
+                tag_colors=tag_colors,
+                background_color=background_color,
+                show_edges=show_edges,
             )
         )
     except Exception as e:

@@ -1,0 +1,61 @@
+[project]
+name = "cadflow"
+version = "0.1.0"
+description = "CadFlow Python frontend with a session-oriented C++ backend"
+readme = "README.md"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE", "NOTICE-OCCT.md"]
+requires-python = ">=3.10,<3.14"
+keywords = ["cad", "modeling", "3d", "opencascade", "cpp"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Manufacturing",
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "numpy>=1.21",
+  "rich>=14.0",
+  "cadquery-ocp>=7.9.3.1",
+  "jsonschema>=4.25.1,<5",
+  "rfc8785>=0.1.4,<0.2",
+  "typing-extensions>=4.12,<5",
+  "py-slvs==1.0.6",
+  "ocp-gordon>=0.2,<0.3",
+]
+
+[build-system]
+requires = ["setuptools>=77", "wheel>=0.41"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+collision = ["python-fcl>=0.7.0.11"]
+inspect = ["matplotlib>=3.7.0"]
+
+[project.scripts]
+cadflow-evolve = "cadflow._engine.tools.evolution:main"
+cadflow-make-export = "cadflow._engine.tools.make_export:main"
+cadflow-auto-docs = "cadflow._engine.tools.auto_docs_gen:main"
+cadflow-skill-pack = "cadflow._engine.tools.skill_pack:main"
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.setuptools.package-data]
+"cadflow" = ["*.so", "*.dylib", "*.dll", "include/*.h", "py.typed"]
+"cadflow._engine.exchange.scene" = ["contracts/**/*.json", "contracts/**/*.md"]
+
+[tool.pytest.ini_options]
+pythonpath = ["python"]
+testpaths = ["tests"]

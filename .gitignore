@@ -1,0 +1,10 @@
+build/
+build-*/
+dist/
+.venv/
+venv/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+examples/agentic_reconstruction_dataset/out_hard/

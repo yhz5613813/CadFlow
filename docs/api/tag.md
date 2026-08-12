@@ -1,0 +1,31 @@
+# tag
+
+## API Definition
+
+```python
+def tag(pattern: str, scope: str | TagScope = TagScope.EFFECTIVE) -> SerializablePredicate
+```
+
+*Source: ql.py*
+
+## Import Surface
+
+- submodule: `from cadflow.ql import tag` or `cadflow.ql.tag`
+
+## Description
+
+Build a tag predicate for QL filtering.
+
+## Parameters
+
+### pattern
+
+- **Description**: Exact tag string or a trailing `*` prefix match.
+
+### scope
+
+- **Description**: One of ``local``, ``inherited``, ``effective``, or ``lineage``.
+
+## Returns
+
+Serializable predicate that can be used in `Query.where(...)`.

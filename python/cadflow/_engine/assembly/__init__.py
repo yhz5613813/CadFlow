@@ -1,0 +1,1 @@
+"""Product and assembly modeling."""

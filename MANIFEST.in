@@ -1,0 +1,7 @@
+include CMakeLists.txt
+include LICENSE
+include NOTICE-OCCT.md
+include README.md
+include README_zh.md
+recursive-include native CMakeLists.txt README.md *.h *.cpp
+recursive-include third_party/occt *.h *.hxx *.lxx

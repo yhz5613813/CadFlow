@@ -1,0 +1,4 @@
+interface:
+  display_name: "CadFlow Part Modeling"
+  short_description: "Build and validate CAD parts with CadFlow"
+  default_prompt: "Use $cadflow-model-part to create a CAD part from dimensions, validate its geometry, and export STEP/STL files."

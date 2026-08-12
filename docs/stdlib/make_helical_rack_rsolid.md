@@ -10,7 +10,7 @@ def make_helical_rack_rsolid(module: float, n_teeth: int = 10, pressure_angle: f
 
 ## Import Surface
 
-- standard library: `import cadflow as scad` then `scad.std.gear.make_helical_rack_rsolid(...)`; direct submodule import: `from cadflow.std.gear import make_helical_rack_rsolid`
+- standard library: `import cadflow as cad` then `cad.std.gear.make_helical_rack_rsolid(...)`; direct submodule import: `from cadflow.std.gear import make_helical_rack_rsolid`
 
 ## Description
 

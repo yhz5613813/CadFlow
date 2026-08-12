@@ -6,7 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-import cadflow as scad
+import cadflow as cad
 
 if __package__:
     import importlib
@@ -44,15 +44,15 @@ sys.setrecursionlimit(30000)
 OUT_DIR = Path("examples/out/compact_two_stage_planetary_reducer")
 
 
-@scad.model(graph_id="compact_two_stage_planetary_reducer")
+@cad.model(graph_id="compact_two_stage_planetary_reducer")
 def _build_compact_two_stage_planetary_reducer():
     """Build the reducer and return its assembly and preview compound."""
 
     assembly = make_two_stage_planetary_reducer_rassembly()
-    preview = scad.make_compound_from_assembly_rcompound(assembly=assembly)
-    preview = scad.apply_tag(shape=preview, tag="scene.reducer.preview")
+    preview = cad.make_compound_from_assembly_rcompound(assembly=assembly)
+    preview = cad.apply_tag(shape=preview, tag="scene.reducer.preview")
     _ground_compound(label="reducer_preview", compound=preview)
-    scad.capture_result(value=(assembly, preview))
+    cad.capture_result(value=(assembly, preview))
     return assembly, preview
 
 
@@ -71,15 +71,15 @@ def main() -> None:
     assembly, preview = result.value
     model_path.write_text(result.model_json, encoding="utf-8")
     session_path.write_text(result.session_json, encoding="utf-8")
-    scad.export_step(shapes=preview, filename=str(step_path))
+    cad.export_step(shapes=preview, filename=str(step_path))
 
-    imported = scad.import_model_json(json_str=result.model_json)
-    replayed = scad.replay_model_json(json_str=result.model_json)
+    imported = cad.import_model_json(json_str=result.model_json)
+    replayed = cad.replay_model_json(json_str=result.model_json)
     payload = json.loads(result.model_json)
 
     fcstd_status = "not attempted"
     try:
-        scad.translator.freecad_translator.translate_model_json_to_fcstd(
+        cad.translator.freecad_translator.translate_model_json_to_fcstd(
             json_str=result.model_json,
             output_path=str(fcstd_path.resolve()),
             document_name="CompactTwoStagePlanetaryReducer",

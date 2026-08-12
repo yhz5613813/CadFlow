@@ -22,6 +22,7 @@ from . import (
 )
 from .legacy import api as legacy_api_module
 from .native import NativeError, NativeSession, ShapeHandle
+from . import flexible
 from .feedback import Diagnostic, OperationReport, OperationResult
 from .frame import CoordinateFrame, Workplane, current_frame, use_frame
 from .sketch_api import SketchDocument
@@ -60,6 +61,7 @@ __all__ = [
     "Workplane",
     "Router",
     "assembly",
+    "flexible",
     "compat",
     "capabilities",
     "expressions",

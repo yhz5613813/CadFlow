@@ -3,26 +3,26 @@
 import json
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 
 
 class TestFastenerSurface(unittest.TestCase):
     def test_preferred_nested_std_export_surface(self):
-        bolt = scad.std.fastener.make_bolt_rsolid(diameter=8.0, length=24.0)
-        nut = scad.std.fastener.make_nut_rsolid(
+        bolt = cad.std.fastener.make_bolt_rsolid(diameter=8.0, length=24.0)
+        nut = cad.std.fastener.make_nut_rsolid(
             diameter=8.0,
             width=13.0,
             height=6.5,
         )
 
-        self.assertIsInstance(bolt, scad.Solid)
-        self.assertIsInstance(nut, scad.Solid)
+        self.assertIsInstance(bolt, cad.Solid)
+        self.assertIsInstance(nut, cad.Solid)
 
     def test_public_factories_follow_make_rtype_naming(self):
         factory_names = [
             name
-            for name in scad.std.fastener.__all__
-            if callable(getattr(scad.std.fastener, name, None))
+            for name in cad.std.fastener.__all__
+            if callable(getattr(cad.std.fastener, name, None))
         ]
 
         self.assertEqual(factory_names, ["make_bolt_rsolid", "make_nut_rsolid"])
@@ -42,7 +42,7 @@ class TestBoltSolid(unittest.TestCase):
         )
         for head_style, drive_style in styles:
             with self.subTest(head_style=head_style, drive_style=drive_style):
-                bolt = scad.std.fastener.make_bolt_rsolid(
+                bolt = cad.std.fastener.make_bolt_rsolid(
                     diameter=8.0,
                     length=24.0,
                     head_style=head_style,
@@ -57,17 +57,17 @@ class TestBoltSolid(unittest.TestCase):
                 self.assertEqual(meta["thread_start"], 24.0 - meta["thread_length"])
 
     def test_thread_styles_record_expected_interval(self):
-        none = scad.std.fastener.make_bolt_rsolid(
+        none = cad.std.fastener.make_bolt_rsolid(
             diameter=8.0,
             length=24.0,
             thread_style="none",
         )
-        full = scad.std.fastener.make_bolt_rsolid(
+        full = cad.std.fastener.make_bolt_rsolid(
             diameter=8.0,
             length=24.0,
             thread_style="full",
         )
-        partial = scad.std.fastener.make_bolt_rsolid(
+        partial = cad.std.fastener.make_bolt_rsolid(
             diameter=8.0,
             length=24.0,
             thread_style="partial",
@@ -84,7 +84,7 @@ class TestBoltSolid(unittest.TestCase):
         self.assertEqual(partial_meta["thread_length"], 15.0)
 
     def test_metric_coarse_series_and_basic_thread_dimensions(self):
-        bolt = scad.std.fastener.make_bolt_rsolid(
+        bolt = cad.std.fastener.make_bolt_rsolid(
             diameter=10.0,
             length=40.0,
         )
@@ -109,9 +109,9 @@ class TestBoltSolid(unittest.TestCase):
 
     def test_explicit_thread_pitch_is_required_outside_coarse_series(self):
         with self.assertRaises(ValueError):
-            scad.std.fastener.make_bolt_rsolid(diameter=9.0, length=24.0)
+            cad.std.fastener.make_bolt_rsolid(diameter=9.0, length=24.0)
 
-        bolt = scad.std.fastener.make_bolt_rsolid(
+        bolt = cad.std.fastener.make_bolt_rsolid(
             diameter=9.0,
             length=24.0,
             thread_pitch=1.25,
@@ -122,7 +122,7 @@ class TestBoltSolid(unittest.TestCase):
         )
 
     def test_auto_uses_full_thread_when_standard_partial_length_exceeds_length(self):
-        bolt = scad.std.fastener.make_bolt_rsolid(
+        bolt = cad.std.fastener.make_bolt_rsolid(
             diameter=4.0,
             length=13.0,
             thread_detail="cosmetic",
@@ -134,8 +134,8 @@ class TestBoltSolid(unittest.TestCase):
         self.assertEqual(meta["thread_length"], 13.0)
 
     def test_modeled_external_thread_strict_replay(self):
-        with scad.GraphSession() as session:
-            bolt = scad.std.fastener.make_bolt_rsolid(
+        with cad.GraphSession() as session:
+            bolt = cad.std.fastener.make_bolt_rsolid(
                 diameter=8.0,
                 length=24.0,
                 head_style="button",
@@ -147,7 +147,7 @@ class TestBoltSolid(unittest.TestCase):
                 thread_length=18.0,
                 drive_style="cross",
             )
-            model_json = scad.export_model_json(session=session)
+            model_json = cad.export_model_json(session=session)
 
         payload = json.loads(model_json)
         ops = [node["op"] for node in payload["graph"]["nodes"]]
@@ -158,7 +158,7 @@ class TestBoltSolid(unittest.TestCase):
             all("topo_delta" not in node for node in payload["graph"]["nodes"])
         )
 
-        replayed = scad.replay_model_json(json_str=model_json, strict=True)
+        replayed = cad.replay_model_json(json_str=model_json, strict=True)
         self.assertEqual(len(replayed), 1)
         self.assertAlmostEqual(replayed[0].get_volume(), bolt.get_volume(), places=5)
         print(
@@ -167,8 +167,8 @@ class TestBoltSolid(unittest.TestCase):
         )
 
     def test_external_thread_stabilization_records_only_selected_phase(self):
-        with scad.GraphSession() as session:
-            bolt = scad.std.fastener.make_bolt_rsolid(
+        with cad.GraphSession() as session:
+            bolt = cad.std.fastener.make_bolt_rsolid(
                 diameter=6.0,
                 length=18.0,
                 thread_style="full",
@@ -177,14 +177,14 @@ class TestBoltSolid(unittest.TestCase):
                 thread_pitch=1.0,
                 thread_depth=0.45,
             )
-            model_json = scad.export_model_json(session=session)
+            model_json = cad.export_model_json(session=session)
 
         meta = bolt.get_metadata("std.fastener.bolt")
         payload = json.loads(model_json)
         ops = [node["op"] for node in payload["graph"]["nodes"]]
         self.assertNotEqual(meta["thread_phase_degrees"], 0.0)
         self.assertEqual(ops.count("make_rotate_rshape"), 1)
-        replayed = scad.replay_model_json(json_str=model_json, strict=True)
+        replayed = cad.replay_model_json(json_str=model_json, strict=True)
         self.assertAlmostEqual(replayed[0].get_volume(), bolt.get_volume(), places=5)
 
     def test_invalid_bolt_parameters(self):
@@ -213,7 +213,7 @@ class TestBoltSolid(unittest.TestCase):
         )
         for kwargs in invalid_kwargs:
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
-                scad.std.fastener.make_bolt_rsolid(**kwargs)
+                cad.std.fastener.make_bolt_rsolid(**kwargs)
 
 
 class TestNutSolid(unittest.TestCase):
@@ -222,7 +222,7 @@ class TestNutSolid(unittest.TestCase):
             for hole_style in ("through", "blind"):
                 with self.subTest(nut_style=nut_style, hole_style=hole_style):
                     kwargs = {"hole_depth": 5.0} if hole_style == "blind" else {}
-                    nut = scad.std.fastener.make_nut_rsolid(
+                    nut = cad.std.fastener.make_nut_rsolid(
                         diameter=8.0,
                         width=13.0,
                         height=6.5,
@@ -237,13 +237,13 @@ class TestNutSolid(unittest.TestCase):
                     self.assertEqual(meta["hole_style"], hole_style)
 
     def test_blind_hole_retains_more_material_than_through_hole(self):
-        through = scad.std.fastener.make_nut_rsolid(
+        through = cad.std.fastener.make_nut_rsolid(
             diameter=8.0,
             width=13.0,
             height=7.0,
             hole_style="through",
         )
-        blind = scad.std.fastener.make_nut_rsolid(
+        blind = cad.std.fastener.make_nut_rsolid(
             diameter=8.0,
             width=13.0,
             height=7.0,
@@ -254,7 +254,7 @@ class TestNutSolid(unittest.TestCase):
         self.assertGreater(blind.get_volume(), through.get_volume())
 
     def test_modeled_internal_thread_strict_replay(self):
-        cosmetic = scad.std.fastener.make_nut_rsolid(
+        cosmetic = cad.std.fastener.make_nut_rsolid(
             diameter=8.0,
             width=13.0,
             height=7.0,
@@ -264,8 +264,8 @@ class TestNutSolid(unittest.TestCase):
             thread_detail="cosmetic",
             knurl_count=18,
         )
-        with scad.GraphSession() as session:
-            modeled = scad.std.fastener.make_nut_rsolid(
+        with cad.GraphSession() as session:
+            modeled = cad.std.fastener.make_nut_rsolid(
                 diameter=8.0,
                 width=13.0,
                 height=7.0,
@@ -278,7 +278,7 @@ class TestNutSolid(unittest.TestCase):
                 thread_depth=0.65,
                 knurl_count=18,
             )
-            model_json = scad.export_model_json(session=session)
+            model_json = cad.export_model_json(session=session)
 
         self.assertGreater(modeled.get_volume(), cosmetic.get_volume())
         payload = json.loads(model_json)
@@ -290,7 +290,7 @@ class TestNutSolid(unittest.TestCase):
             all("topo_delta" not in node for node in payload["graph"]["nodes"])
         )
 
-        replayed = scad.replay_model_json(json_str=model_json, strict=True)
+        replayed = cad.replay_model_json(json_str=model_json, strict=True)
         self.assertEqual(len(replayed), 1)
         self.assertAlmostEqual(replayed[0].get_volume(), modeled.get_volume(), places=5)
         print(
@@ -299,8 +299,8 @@ class TestNutSolid(unittest.TestCase):
         )
 
     def test_internal_thread_stabilization_records_only_selected_phase(self):
-        with scad.GraphSession() as session:
-            nut = scad.std.fastener.make_nut_rsolid(
+        with cad.GraphSession() as session:
+            nut = cad.std.fastener.make_nut_rsolid(
                 diameter=6.0,
                 width=10.0,
                 height=5.0,
@@ -309,14 +309,14 @@ class TestNutSolid(unittest.TestCase):
                 thread_pitch=1.0,
                 thread_depth=0.45,
             )
-            model_json = scad.export_model_json(session=session)
+            model_json = cad.export_model_json(session=session)
 
         meta = nut.get_metadata("std.fastener.nut")
         payload = json.loads(model_json)
         ops = [node["op"] for node in payload["graph"]["nodes"]]
         self.assertNotEqual(meta["thread_phase_degrees"], 0.0)
         self.assertEqual(ops.count("make_rotate_rshape"), 1)
-        replayed = scad.replay_model_json(json_str=model_json, strict=True)
+        replayed = cad.replay_model_json(json_str=model_json, strict=True)
         self.assertAlmostEqual(replayed[0].get_volume(), nut.get_volume(), places=5)
 
     def test_invalid_nut_parameters(self):
@@ -352,7 +352,7 @@ class TestNutSolid(unittest.TestCase):
         )
         for kwargs in invalid_kwargs:
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
-                scad.std.fastener.make_nut_rsolid(**kwargs)
+                cad.std.fastener.make_nut_rsolid(**kwargs)
 
 
 if __name__ == "__main__":

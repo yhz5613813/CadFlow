@@ -1067,14 +1067,14 @@ class StdlibDocumentGenerator(APIDocumentGenerator):
     def _import_surface_for(self, name: str, module_name: str) -> str:
         if module_name == "std/bearing.py":
             return (
-                "standard library: `import cadflow as scad` then "
-                f"`scad.std.bearing.{name}(...)`; direct submodule import: "
+                "standard library: `import cadflow as cad` then "
+                f"`cad.std.bearing.{name}(...)`; direct submodule import: "
                 f"`from cadflow.std.bearing import {name}`"
             )
         if module_name == "std/gear.py":
             return (
-                "standard library: `import cadflow as scad` then "
-                f"`scad.std.gear.{name}(...)`; direct submodule import: "
+                "standard library: `import cadflow as cad` then "
+                f"`cad.std.gear.{name}(...)`; direct submodule import: "
                 f"`from cadflow.std.gear import {name}`"
             )
 
@@ -1113,7 +1113,7 @@ class StdlibDocumentGenerator(APIDocumentGenerator):
             "",
             "## Import Surfaces",
             "",
-            "- Recommended package-level module export: `import cadflow as scad`, then call functions through submodules such as `scad.std.gear.<function>(...)` and `scad.std.bearing.<function>(...)`.",
+            "- Recommended package-level module export: `import cadflow as cad`, then call functions through submodules such as `cad.std.gear.<function>(...)` and `cad.std.bearing.<function>(...)`.",
             "- Direct submodule import is also supported, for example `from cadflow.std.gear import make_spur_gear_rsolid` or `from cadflow.std.bearing import make_ball_bearing_rassembly`.",
             "",
             "## Usage Guidance",

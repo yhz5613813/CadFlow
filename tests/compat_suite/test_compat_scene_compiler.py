@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import _mesh
 from cadflow.scene import (
     export_scene,
@@ -18,8 +18,8 @@ from cadflow.scene import (
 )
 
 
-def _manual_source() -> scad.SceneSource:
-    return scad.SceneSource(kind="manual", source_id="main")
+def _manual_source() -> cad.SceneSource:
+    return cad.SceneSource(kind="manual", source_id="main")
 
 
 def _mutable_package(package, tmp_path, name):
@@ -49,25 +49,25 @@ def _replace_embedded_model(manifest, blobs, model):
 
 @pytest.fixture
 def embedded_source_package():
-    @scad.model(graph_id="source-boundaries")
+    @cad.model(graph_id="source-boundaries")
     def build_model():
-        return scad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
+        return cad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
 
     result = build_model()
-    return scad.compile_scene(
+    return cad.compile_scene(
         scene_id="source-boundaries",
-        roots=(scad.SceneRoot(root_id="main", value=result.value),),
+        roots=(cad.SceneRoot(root_id="main", value=result.value),),
         source=result,
-        options=scad.SceneCompileOptions(embed_source=True),
+        options=cad.SceneCompileOptions(embed_source=True),
     )
 
 
 def test_compile_scene_is_deterministic_and_self_validating():
-    solid = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
-    roots = (scad.SceneRoot(root_id="main", value=solid),)
+    solid = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+    roots = (cad.SceneRoot(root_id="main", value=solid),)
 
-    first = scad.compile_scene(scene_id="box", roots=roots, source=_manual_source())
-    second = scad.compile_scene(scene_id="box", roots=roots, source=_manual_source())
+    first = cad.compile_scene(scene_id="box", roots=roots, source=_manual_source())
+    second = cad.compile_scene(scene_id="box", roots=roots, source=_manual_source())
 
     assert first.manifest == second.manifest
     assert dict(first.blobs) == dict(second.blobs)
@@ -76,16 +76,16 @@ def test_compile_scene_is_deterministic_and_self_validating():
 
 
 def test_embedded_python_source_is_integrity_checked(tmp_path):
-    @scad.model(graph_id="source-integrity")
+    @cad.model(graph_id="source-integrity")
     def build_model():
-        return scad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
+        return cad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
 
     result = build_model()
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="source-integrity",
-        roots=(scad.SceneRoot(root_id="main", value=result.value),),
+        roots=(cad.SceneRoot(root_id="main", value=result.value),),
         source=result,
-        options=scad.SceneCompileOptions(embed_source=True),
+        options=cad.SceneCompileOptions(embed_source=True),
     )
     source_record = package.manifest["source"]["source_files"][0]
 
@@ -114,37 +114,37 @@ def test_embedded_python_source_is_integrity_checked(tmp_path):
 
 
 def test_model_scene_rejects_root_from_different_graph_with_same_graph_id():
-    @scad.model(graph_id="shared-provenance-id")
+    @cad.model(graph_id="shared-provenance-id")
     def first_model():
-        return scad.make_box_rsolid(width=1.0, height=2.0, depth=3.0)
+        return cad.make_box_rsolid(width=1.0, height=2.0, depth=3.0)
 
-    @scad.model(graph_id="shared-provenance-id")
+    @cad.model(graph_id="shared-provenance-id")
     def second_model():
-        return scad.make_box_rsolid(width=4.0, height=5.0, depth=6.0)
+        return cad.make_box_rsolid(width=4.0, height=5.0, depth=6.0)
 
     first = first_model()
     second = second_model()
 
     with pytest.raises(ValueError, match="not owned by the source model graph"):
-        scad.compile_scene(
+        cad.compile_scene(
             scene_id="cross-graph-root",
-            roots=(scad.SceneRoot(root_id="main", value=first.value),),
+            roots=(cad.SceneRoot(root_id="main", value=first.value),),
             source=second,
         )
 
 
 def test_model_scene_rejects_stale_model_result_snapshot():
-    @scad.model(graph_id="stale-model-snapshot")
+    @cad.model(graph_id="stale-model-snapshot")
     def build_model():
-        return scad.make_box_rsolid(width=1.0, height=2.0, depth=3.0)
+        return cad.make_box_rsolid(width=1.0, height=2.0, depth=3.0)
 
     result = build_model()
     result.session.graph.add_node("late_mutation", node_id="late_mutation")
 
     with pytest.raises(ValueError, match="no longer matches its model JSON snapshot"):
-        scad.compile_scene(
+        cad.compile_scene(
             scene_id="stale-model-snapshot",
-            roots=(scad.SceneRoot(root_id="main", value=result.value),),
+            roots=(cad.SceneRoot(root_id="main", value=result.value),),
             source=result,
         )
 
@@ -206,10 +206,10 @@ def test_package_rejects_invalid_utf8_python_source(
 
 
 def test_sphere_entity_uses_kernel_axis_directions():
-    solid = scad.make_sphere_rsolid(radius=2.5, center=(1.0, 2.0, 3.0))
-    package = scad.compile_scene(
+    solid = cad.make_sphere_rsolid(radius=2.5, center=(1.0, 2.0, 3.0))
+    package = cad.compile_scene(
         scene_id="sphere",
-        roots=(scad.SceneRoot(root_id="main", value=solid),),
+        roots=(cad.SceneRoot(root_id="main", value=solid),),
         source=_manual_source(),
     )
     entity_uri = package.manifest["entity_assets"][0]["uri"]
@@ -230,27 +230,27 @@ def test_sphere_entity_uses_kernel_axis_directions():
 
 
 def test_repeated_part_occurrences_reuse_definition_and_assets():
-    part = scad.make_part_rpart(
+    part = cad.make_part_rpart(
         part_id="block",
-        body=scad.make_box_rsolid(width=4.0, height=5.0, depth=6.0),
+        body=cad.make_box_rsolid(width=4.0, height=5.0, depth=6.0),
     )
-    assembly = scad.make_assembly_rassembly(assembly_id="root")
-    assembly = scad.add_component_rassembly(
+    assembly = cad.make_assembly_rassembly(assembly_id="root")
+    assembly = cad.add_component_rassembly(
         assembly=assembly,
         item=part,
         component_id="first",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
     )
-    assembly = scad.add_component_rassembly(
+    assembly = cad.add_component_rassembly(
         assembly=assembly,
         item=part,
         component_id="second",
-        placement=scad.make_placement_rplacement(origin=(10.0, 0.0, 0.0)),
+        placement=cad.make_placement_rplacement(origin=(10.0, 0.0, 0.0)),
     )
 
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="repeated",
-        roots=(scad.SceneRoot(root_id="main", value=assembly),),
+        roots=(cad.SceneRoot(root_id="main", value=assembly),),
         source=_manual_source(),
     )
     definitions = package.manifest["definitions"]
@@ -269,48 +269,48 @@ def test_repeated_part_occurrences_reuse_definition_and_assets():
 
 
 def test_same_part_id_with_different_body_geometry_is_rejected():
-    first = scad.make_part_rpart(
+    first = cad.make_part_rpart(
         part_id="shared",
-        body=scad.make_box_rsolid(width=4.0, height=5.0, depth=6.0),
+        body=cad.make_box_rsolid(width=4.0, height=5.0, depth=6.0),
     )
-    second = scad.make_part_rpart(
+    second = cad.make_part_rpart(
         part_id="shared",
-        body=scad.make_box_rsolid(width=7.0, height=5.0, depth=6.0),
+        body=cad.make_box_rsolid(width=7.0, height=5.0, depth=6.0),
     )
-    assembly = scad.make_assembly_rassembly(assembly_id="root")
-    assembly = scad.add_component_rassembly(
+    assembly = cad.make_assembly_rassembly(assembly_id="root")
+    assembly = cad.add_component_rassembly(
         assembly=assembly,
         item=first,
         component_id="first",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
     )
-    assembly = scad.add_component_rassembly(
+    assembly = cad.add_component_rassembly(
         assembly=assembly,
         item=second,
         component_id="second",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
     )
 
     with pytest.raises(ValueError, match="conflicting Part body geometry"):
-        scad.compile_scene(
+        cad.compile_scene(
             scene_id="conflict",
-            roots=(scad.SceneRoot(root_id="main", value=assembly),),
+            roots=(cad.SceneRoot(root_id="main", value=assembly),),
             source=_manual_source(),
         )
 
 
 def test_manual_face_connector_is_exported_with_entity_target():
-    solid = scad.make_box_rsolid(width=4.0, height=5.0, depth=6.0)
-    connector = scad.make_face_connector_rconnector(
+    solid = cad.make_box_rsolid(width=4.0, height=5.0, depth=6.0)
+    connector = cad.make_face_connector_rconnector(
         connector_id="mount",
         face=solid.get_faces()[0],
     )
-    part = scad.make_part_rpart(part_id="block", body=solid)
-    part = scad.add_connector_rpart(part=part, connector=connector)
+    part = cad.make_part_rpart(part_id="block", body=solid)
+    part = cad.add_connector_rpart(part=part, connector=connector)
 
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="connector",
-        roots=(scad.SceneRoot(root_id="main", value=part),),
+        roots=(cad.SceneRoot(root_id="main", value=part),),
         source=_manual_source(),
     )
     snapshot = package.manifest["connectors"][0]
@@ -322,11 +322,11 @@ def test_manual_face_connector_is_exported_with_entity_target():
 
 
 def test_render_and_collision_use_the_same_default_mesh_object():
-    solid = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+    solid = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
     cached = _mesh.cached_mesh(solid)
     assert cached is not None
 
-    render = scad.build_render_mesh(
+    render = cad.build_render_mesh(
         solid,
         face_entity_ids=[f"entity/face/{index}" for index in range(len(solid.get_faces()))],
         linear_tolerance=0.35,
@@ -338,16 +338,16 @@ def test_render_and_collision_use_the_same_default_mesh_object():
 
 
 def test_edge_mesh_uses_angular_tolerance_for_curved_edges():
-    solid = scad.make_cylinder_rsolid(radius=2.0, height=5.0)
+    solid = cad.make_cylinder_rsolid(radius=2.0, height=5.0)
     edge_ids = [f"edge-{index}" for index, _edge in enumerate(solid.get_edges())]
 
-    default = scad.build_edge_mesh(
+    default = cad.build_edge_mesh(
         solid,
         edge_entity_ids=edge_ids,
         linear_tolerance=0.35,
         angular_tolerance=0.22,
     )
-    finer = scad.build_edge_mesh(
+    finer = cad.build_edge_mesh(
         solid,
         edge_entity_ids=edge_ids,
         linear_tolerance=0.35,
@@ -361,10 +361,10 @@ def test_edge_mesh_uses_angular_tolerance_for_curved_edges():
 
 
 def test_edge_mesh_default_angular_tolerance_preserves_public_call_shape():
-    solid = scad.make_cylinder_rsolid(radius=2.0, height=5.0)
+    solid = cad.make_cylinder_rsolid(radius=2.0, height=5.0)
     edge_ids = [f"edge-{index}" for index, _edge in enumerate(solid.get_edges())]
 
-    mesh = scad.build_edge_mesh(
+    mesh = cad.build_edge_mesh(
         solid,
         edge_entity_ids=edge_ids,
         linear_tolerance=0.35,
@@ -374,12 +374,12 @@ def test_edge_mesh_default_angular_tolerance_preserves_public_call_shape():
 
 
 def test_compiler_declares_angular_edge_render_profile():
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="edge-profile",
         roots=(
-            scad.SceneRoot(
+            cad.SceneRoot(
                 root_id="main",
-                value=scad.make_cylinder_rsolid(radius=2.0, height=5.0),
+                value=cad.make_cylinder_rsolid(radius=2.0, height=5.0),
             ),
         ),
         source=_manual_source(),
@@ -397,12 +397,12 @@ def test_compiler_declares_angular_edge_render_profile():
 
 
 def test_validator_keeps_profile_1_scene_packages_readable(tmp_path):
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="legacy-profile",
         roots=(
-            scad.SceneRoot(
+            cad.SceneRoot(
                 root_id="main",
-                value=scad.make_box_rsolid(width=2.0, height=3.0, depth=4.0),
+                value=cad.make_box_rsolid(width=2.0, height=3.0, depth=4.0),
             ),
         ),
         source=_manual_source(),
@@ -418,9 +418,9 @@ def test_validator_keeps_profile_1_scene_packages_readable(tmp_path):
 
 
 def test_export_scene_is_canonical_and_round_trips_through_archive_preflight(tmp_path):
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="archive",
-        roots=(scad.SceneRoot(root_id="main", value=scad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)),),
+        roots=(cad.SceneRoot(root_id="main", value=cad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)),),
         source=_manual_source(),
     )
     first_path = tmp_path / "first.scene.zip"
@@ -438,41 +438,41 @@ def test_export_scene_is_canonical_and_round_trips_through_archive_preflight(tmp
 
 
 def test_forwarded_connector_is_finalized_after_its_source_connector():
-    part = scad.make_part_rpart(
+    part = cad.make_part_rpart(
         part_id="inner",
-        body=scad.make_box_rsolid(width=2.0, height=2.0, depth=2.0),
+        body=cad.make_box_rsolid(width=2.0, height=2.0, depth=2.0),
     )
-    part = scad.add_connector_rpart(
+    part = cad.add_connector_rpart(
         part=part,
-        connector=scad.make_placement_connector_rconnector(
+        connector=cad.make_placement_connector_rconnector(
             connector_id="axis",
-            placement=scad.make_placement_rplacement(origin=(1.0, 0.0, 0.0)),
+            placement=cad.make_placement_rplacement(origin=(1.0, 0.0, 0.0)),
         ),
     )
-    child = scad.make_assembly_rassembly(assembly_id="child")
-    child = scad.add_component_rassembly(
+    child = cad.make_assembly_rassembly(assembly_id="child")
+    child = cad.add_component_rassembly(
         assembly=child,
         item=part,
         component_id="inner",
-        placement=scad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
+        placement=cad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
     )
-    child = scad.forward_connector_rassembly(
+    child = cad.forward_connector_rassembly(
         assembly=child,
         connector_id="public",
         source_component_id="inner",
         source_connector_id="axis",
     )
-    root = scad.make_assembly_rassembly(assembly_id="root")
-    root = scad.add_component_rassembly(
+    root = cad.make_assembly_rassembly(assembly_id="root")
+    root = cad.add_component_rassembly(
         assembly=root,
         item=child,
         component_id="child",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
     )
 
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="forwarded",
-        roots=(scad.SceneRoot(root_id="main", value=root),),
+        roots=(cad.SceneRoot(root_id="main", value=root),),
         source=_manual_source(),
     )
 
@@ -483,42 +483,42 @@ def test_forwarded_connector_is_finalized_after_its_source_connector():
 
 
 def test_model_connector_sources_use_product_attachment_operations():
-    @scad.model(graph_id="connector_provenance")
+    @cad.model(graph_id="connector_provenance")
     def build_model():
-        body = scad.make_box_rsolid(width=2.0, height=2.0, depth=2.0)
-        part = scad.make_part_rpart(part_id="block", body=body)
-        part = scad.add_connector_rpart(
+        body = cad.make_box_rsolid(width=2.0, height=2.0, depth=2.0)
+        part = cad.make_part_rpart(part_id="block", body=body)
+        part = cad.add_connector_rpart(
             part=part,
-            connector=scad.make_placement_connector_rconnector(
+            connector=cad.make_placement_connector_rconnector(
                 connector_id="axis",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             ),
         )
-        assembly = scad.make_assembly_rassembly(assembly_id="root")
-        assembly = scad.add_component_rassembly(
+        assembly = cad.make_assembly_rassembly(assembly_id="root")
+        assembly = cad.add_component_rassembly(
             assembly=assembly,
             item=part,
             component_id="block",
-            placement=scad.identity_placement_rplacement(),
+            placement=cad.identity_placement_rplacement(),
         )
-        assembly = scad.forward_connector_rassembly(
+        assembly = cad.forward_connector_rassembly(
             assembly=assembly,
             connector_id="public_axis",
             source_component_id="block",
             source_connector_id="axis",
         )
-        assembly = scad.place_component_rassembly(
+        assembly = cad.place_component_rassembly(
             assembly=assembly,
             component_id="block",
-            placement=scad.make_placement_rplacement(origin=(1.0, 0.0, 0.0)),
+            placement=cad.make_placement_rplacement(origin=(1.0, 0.0, 0.0)),
         )
-        scad.capture_result(value=assembly)
+        cad.capture_result(value=assembly)
         return assembly
 
     result = build_model()
-    package = scad.compile_scene(
+    package = cad.compile_scene(
         scene_id="connector-provenance",
-        roots=(scad.SceneRoot(root_id="main", value=result.value),),
+        roots=(cad.SceneRoot(root_id="main", value=result.value),),
         source=result,
     )
     graph_nodes = {

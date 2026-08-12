@@ -69,6 +69,18 @@ def _subshape_indices(
         raise NativeError("subshape index exceeds the platform size limit") from error
 
 
+def _u64_array(values: Sequence[int], name: str) -> tuple[C.Array[C.c_ulonglong], int]:
+    if not values:
+        raise NativeError(f"{name} must not be empty")
+    try:
+        normalized = [operator.index(value) for value in values]
+    except TypeError as error:
+        raise NativeError(f"{name} must contain integers") from error
+    if any(value <= 0 for value in normalized):
+        raise NativeError(f"{name} must contain positive handles")
+    return (C.c_ulonglong * len(normalized))(*normalized), len(normalized)
+
+
 def _library_candidates() -> Iterable[Path]:
     explicit = os.environ.get("CADFLOW_CORE_LIBRARY")
     if explicit:
@@ -104,6 +116,8 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_sphere": [handle, f64],
         "cadflow_cone": [handle, f64, f64, f64],
         "cadflow_import_step": [handle, C.c_char_p],
+        "cadflow_import_brep": [handle, C.c_char_p],
+        "cadflow_import_stl": [handle, C.c_char_p],
         "cadflow_polyline": [handle, C.POINTER(f64), C.c_size_t, C.c_int],
         "cadflow_circle_profile": [handle, f64, f64, f64, f64, f64, f64, f64],
         "cadflow_arc": [handle, C.POINTER(f64)],
@@ -125,6 +139,17 @@ def _configure(lib: C.CDLL) -> None:
         ],
         "cadflow_loft": [handle, C.POINTER(u64), C.c_size_t, C.c_int, C.c_int],
         "cadflow_sweep": [handle, u64, u64, C.c_int, C.c_int],
+        "cadflow_bspline": [
+            handle, C.POINTER(f64), C.c_size_t, C.c_int,
+            C.POINTER(f64), C.c_size_t, C.POINTER(C.c_int), C.c_size_t,
+            C.POINTER(f64), C.c_int,
+        ],
+        "cadflow_twisted_sweep": [handle, u64, f64, f64, f64, f64, f64, f64, f64, f64, f64],
+        "cadflow_ruled_surface": [handle, u64, u64],
+        "cadflow_filling_surface": [handle, C.POINTER(u64), C.c_size_t, f64],
+        "cadflow_gordon_surface": [handle, C.POINTER(u64), C.c_size_t, C.POINTER(u64), C.c_size_t, f64],
+        "cadflow_sew": [handle, C.POINTER(u64), C.c_size_t, f64],
+        "cadflow_shell_to_solid": [handle, u64],
         "cadflow_cut": [handle, u64, u64],
         "cadflow_union": [handle, u64, u64],
         "cadflow_intersect": [handle, u64, u64],
@@ -132,6 +157,11 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_rotate": [handle, u64, f64, f64, f64, f64, f64, f64, f64],
         "cadflow_mirror": [handle, u64, f64, f64, f64, f64, f64, f64],
         "cadflow_scale": [handle, u64, f64, f64, f64, f64],
+        "cadflow_subshape_count": [handle, u64, C.c_int],
+        "cadflow_subshape_handles": [handle, u64, C.c_int, C.POINTER(u64), C.c_size_t],
+        "cadflow_free_boundary_count": [handle, u64, f64],
+        "cadflow_free_boundary_handles": [handle, u64, f64, C.POINTER(u64), C.c_size_t],
+        "cadflow_face_properties": [handle, u64, f64, f64, C.POINTER(f64), C.POINTER(f64)],
         "cadflow_volume": [handle, u64],
         "cadflow_area": [handle, u64],
         "cadflow_length": [handle, u64],
@@ -146,6 +176,7 @@ def _configure(lib: C.CDLL) -> None:
     for name in (
         "cadflow_box", "cadflow_cylinder", "cadflow_sphere", "cadflow_cone",
         "cadflow_import_step",
+        "cadflow_import_brep", "cadflow_import_stl",
         "cadflow_polyline", "cadflow_circle_profile", "cadflow_face",
         "cadflow_bezier_surface", "cadflow_fit_surface",
         "cadflow_arc", "cadflow_interpolate",
@@ -154,12 +185,21 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_fillet", "cadflow_chamfer", "cadflow_shell",
         "cadflow_loft",
         "cadflow_sweep",
+        "cadflow_bspline", "cadflow_twisted_sweep", "cadflow_ruled_surface",
+        "cadflow_filling_surface", "cadflow_gordon_surface", "cadflow_sew",
+        "cadflow_shell_to_solid",
         "cadflow_cut", "cadflow_union", "cadflow_intersect", "cadflow_translate",
         "cadflow_rotate", "cadflow_mirror", "cadflow_scale",
     ):
         getattr(lib, name).restype = u64
     for name in ("cadflow_volume", "cadflow_area", "cadflow_length", "cadflow_distance"):
         getattr(lib, name).restype = f64
+    for name in (
+        "cadflow_subshape_count", "cadflow_subshape_handles",
+        "cadflow_free_boundary_count", "cadflow_free_boundary_handles",
+    ):
+        getattr(lib, name).restype = C.c_size_t
+    lib.cadflow_face_properties.restype = C.c_int
     lib.cadflow_kind.restype = C.c_char_p
     lib.cadflow_export_step.restype = C.c_int
     lib.cadflow_export_stl.restype = C.c_int
@@ -243,6 +283,18 @@ class NativeSession:
         self._ensure_open()
         return self._handle(
             self._lib.cadflow_import_step(self._raw, os.fspath(path).encode("utf-8"))
+        )
+
+    def import_brep(self, path: str | os.PathLike[str]) -> ShapeHandle:
+        self._ensure_open()
+        return self._handle(
+            self._lib.cadflow_import_brep(self._raw, os.fspath(path).encode("utf-8"))
+        )
+
+    def import_stl(self, path: str | os.PathLike[str]) -> ShapeHandle:
+        self._ensure_open()
+        return self._handle(
+            self._lib.cadflow_import_stl(self._raw, os.fspath(path).encode("utf-8"))
         )
 
     def polyline(
@@ -492,6 +544,72 @@ class NativeSession:
             )
         )
 
+    def bspline(
+        self,
+        control_points: Sequence[Sequence[float]],
+        *,
+        degree: int,
+        knots: Sequence[float],
+        multiplicities: Sequence[int],
+        weights: Sequence[float] | None = None,
+        periodic: bool = False,
+    ) -> ShapeHandle:
+        self._ensure_open()
+        coordinates = [tuple(float(value) for value in point) for point in control_points]
+        if any(len(point) != 3 for point in coordinates):
+            raise NativeError("B-spline control points must contain three coordinates")
+        flat = [value for point in coordinates for value in point]
+        poles = (C.c_double * len(flat))(*flat)
+        knot_values = (C.c_double * len(knots))(*[float(value) for value in knots])
+        mult_values = (C.c_int * len(multiplicities))(*[int(value) for value in multiplicities])
+        weight_values = None if weights is None else (C.c_double * len(weights))(*[float(value) for value in weights])
+        return self._handle(self._lib.cadflow_bspline(
+            self._raw, poles, len(coordinates), int(degree), knot_values, len(knots),
+            mult_values, len(multiplicities), weight_values, int(periodic)))
+
+    def twisted_sweep(
+        self,
+        profile: ShapeHandle,
+        distance: float,
+        twist_degrees: float,
+        *,
+        origin: Sequence[float] = (0, 0, 0),
+        axis: Sequence[float] = (0, 0, 1),
+        guide_radius: float = 1.0,
+    ) -> ShapeHandle:
+        if len(origin) != 3 or len(axis) != 3:
+            raise NativeError("twisted sweep origin and axis must contain three values")
+        return self._handle(self._lib.cadflow_twisted_sweep(
+            self._raw, self._id(profile), distance, twist_degrees,
+            *map(float, origin), *map(float, axis), guide_radius))
+
+    def ruled_surface(self, edge_a: ShapeHandle, edge_b: ShapeHandle) -> ShapeHandle:
+        return self._handle(self._lib.cadflow_ruled_surface(
+            self._raw, self._id(edge_a), self._id(edge_b)))
+
+    def filling_surface(self, edges: Sequence[ShapeHandle], *, tolerance: float = 1e-6) -> ShapeHandle:
+        values, count = _u64_array([self._id(edge) for edge in edges], "filling edges")
+        return self._handle(self._lib.cadflow_filling_surface(self._raw, values, count, tolerance))
+
+    def gordon_surface(
+        self,
+        profiles: Sequence[ShapeHandle],
+        guides: Sequence[ShapeHandle],
+        *,
+        tolerance: float = 1e-6,
+    ) -> ShapeHandle:
+        profile_values, profile_count = _u64_array([self._id(value) for value in profiles], "Gordon profiles")
+        guide_values, guide_count = _u64_array([self._id(value) for value in guides], "Gordon guides")
+        return self._handle(self._lib.cadflow_gordon_surface(
+            self._raw, profile_values, profile_count, guide_values, guide_count, tolerance))
+
+    def sew(self, faces: Sequence[ShapeHandle], *, tolerance: float = 1e-6) -> ShapeHandle:
+        values, count = _u64_array([self._id(face) for face in faces], "sewing faces")
+        return self._handle(self._lib.cadflow_sew(self._raw, values, count, tolerance))
+
+    def shell_to_solid(self, shell: ShapeHandle) -> ShapeHandle:
+        return self._handle(self._lib.cadflow_shell_to_solid(self._raw, self._id(shell)))
+
     def cut(self, body: ShapeHandle, tool: ShapeHandle) -> ShapeHandle:
         return self._handle(self._lib.cadflow_cut(self._raw, self._id(body), self._id(tool)))
 
@@ -586,6 +704,47 @@ class NativeSession:
         if not ok:
             raise NativeError("native topology query failed")
         return dict(zip(("vertices", "edges", "faces", "solids"), map(int, output)))
+
+    def subshapes(self, shape: ShapeHandle, shape_type: int) -> tuple[ShapeHandle, ...]:
+        self._ensure_open()
+        count = int(self._lib.cadflow_subshape_count(self._raw, self._id(shape), int(shape_type)))
+        self._check()
+        if not count:
+            return ()
+        values = (C.c_ulonglong * count)()
+        returned = int(self._lib.cadflow_subshape_handles(
+            self._raw, self._id(shape), int(shape_type), values, count))
+        self._check()
+        if returned != count:
+            raise NativeError("native subshape count changed during extraction")
+        return tuple(self._handle(value) for value in values)
+
+    def free_boundaries(self, shape: ShapeHandle, *, tolerance: float = 1e-6) -> tuple[ShapeHandle, ...]:
+        self._ensure_open()
+        count = int(self._lib.cadflow_free_boundary_count(self._raw, self._id(shape), tolerance))
+        self._check()
+        if not count:
+            return ()
+        values = (C.c_ulonglong * count)()
+        returned = int(self._lib.cadflow_free_boundary_handles(
+            self._raw, self._id(shape), tolerance, values, count))
+        self._check()
+        if returned != count:
+            raise NativeError("native free-boundary count changed during extraction")
+        return tuple(self._handle(value) for value in values)
+
+    def face_properties(self, face: ShapeHandle, *, u: float = 0.5, v: float = 0.5) -> dict[str, tuple[float, ...]]:
+        normal = (C.c_double * 3)()
+        curvature = (C.c_double * 3)()
+        ok = self._lib.cadflow_face_properties(
+            self._raw, self._id(face), u, v, normal, curvature)
+        self._check()
+        if not ok:
+            raise NativeError("native face property query failed")
+        return {
+            "normal": tuple(float(value) for value in normal),
+            "curvature": tuple(float(value) for value in curvature),
+        }
 
     def kind(self, shape: ShapeHandle) -> str:
         value = self._lib.cadflow_kind(self._raw, self._id(shape))

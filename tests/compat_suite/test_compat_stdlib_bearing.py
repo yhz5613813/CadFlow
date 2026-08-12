@@ -4,12 +4,12 @@ import inspect
 import json
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 
 
 class TestStdBearingSurface(unittest.TestCase):
     def test_preferred_nested_std_export_surface(self):
-        assembly = scad.std.bearing.make_ball_bearing_rassembly(
+        assembly = cad.std.bearing.make_ball_bearing_rassembly(
             8.0,
             22.0,
             7.0,
@@ -20,12 +20,12 @@ class TestStdBearingSurface(unittest.TestCase):
             "bearing_surface_test",
         )
 
-        self.assertIsInstance(assembly, scad.Assembly)
+        self.assertIsInstance(assembly, cad.Assembly)
 
     def test_public_bearing_factories_follow_make_rtype_naming(self):
         factory_names = [
-            name for name in scad.std.bearing.__all__
-            if callable(getattr(scad.std.bearing, name, None))
+            name for name in cad.std.bearing.__all__
+            if callable(getattr(cad.std.bearing, name, None))
         ]
 
         self.assertGreater(len(factory_names), 0)
@@ -34,7 +34,7 @@ class TestStdBearingSurface(unittest.TestCase):
             self.assertIn("_r", name, name)
 
     def test_ball_bearing_signature_has_no_keyword_only_separator(self):
-        signature = inspect.signature(scad.std.bearing.make_ball_bearing_rassembly)
+        signature = inspect.signature(cad.std.bearing.make_ball_bearing_rassembly)
 
         self.assertNotIn(
             inspect.Parameter.KEYWORD_ONLY,
@@ -44,8 +44,8 @@ class TestStdBearingSurface(unittest.TestCase):
 
 class TestBallBearingAssembly(unittest.TestCase):
     def test_basic_ball_bearing_assembly(self):
-        with scad.GraphSession() as session:
-            bearing = scad.std.bearing.make_ball_bearing_rassembly(
+        with cad.GraphSession() as session:
+            bearing = cad.std.bearing.make_ball_bearing_rassembly(
                 8.0,
                 22.0,
                 7.0,
@@ -56,8 +56,8 @@ class TestBallBearingAssembly(unittest.TestCase):
                 "bearing_basic_test",
                 30.0,
             )
-            preview = scad.make_compound_from_assembly_rcompound(bearing)
-            model_json = scad.export_model_json(session)
+            preview = cad.make_compound_from_assembly_rcompound(bearing)
+            model_json = cad.export_model_json(session)
 
         meta = bearing.get_metadata("std.bearing.ball_bearing")
         self.assertEqual(meta["ball_count"], 7)
@@ -138,7 +138,7 @@ class TestBallBearingAssembly(unittest.TestCase):
 
         self.assertEqual(len(preview.get_solids()), 9)
         self.assertGreater(preview.get_volume(), 0.0)
-        self.assertTrue(scad.measure_constraint_residual_rconstraintresidual(
+        self.assertTrue(cad.measure_constraint_residual_rconstraintresidual(
             bearing,
             "inner_outer_revolute",
         ).within_tolerance)
@@ -159,7 +159,7 @@ class TestBallBearingAssembly(unittest.TestCase):
         self.assertTrue(all("topo_delta" not in node for node in stdlib_nodes))
 
     def test_inferred_ball_count_is_recorded(self):
-        bearing = scad.std.bearing.make_ball_bearing_rassembly(
+        bearing = cad.std.bearing.make_ball_bearing_rassembly(
             8.0,
             22.0,
             7.0,
@@ -171,7 +171,7 @@ class TestBallBearingAssembly(unittest.TestCase):
         self.assertEqual(len(meta["ball_component_ids"]), meta["ball_count"])
 
     def test_external_constraints_can_bind_to_internal_connectors(self):
-        bearing = scad.std.bearing.make_ball_bearing_rassembly(
+        bearing = cad.std.bearing.make_ball_bearing_rassembly(
             8.0,
             22.0,
             7.0,
@@ -182,45 +182,45 @@ class TestBallBearingAssembly(unittest.TestCase):
             "bearing_bind_test",
         )
 
-        shaft = scad.make_cylinder_rsolid(
+        shaft = cad.make_cylinder_rsolid(
             radius=3.8,
             height=14.0,
             bottom_face_center=(0.0, 0.0, -7.0),
             axis=(0.0, 0.0, 1.0),
         )
-        shaft_part = scad.make_part_rpart("shaft", shaft)
+        shaft_part = cad.make_part_rpart("shaft", shaft)
         top_face = max(
             shaft.get_faces(),
             key=lambda face: face.get_center().z if face.get_normal_at().z > 0.7 else -999.0,
         )
-        shaft_axis = scad.make_face_connector_rconnector("axis", top_face)
-        shaft_part = scad.add_connector_rpart(shaft_part, shaft_axis)
-        bearing = scad.add_component_rassembly(
+        shaft_axis = cad.make_face_connector_rconnector("axis", top_face)
+        shaft_part = cad.add_connector_rpart(shaft_part, shaft_axis)
+        bearing = cad.add_component_rassembly(
             bearing,
             shaft_part,
             component_id="shaft",
-            placement=scad.identity_placement_rplacement(),
+            placement=cad.identity_placement_rplacement(),
         )
-        bearing = scad.add_fixed_constraint_rassembly(
+        bearing = cad.add_fixed_constraint_rassembly(
             bearing,
             "shaft_to_inner_ring",
-            scad.make_connector_ref_rconnectorref("inner_ring", "axis"),
-            scad.make_connector_ref_rconnectorref("shaft", "axis"),
+            cad.make_connector_ref_rconnectorref("inner_ring", "axis"),
+            cad.make_connector_ref_rconnectorref("shaft", "axis"),
         )
-        bearing = scad.ground_component_rassembly(
+        bearing = cad.ground_component_rassembly(
             assembly=bearing,
             component_id="outer_ring",
         )
-        bearing = scad.solve_assembly_constraints_rassembly(bearing, strict=False)
+        bearing = cad.solve_assembly_constraints_rassembly(bearing, strict=False)
 
         self.assertIn("shaft", bearing.component_ids())
-        self.assertTrue(scad.measure_constraint_residual_rconstraintresidual(
+        self.assertTrue(cad.measure_constraint_residual_rconstraintresidual(
             bearing,
             "shaft_to_inner_ring",
         ).within_tolerance)
 
     def test_parent_assembly_can_bind_to_bearing_forwarded_connectors(self):
-        bearing = scad.std.bearing.make_ball_bearing_rassembly(
+        bearing = cad.std.bearing.make_ball_bearing_rassembly(
             8.0,
             22.0,
             7.0,
@@ -230,55 +230,55 @@ class TestBallBearingAssembly(unittest.TestCase):
             0.0,
             "bearing_parent_bind_test",
         )
-        shaft = scad.make_cylinder_rsolid(
+        shaft = cad.make_cylinder_rsolid(
             radius=3.8,
             height=14.0,
             bottom_face_center=(0.0, 0.0, -7.0),
             axis=(0.0, 0.0, 1.0),
         )
-        shaft_part = scad.make_part_rpart("parent_bind_shaft", shaft)
+        shaft_part = cad.make_part_rpart("parent_bind_shaft", shaft)
         top_face = max(
             shaft.get_faces(),
             key=lambda face: face.get_center().z if face.get_normal_at().z > 0.7 else -999.0,
         )
-        shaft_axis = scad.make_face_connector_rconnector("axis", top_face)
-        shaft_part = scad.add_connector_rpart(shaft_part, shaft_axis)
-        parent = scad.make_assembly_rassembly("bearing_parent_bind_asm")
-        parent = scad.add_component_rassembly(
+        shaft_axis = cad.make_face_connector_rconnector("axis", top_face)
+        shaft_part = cad.add_connector_rpart(shaft_part, shaft_axis)
+        parent = cad.make_assembly_rassembly("bearing_parent_bind_asm")
+        parent = cad.add_component_rassembly(
             parent,
             shaft_part,
             component_id="shaft",
-            placement=scad.identity_placement_rplacement(),
+            placement=cad.identity_placement_rplacement(),
         )
-        parent = scad.add_component_rassembly(
+        parent = cad.add_component_rassembly(
             parent,
             bearing,
             component_id="bearing",
-            placement=scad.identity_placement_rplacement(),
+            placement=cad.identity_placement_rplacement(),
         )
-        parent = scad.ground_component_rassembly(parent, "shaft")
-        parent = scad.add_fixed_constraint_rassembly(
+        parent = cad.ground_component_rassembly(parent, "shaft")
+        parent = cad.add_fixed_constraint_rassembly(
             parent,
             "shaft_to_bearing_inner_axis",
-            scad.make_connector_ref_rconnectorref("shaft", "axis"),
-            scad.make_connector_ref_rconnectorref("bearing", "inner_axis"),
+            cad.make_connector_ref_rconnectorref("shaft", "axis"),
+            cad.make_connector_ref_rconnectorref("bearing", "inner_axis"),
         )
-        parent = scad.solve_assembly_constraints_rassembly(parent)
+        parent = cad.solve_assembly_constraints_rassembly(parent)
 
-        self.assertTrue(scad.measure_constraint_residual_rconstraintresidual(
+        self.assertTrue(cad.measure_constraint_residual_rconstraintresidual(
             parent,
             "shaft_to_bearing_inner_axis",
         ).within_tolerance)
 
     def test_invalid_params(self):
         with self.assertRaises(Exception):
-            scad.std.bearing.make_ball_bearing_rassembly(22.0, 8.0, 7.0, 3.5)
+            cad.std.bearing.make_ball_bearing_rassembly(22.0, 8.0, 7.0, 3.5)
         with self.assertRaises(Exception):
-            scad.std.bearing.make_ball_bearing_rassembly(8.0, 22.0, 3.0, 3.5)
+            cad.std.bearing.make_ball_bearing_rassembly(8.0, 22.0, 3.0, 3.5)
         with self.assertRaises(Exception):
-            scad.std.bearing.make_ball_bearing_rassembly(8.0, 22.0, 7.0, 8.0)
+            cad.std.bearing.make_ball_bearing_rassembly(8.0, 22.0, 7.0, 8.0)
         with self.assertRaises(Exception):
-            scad.std.bearing.make_ball_bearing_rassembly(
+            cad.std.bearing.make_ball_bearing_rassembly(
                 8.0,
                 22.0,
                 7.0,
@@ -286,7 +286,7 @@ class TestBallBearingAssembly(unittest.TestCase):
                 100,
             )
         with self.assertRaises(Exception):
-            scad.std.bearing.make_ball_bearing_rassembly(
+            cad.std.bearing.make_ball_bearing_rassembly(
                 8.0,
                 22.0,
                 7.0,

@@ -2,16 +2,16 @@
 
 import json
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.serializer import export_graph_json
 from cadflow.source_mapping import canonical_source_payload
 from cadflow.topology import OperationGraph
 
 
 def test_source_mapping_records_call_span_and_assignment_target():
-    with scad.GraphSession(graph_id="source_mapping") as session:
+    with cad.GraphSession(graph_id="source_mapping") as session:
         width = 10.0
-        body = scad.make_box_rsolid(
+        body = cad.make_box_rsolid(
             width=width,
             height=2.0,
             depth=3.0,
@@ -22,14 +22,14 @@ def test_source_mapping_records_call_span_and_assignment_target():
     assert node.source["path"].endswith("test_compat_source_mapping.py")
     assert node.source["path_kind"] == "project_relative"
     assert node.source["line"] <= node.source["end_line"]
-    assert node.source["call_text"].startswith("scad.make_box_rsolid")
+    assert node.source["call_text"].startswith("cad.make_box_rsolid")
     assert node.source["assignment_targets"] == ["body"]
     assert "input_bindings" not in node.source
 
 
 def test_source_mapping_disambiguates_same_line_calls_and_round_trips():
-    with scad.GraphSession(graph_id="source_mapping_same_line") as session:
-        first = scad.make_box_rsolid(1.0, 1.0, 1.0); second = scad.make_box_rsolid(2.0, 2.0, 2.0)
+    with cad.GraphSession(graph_id="source_mapping_same_line") as session:
+        first = cad.make_box_rsolid(1.0, 1.0, 1.0); second = cad.make_box_rsolid(2.0, 2.0, 2.0)
 
     nodes = session.graph.topological_order()
     assert len(nodes) == 2
@@ -48,9 +48,9 @@ def test_source_mapping_disambiguates_same_line_calls_and_round_trips():
 
 
 def test_source_mapping_does_not_claim_nested_call_as_assignment_output():
-    with scad.GraphSession(graph_id="source_mapping_nested") as session:
-        body = scad.make_box_rsolid(1.0, 1.0, 1.0)
-        moved = scad.translate_shape(
+    with cad.GraphSession(graph_id="source_mapping_nested") as session:
+        body = cad.make_box_rsolid(1.0, 1.0, 1.0)
+        moved = cad.translate_shape(
             shape=body,
             vector=(1.0, 0.0, 0.0),
         )
@@ -65,11 +65,11 @@ def test_source_mapping_records_complex_targets_and_return():
         pass
 
     holder = Holder()
-    with scad.GraphSession(graph_id="source_mapping_targets") as session:
-        holder.body = scad.make_box_rsolid(1.0, 1.0, 1.0)
+    with cad.GraphSession(graph_id="source_mapping_targets") as session:
+        holder.body = cad.make_box_rsolid(1.0, 1.0, 1.0)
         items = [None]
         index = 0
-        items[index] = scad.make_box_rsolid(2.0, 2.0, 2.0)
+        items[index] = cad.make_box_rsolid(2.0, 2.0, 2.0)
 
     first, second = session.graph.topological_order()
     assert first.source is not None
@@ -79,23 +79,23 @@ def test_source_mapping_records_complex_targets_and_return():
 
 
 def test_source_mapping_records_return_and_requires_session_builder():
-    @scad.requires_session
+    @cad.requires_session
     def build_box():
-        return scad.make_box_rsolid(1.0, 1.0, 1.0)
+        return cad.make_box_rsolid(1.0, 1.0, 1.0)
 
-    with scad.GraphSession(graph_id="source_mapping_return") as session:
+    with cad.GraphSession(graph_id="source_mapping_return") as session:
         result = build_box()
 
     node = session.graph.nodes[0]
     assert result.get_metadata("graph")["node_id"] == node.node_id
     assert node.source is not None
-    assert node.source["call_text"] == "scad.make_box_rsolid(1.0, 1.0, 1.0)"
+    assert node.source["call_text"] == "cad.make_box_rsolid(1.0, 1.0, 1.0)"
     assert node.source["assignment_targets"] == []
 
 
 def test_macro_nodes_share_the_user_callsite_and_assignment_target():
-    with scad.GraphSession(graph_id="source_mapping_macro") as session:
-        profile = scad.make_rectangle_rface(width=2.0, height=1.0)
+    with cad.GraphSession(graph_id="source_mapping_macro") as session:
+        profile = cad.make_rectangle_rface(width=2.0, height=1.0)
 
     nodes = session.graph.topological_order()
     assert len(nodes) > 1
@@ -111,6 +111,6 @@ def test_macro_nodes_share_the_user_callsite_and_assignment_target():
     }
     assert len(callsite_ids) == 1
     assert call_texts == {
-        "scad.make_rectangle_rface(width=2.0, height=1.0)"
+        "cad.make_rectangle_rface(width=2.0, height=1.0)"
     }
     assert targets == {("profile",)}

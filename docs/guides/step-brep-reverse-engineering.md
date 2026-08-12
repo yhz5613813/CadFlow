@@ -5,7 +5,7 @@ with the SDK (repo path `docs/guides/step-brep-reverse-engineering.md`).
 The inspection tooling lives in:
 
 ```text
-src/cadflow/inspect/brep/
+python/cadflow/inspect/brep/
 ```
 
 All of these functions are diagnostic, tool-grade APIs, not modeling

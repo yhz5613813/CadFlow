@@ -1,0 +1,4 @@
+interface:
+  display_name: "CadFlow Validation Export"
+  short_description: "Validate geometry and export CAD artifacts"
+  default_prompt: "Use $cadflow-validate-export to verify a CadFlow result, replay it when possible, and produce checked CAD artifacts with a concise report."

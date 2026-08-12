@@ -32,6 +32,10 @@ CADFLOW_API unsigned long long cadflow_cone(
     cad_session_t session, double radius1, double radius2, double height);
 CADFLOW_API unsigned long long cadflow_import_step(
     cad_session_t session, const char *path);
+CADFLOW_API unsigned long long cadflow_import_brep(
+    cad_session_t session, const char *path);
+CADFLOW_API unsigned long long cadflow_import_stl(
+    cad_session_t session, const char *path);
 CADFLOW_API unsigned long long cadflow_polyline(
     cad_session_t session, const double *xyz, size_t point_count, int closed);
 CADFLOW_API unsigned long long cadflow_circle_profile(
@@ -81,6 +85,31 @@ CADFLOW_API unsigned long long cadflow_loft(
 CADFLOW_API unsigned long long cadflow_sweep(
     cad_session_t session, unsigned long long profile,
     unsigned long long path, int solid, int frenet);
+CADFLOW_API unsigned long long cadflow_bspline(
+    cad_session_t session,
+    const double *poles_xyz, size_t pole_count, int degree,
+    const double *knots, size_t knot_count,
+    const int *multiplicities, size_t multiplicity_count,
+    const double *weights, int periodic);
+CADFLOW_API unsigned long long cadflow_twisted_sweep(
+    cad_session_t session, unsigned long long profile,
+    double distance, double twist_degrees,
+    double ox, double oy, double oz,
+    double ax, double ay, double az, double guide_radius);
+CADFLOW_API unsigned long long cadflow_ruled_surface(
+    cad_session_t session, unsigned long long edge_a, unsigned long long edge_b);
+CADFLOW_API unsigned long long cadflow_filling_surface(
+    cad_session_t session, const unsigned long long *edges,
+    size_t edge_count, double tolerance);
+CADFLOW_API unsigned long long cadflow_gordon_surface(
+    cad_session_t session, const unsigned long long *profiles,
+    size_t profile_count, const unsigned long long *guides,
+    size_t guide_count, double tolerance);
+CADFLOW_API unsigned long long cadflow_sew(
+    cad_session_t session, const unsigned long long *faces,
+    size_t face_count, double tolerance);
+CADFLOW_API unsigned long long cadflow_shell_to_solid(
+    cad_session_t session, unsigned long long shell);
 CADFLOW_API unsigned long long cadflow_cut(
     cad_session_t session, unsigned long long body, unsigned long long tool);
 CADFLOW_API unsigned long long cadflow_union(
@@ -117,6 +146,19 @@ CADFLOW_API int cadflow_bbox(
     cad_session_t session, unsigned long long shape, double out_min_max[6]);
 CADFLOW_API int cadflow_topology_counts(
     cad_session_t session, unsigned long long shape, unsigned long long out_vefs[4]);
+CADFLOW_API size_t cadflow_subshape_count(
+    cad_session_t session, unsigned long long shape, int shape_type);
+CADFLOW_API size_t cadflow_subshape_handles(
+    cad_session_t session, unsigned long long shape, int shape_type,
+    unsigned long long *output, size_t capacity);
+CADFLOW_API size_t cadflow_free_boundary_count(
+    cad_session_t session, unsigned long long shape, double tolerance);
+CADFLOW_API size_t cadflow_free_boundary_handles(
+    cad_session_t session, unsigned long long shape, double tolerance,
+    unsigned long long *output, size_t capacity);
+CADFLOW_API int cadflow_face_properties(
+    cad_session_t session, unsigned long long face, double u, double v,
+    double normal_out[3], double curvature_out[3]);
 CADFLOW_API const char *cadflow_kind(
     cad_session_t session, unsigned long long shape);
 CADFLOW_API int cadflow_export_step(
@@ -132,6 +174,27 @@ CADFLOW_API int cadflow_mesh_json(
    transforms | properties. Returns newline-delimited results. */
 CADFLOW_API int cadflow_execute(
     cad_session_t session, const char *program, char **result);
+
+/* Stateless static mesh construction for flexible surface and thin-shell
+   models. The count function defines the exact caller-owned buffer sizes. */
+CADFLOW_API int cadflow_flexible_shell_mesh_counts(
+    size_t sample_rows,
+    size_t sample_columns,
+    int periodic_columns,
+    double thickness,
+    size_t out_vertex_triangle_counts[2]);
+CADFLOW_API int cadflow_build_flexible_shell_mesh(
+    const double *control_xyz,
+    size_t control_rows,
+    size_t control_columns,
+    size_t sample_rows,
+    size_t sample_columns,
+    int periodic_columns,
+    double thickness,
+    double *out_vertices_xyz,
+    double *out_normals_xyz,
+    unsigned int *out_triangles);
+
 CADFLOW_API void cadflow_free_string(char *value);
 CADFLOW_API const char *cadflow_last_error(void);
 

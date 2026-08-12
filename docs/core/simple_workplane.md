@@ -26,20 +26,20 @@ SimpleWorkplane(
 ## Example
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-with scad.SimpleWorkplane(
+with cad.SimpleWorkplane(
     origin=(10, 20, 30),
     normal=(0, 1, 0),
     x_dir=(1, 0, 0),
 ):
-    with scad.SimpleWorkplane(
+    with cad.SimpleWorkplane(
         origin=(2, 3, 4),
         normal=(1, 0, 0),
         x_dir=(0, 1, 0),
     ):
-        box = scad.make_box_rsolid(2, 4, 6)
-        moved = scad.translate_shape(box, (0, 0, 2))
+        box = cad.make_box_rsolid(2, 4, 6)
+        moved = cad.translate_shape(box, (0, 0, 2))
 
 print(moved.get_volume())
 ```

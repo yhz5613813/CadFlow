@@ -4,7 +4,7 @@ import math
 from pathlib import Path
 
 import pytest
-import cadflow as scad
+import cadflow as cad
 from OCP.BRep import BRep_Builder
 from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut
 from OCP.BRepBuilderAPI import (
@@ -25,39 +25,39 @@ import cadflow.inspect.brep.compare as compare_module
 
 
 def _box():
-    return scad.make_box_rsolid(width=4.0, height=3.0, depth=2.0)
+    return cad.make_box_rsolid(width=4.0, height=3.0, depth=2.0)
 
 
 def _two_arc_cylinder():
-    first = scad.make_angle_arc_redge(
+    first = cad.make_angle_arc_redge(
         center=(0.0, 0.0, 0.0),
         radius=1.0,
         start_angle=0.0,
         end_angle=math.pi,
         normal=(0.0, 0.0, 1.0),
     )
-    second = scad.make_angle_arc_redge(
+    second = cad.make_angle_arc_redge(
         center=(0.0, 0.0, 0.0),
         radius=1.0,
         start_angle=math.pi,
         end_angle=2.0 * math.pi,
         normal=(0.0, 0.0, 1.0),
     )
-    wire = scad.make_wire_from_edges_rwire(edges=[first, second])
-    face = scad.make_face_from_wire_rface(wire=wire, normal=(0.0, 0.0, 1.0))
-    return scad.extrude_rsolid(profile=face, direction=(0.0, 0.0, 1.0), distance=2.0)
+    wire = cad.make_wire_from_edges_rwire(edges=[first, second])
+    face = cad.make_face_from_wire_rface(wire=wire, normal=(0.0, 0.0, 1.0))
+    return cad.extrude_rsolid(profile=face, direction=(0.0, 0.0, 1.0), distance=2.0)
 
 
 def test_inspect_namespace_is_public_and_not_top_level_flattened():
-    assert scad.inspect.brep is brep
-    assert "inspect" in scad.__all__
-    assert not hasattr(scad, "inspect_step_rsummary")
+    assert cad.inspect.brep is brep
+    assert "inspect" in cad.__all__
+    assert not hasattr(cad, "inspect_step_rsummary")
 
 
 def test_inspection_tools_reject_active_model_graph():
     shape = _box().wrapped
 
-    with scad.GraphSession():
+    with cad.GraphSession():
         with pytest.raises(RuntimeError, match="cannot run inside an active GraphSession"):
             brep.inspect_shape_rbrepinspection(shape=shape)
 
@@ -165,7 +165,7 @@ def test_canonical_direction_ignores_components_below_group_precision():
 
 
 def test_indexed_model_reports_analytic_surface_parameters():
-    cylinder = scad.make_cylinder_rsolid(radius=5.0, height=10.0)
+    cylinder = cad.make_cylinder_rsolid(radius=5.0, height=10.0)
     model = brep.index_shape_rbrepmodel(cylinder.wrapped)
     cylinder_id = next(
         f"face:{index}"
@@ -182,7 +182,7 @@ def test_indexed_model_reports_analytic_surface_parameters():
 
 
 def test_indexed_model_reports_edge_endpoint_derivatives_and_exact_curve_definition():
-    edge = scad.make_spline_redge(
+    edge = cad.make_spline_redge(
         control_points=[
             (0.0, 0.0, 0.0),
             (1.0, 0.0, 0.0),
@@ -243,8 +243,8 @@ def test_indexed_model_reports_ellipse_major_axis_direction():
 
 
 def test_indexed_model_reports_bounded_surface_definition_only_on_opt_in():
-    profile = scad.make_rectangle_rface(1.0, 0.3)
-    solid = scad.twisted_sweep_rsolid(profile, distance=2.0, twist_angle=90.0)
+    profile = cad.make_rectangle_rface(1.0, 0.3)
+    solid = cad.twisted_sweep_rsolid(profile, distance=2.0, twist_angle=90.0)
     model = brep.index_shape_rbrepmodel(solid.wrapped)
     face_id = next(
         f"face:{index}"
@@ -310,7 +310,7 @@ def test_indexed_model_reports_rational_bezier_surface_definition():
 
 
 def test_indexed_model_handles_degenerate_edges():
-    model = brep.index_shape_rbrepmodel(scad.make_sphere_rsolid(radius=5.0).wrapped)
+    model = brep.index_shape_rbrepmodel(cad.make_sphere_rsolid(radius=5.0).wrapped)
     degenerate = next(
         model.describe_entity(f"edge:{index}")
         for index in range(len(model.edges))
@@ -360,7 +360,7 @@ def test_entity_inspection_parity_reports_mismatch():
 
 def test_entity_inspection_parity_handles_extra_report_entities():
     report = brep.inspect_shape_rbrepinspection(_box().wrapped).to_dict()
-    model = brep.index_shape_rbrepmodel(scad.make_cylinder_rsolid(1.0, 2.0).wrapped)
+    model = brep.index_shape_rbrepmodel(cad.make_cylinder_rsolid(1.0, 2.0).wrapped)
 
     parity = brep.compare_model_to_inspection_rentityinspectionparity(model, report)
 
@@ -390,7 +390,7 @@ def test_entity_inspection_parity_uses_raw_root_properties():
 
 
 def test_inspect_bspline_edge_includes_reconstruction_parameters():
-    wire = scad.make_spline_rwire(
+    wire = cad.make_spline_rwire(
         control_points=[
             (0.0, 0.0, 0.0),
             (1.0, 1.0, 0.0),
@@ -562,7 +562,7 @@ def test_strict_cut_is_configured_before_one_build(monkeypatch):
 
 
 def test_compare_detects_same_geometry_with_different_topology():
-    full_circle = scad.make_cylinder_rsolid(radius=1.0, height=2.0)
+    full_circle = cad.make_cylinder_rsolid(radius=1.0, height=2.0)
     two_arcs = _two_arc_cylinder()
 
     comparison = brep.compare_shapes_rbrepcomparison(full_circle.wrapped, two_arcs.wrapped)
@@ -601,7 +601,7 @@ def test_compare_shape_slices_has_zero_xor_for_same_shape():
 
 def test_step_round_trip_uses_public_inspection_namespace(tmp_path: Path):
     step = tmp_path / "box.step"
-    scad.export_step(shapes=_box(), filename=str(step))
+    cad.export_step(shapes=_box(), filename=str(step))
 
     report = brep.inspect_step_rbrepinspection(path=step)
     comparison = brep.compare_steps_rbrepcomparison(
@@ -617,7 +617,7 @@ def test_step_round_trip_uses_public_inspection_namespace(tmp_path: Path):
 
 def test_step_model_helpers_cache_and_return_stable_ids(tmp_path: Path):
     step = tmp_path / "box.step"
-    scad.export_step(shapes=_box(), filename=str(step))
+    cad.export_step(shapes=_box(), filename=str(step))
     brep.clear_step_model_cache_rnone()
 
     first = brep.load_step_rbrepmodel(step)

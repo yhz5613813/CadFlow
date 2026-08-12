@@ -4,7 +4,7 @@ This index includes generated docs for standard part factory functions. Use thes
 
 ## Import Surfaces
 
-- Recommended package-level module export: `import cadflow as scad`, then call functions through submodules such as `scad.std.gear.<function>(...)` and `scad.std.bearing.<function>(...)`.
+- Recommended package-level module export: `import cadflow as cad`, then call functions through submodules such as `cad.std.gear.<function>(...)` and `cad.std.bearing.<function>(...)`.
 - Direct submodule import is also supported, for example `from cadflow.std.gear import make_spur_gear_rsolid` or `from cadflow.std.bearing import make_ball_bearing_rassembly`.
 
 ## Usage Guidance

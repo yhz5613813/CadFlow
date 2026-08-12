@@ -456,7 +456,7 @@ def _private_helper():
 
             self.assertIn("# CadFlow Standard Library Index", readme)
             self.assertIn("[make_spur_gear_rsolid](make_spur_gear_rsolid.md)", readme)
-            self.assertIn("scad.std.gear.make_spur_gear_rsolid", page)
+            self.assertIn("cad.std.gear.make_spur_gear_rsolid", page)
             self.assertIn("**Type**: `int`", page)
             self.assertNotIn("_private_helper", readme)
 

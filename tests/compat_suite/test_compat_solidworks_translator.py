@@ -6,20 +6,20 @@ import importlib
 import sys
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import GraphSession
 from cadflow.translator.errors import TranslationRequestError
 
 
 def _rectangle_extrusion_model() -> str:
     with GraphSession() as session:
-        profile = scad.make_rectangle_rface(width=2.0, height=1.0)
-        scad.extrude_rsolid(
+        profile = cad.make_rectangle_rface(width=2.0, height=1.0)
+        cad.extrude_rsolid(
             profile=profile,
             direction=(0.0, 0.0, 1.0),
             distance=3.0,
         )
-    return scad.export_model_json(session=session)
+    return cad.export_model_json(session=session)
 
 
 class TestSolidWorksTranslator(unittest.TestCase):
@@ -49,10 +49,10 @@ class TestSolidWorksTranslator(unittest.TestCase):
 
     def test_fallback_scripts_are_deterministic(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rface(3.0, 3.0)
-            solid = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 3.0)
-            scad.fillet_rsolid(solid, [solid.get_edges(0)], 0.2)
-        model_json = scad.export_model_json(session)
+            profile = cad.make_rectangle_rface(3.0, 3.0)
+            solid = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 3.0)
+            cad.fillet_rsolid(solid, [solid.get_edges(0)], 0.2)
+        model_json = cad.export_model_json(session)
 
         from cadflow.translator.solidworks_translator import SolidWorksTranslator
 
@@ -85,12 +85,12 @@ class TestSolidWorksTranslator(unittest.TestCase):
 
     def test_unsupported_result_operation_is_rejected_before_host_execution(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(width=1.0, height=2.0, depth=3.0)
+            cad.make_box_rsolid(width=1.0, height=2.0, depth=3.0)
 
         from cadflow.translator.solidworks_translator import SolidWorksTranslator
 
         with self.assertRaises(TranslationRequestError):
-            SolidWorksTranslator().translate_model_json(scad.export_model_json(session))
+            SolidWorksTranslator().translate_model_json(cad.export_model_json(session))
 
 
 if __name__ == "__main__":

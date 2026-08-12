@@ -6,7 +6,7 @@ import importlib
 from pathlib import Path
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.graph import GraphSession
 from cadflow.serializer import CANONICAL_OP_SET
 from cadflow.translator.base import BaseTranslator
@@ -96,9 +96,9 @@ class TestTranslatorBackendContract(unittest.TestCase):
 
     def test_freecad_translator_is_reusable_and_emits_valid_python(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(1.0, 2.0, 3.0)
+            cad.make_box_rsolid(1.0, 2.0, 3.0)
 
-        model_json = scad.export_model_json(session)
+        model_json = cad.export_model_json(session)
         translator = FreeCADTranslator(document_name="ContractTest")
         first = translator.translate_model_json_to_script(model_json)
         second = translator.translate_model_json_to_script(model_json)

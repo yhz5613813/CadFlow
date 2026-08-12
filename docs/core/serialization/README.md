@@ -8,16 +8,16 @@ The long-form schema reference remains [`../operation_graph_json_spec.md`](../op
 
 ```python
 import json
-import cadflow as scad
+import cadflow as cad
 
-@scad.model(graph_id="drilled_block")
+@cad.model(graph_id="drilled_block")
 def build_model():
-    body = scad.make_box_rsolid(width=10, height=6, depth=2)
-    hole = scad.make_cylinder_rsolid(
+    body = cad.make_box_rsolid(width=10, height=6, depth=2)
+    hole = cad.make_cylinder_rsolid(
         radius=1, height=4, bottom_face_center=(0, 0, -1)
     )
-    result = scad.cut_rsolid(body, hole)
-    scad.capture_result(value=result)
+    result = cad.cut_rsolid(body, hole)
+    cad.capture_result(value=result)
     return result
 
 model = build_model()
@@ -37,10 +37,10 @@ Inspect these fields:
 - `payload["tolerance_graph"]`: dimension-chain requirements and validation evidence.
 
 For new top-level models, `ModelResult.model_json` is the preferred artifact
-accessor. Use `@scad.requires_session` for reusable builders and
-`scad.capture_result(...)` when the final output should not be inferred from
+accessor. Use `@cad.requires_session` for reusable builders and
+`cad.capture_result(...)` when the final output should not be inferred from
 all graph leaves. If a model invocation also needs durable CAD/viewer files,
-pass `export_dir=...` to `@scad.model`; its captured geometry/product values
+pass `export_dir=...` to `@cad.model`; its captured geometry/product values
 then produce one self-contained `<graph_id>.scene.zip`. It embeds
 `model/model.json`, mapped project-relative Python sources, and the evaluated
 render/selection assets. It does not create adjacent model/session JSON, STEP,
@@ -70,11 +70,3 @@ Many user-facing functions are convenience APIs. During an active `GraphSession`
 - [Expressions and replay behavior](expressions-and-replay.md)
 - [Physical units and dimension inference](../physical-units.md)
 - [Dimension tolerance chains](../dimension-tolerance-chains.md)
-
-## Examples
-
-The retained examples use the same model/session contract. See
-[`../../../examples/08_constrained_sketch.py`](../../../examples/08_constrained_sketch.py)
-for sketch promotion and replay, and
-[`../../../examples/10_part_assembly.py`](../../../examples/10_part_assembly.py)
-for product hierarchy and automatic artifact export.

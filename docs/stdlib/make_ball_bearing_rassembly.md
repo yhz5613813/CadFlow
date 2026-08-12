@@ -10,7 +10,7 @@ def make_ball_bearing_rassembly(bore_diameter: float, outer_diameter: float, bea
 
 ## Import Surface
 
-- standard library: `import cadflow as scad` then `scad.std.bearing.make_ball_bearing_rassembly(...)`; direct submodule import: `from cadflow.std.bearing import make_ball_bearing_rassembly`
+- standard library: `import cadflow as cad` then `cad.std.bearing.make_ball_bearing_rassembly(...)`; direct submodule import: `from cadflow.std.bearing import make_ball_bearing_rassembly`
 
 ## Description
 

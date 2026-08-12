@@ -6,6 +6,8 @@ The native backend has one-way dependencies:
 c_api -> runtime -> kernel -> core
   |          |         ^
   +--------> io -------+
+
+c_api -> flexible
 ```
 
 ## Boundaries
@@ -13,6 +15,9 @@ c_api -> runtime -> kernel -> core
 - `include/cadflow_core.h` is the only stable, installed ABI header.
 - `src/core` owns sessions, shape records, handles, and exception translation.
 - `src/kernel/construction` creates primitives, profiles, and curves.
+- `src/kernel/advanced` owns exact B-splines, twisted/ruled/filling/Gordon
+  surfaces, sewing, shell-to-solid conversion, native BREP/STL import, and
+  multi-handle topology/curvature queries.
 - `src/kernel/features` creates solids from profiles and paths.
 - `src/kernel/surfaces` creates Bezier and fitted-grid surfaces.
 - `src/kernel/edge_features` owns indexed fillet, chamfer, and shell operations.
@@ -20,6 +25,8 @@ c_api -> runtime -> kernel -> core
 - `src/kernel/queries` owns measurements and topology inspection.
 - `src/io` owns CAD exchange and tessellation formats.
 - `src/runtime` parses and executes batch graphs.
+- `src/flexible` owns stateless static surface sampling and thin-shell mesh
+  construction. It has no dependency on the session-owned BREP kernel.
 - `src/c_api.cpp` validates ABI arguments, locks a session, and delegates.
 
 ## Rules
@@ -30,3 +37,5 @@ c_api -> runtime -> kernel -> core
 4. A new operation needs a C ABI declaration, native implementation, ctypes
    binding, direct test, graph test when batchable, and fallback behavior.
 5. Internal headers are private build inputs and are not installed in wheels.
+6. Stateless array APIs must keep design semantics in Python and expose only
+   geometry-intensive kernels through the C ABI.

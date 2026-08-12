@@ -1,4 +1,4 @@
-import cadflow as scad
+import cadflow as cad
 import cadflow._mesh as _mesh
 
 
@@ -16,7 +16,7 @@ def _write_cached_mesh_as_obj(solid, path):
 
 
 def test_solid_creation_attaches_internal_mesh_cache():
-    solid = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+    solid = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
 
     mesh = _mesh.cached_mesh(solid)
 
@@ -31,7 +31,7 @@ def test_solid_creation_attaches_internal_mesh_cache():
 
 
 def test_internal_mesh_preserves_face_triangle_ranges():
-    solid = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+    solid = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
 
     mesh = _mesh.cached_mesh(solid)
 
@@ -45,7 +45,7 @@ def test_internal_mesh_preserves_face_triangle_ranges():
 
 
 def test_internal_mesh_bounds_track_solid_extent():
-    solid = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+    solid = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
 
     mesh = _mesh.cached_mesh(solid)
     assert mesh is not None
@@ -56,9 +56,9 @@ def test_internal_mesh_bounds_track_solid_extent():
 
 
 def test_transformed_solid_keeps_mesh_cache_on_transformed_geometry():
-    solid = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+    solid = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
 
-    translated = scad.translate_shape(shape=solid, vector=(1.0, 2.0, 3.0))
+    translated = cad.translate_shape(shape=solid, vector=(1.0, 2.0, 3.0))
     mesh = _mesh.cached_mesh(translated)
 
     assert mesh is not None
@@ -68,13 +68,13 @@ def test_transformed_solid_keeps_mesh_cache_on_transformed_geometry():
 
 
 def test_mesh_internals_are_not_top_level_public_api():
-    assert not hasattr(scad, "tessellate_rmesh")
-    assert "tessellate_rmesh" not in scad.__all__
-    assert "TriMesh" not in scad.__all__
+    assert not hasattr(cad, "tessellate_rmesh")
+    assert "tessellate_rmesh" not in cad.__all__
+    assert "TriMesh" not in cad.__all__
 
 
 def test_cached_mesh_can_export_obj_without_public_stl_api(tmp_path):
-    solid = scad.make_cylinder_rsolid(radius=3.0, height=5.0)
+    solid = cad.make_cylinder_rsolid(radius=3.0, height=5.0)
     output_path = tmp_path / "cached_mesh.obj"
 
     mesh = _write_cached_mesh_as_obj(solid, output_path)

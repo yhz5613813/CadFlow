@@ -4,21 +4,21 @@ from __future__ import annotations
 
 import json
 import unittest
-import cadflow as scad
+import cadflow as cad
 from cadflow.graph import GraphSession
 
 
 class TestRemainingStructuralKernel(unittest.TestCase):
     def test_curve_builders_return_ocp_wrapped_shapes(self):
         shapes = [
-            scad.make_line_redge((0, 0, 0), (1, 0, 0)),
-            scad.make_circle_redge((0, 0, 0), 1.0),
-            scad.make_three_point_arc_redge((0, 0, 0), (1, 1, 0), (2, 0, 0)),
-            scad.make_angle_arc_redge((0, 0, 0), 1.0, 0.0, 1.57),
-            scad.make_spline_redge(
+            cad.make_line_redge((0, 0, 0), (1, 0, 0)),
+            cad.make_circle_redge((0, 0, 0), 1.0),
+            cad.make_three_point_arc_redge((0, 0, 0), (1, 1, 0), (2, 0, 0)),
+            cad.make_angle_arc_redge((0, 0, 0), 1.0, 0.0, 1.57),
+            cad.make_spline_redge(
                 control_points=[(0, 0, 0), (0.6, 1, 0), (1.4, 1, 0), (2, 0, 0)]
             ),
-            scad.make_helix_rwire(1.0, 3.0, 0.5),
+            cad.make_helix_rwire(1.0, 3.0, 0.5),
         ]
         for shape in shapes:
             self.assertTrue(hasattr(shape, "wrapped"))
@@ -28,19 +28,19 @@ class TestRemainingStructuralKernel(unittest.TestCase):
     def test_loft_sweep_and_helical_sweep_do_not_depend_on_cadquery_feature_builders(
         self,
     ):
-        rect1 = scad.make_rectangle_rwire(2.0, 2.0, center=(0, 0, 0))
-        rect2 = scad.make_rectangle_rwire(1.0, 1.0, center=(0, 0, 2.0))
-        profile = scad.make_circle_rface((0, 0, 0), 0.5)
-        path = scad.make_segment_rwire((0, 0, 0), (0, 0, 3.0))
-        helix_profile = scad.make_rectangle_rwire(0.4, 0.2)
+        rect1 = cad.make_rectangle_rwire(2.0, 2.0, center=(0, 0, 0))
+        rect2 = cad.make_rectangle_rwire(1.0, 1.0, center=(0, 0, 2.0))
+        profile = cad.make_circle_rface((0, 0, 0), 0.5)
+        path = cad.make_segment_rwire((0, 0, 0), (0, 0, 3.0))
+        helix_profile = cad.make_rectangle_rwire(0.4, 0.2)
 
-        loft = scad.loft_rsolid([rect1, rect2])
-        sweep = scad.sweep_rsolid(profile, path)
-        helical = scad.helical_sweep_rsolid(
+        loft = cad.loft_rsolid([rect1, rect2])
+        sweep = cad.sweep_rsolid(profile, path)
+        helical = cad.helical_sweep_rsolid(
             helix_profile, pitch=1.0, height=2.0, radius=1.0
         )
         for solid in (loft, sweep, helical):
-            self.assertIsInstance(solid, scad.Solid)
+            self.assertIsInstance(solid, cad.Solid)
             self.assertTrue(hasattr(solid, "wrapped"))
             self.assertFalse(hasattr(solid, "cq_solid"))
 
@@ -48,8 +48,8 @@ class TestRemainingStructuralKernel(unittest.TestCase):
 class TestRemainingStructuralSemanticAndFrame(unittest.TestCase):
     def test_semantic_delta_uses_higher_level_entity_types(self):
         with GraphSession() as session:
-            face = scad.make_circle_rface((0, 0, 0), 2.0)
-            scad.extrude_rsolid(face, (0, 0, 1), 3.0)
+            face = cad.make_circle_rface((0, 0, 0), 2.0)
+            cad.extrude_rsolid(face, (0, 0, 1), 3.0)
 
         nodes = session.graph.topological_order()
         created_entity_types = {
@@ -64,26 +64,26 @@ class TestRemainingStructuralSemanticAndFrame(unittest.TestCase):
 
     def test_graph_session_owns_independent_frame_graph(self):
         with GraphSession() as session:
-            with scad.SimpleWorkplane(origin=(1.0, 2.0, 3.0)):
-                scad.make_point_rvertex(1.0, 0.0, 0.0)
+            with cad.SimpleWorkplane(origin=(1.0, 2.0, 3.0)):
+                cad.make_point_rvertex(1.0, 0.0, 0.0)
 
         self.assertTrue(hasattr(session, "frame_graph"))
         self.assertGreaterEqual(session.frame_graph.node_count, 1)
 
     def test_session_and_model_export_include_frame_graph(self):
         with GraphSession() as session:
-            with scad.SimpleWorkplane(origin=(1.0, 2.0, 3.0)):
-                scad.make_point_rvertex(1.0, 0.0, 0.0)
+            with cad.SimpleWorkplane(origin=(1.0, 2.0, 3.0)):
+                cad.make_point_rvertex(1.0, 0.0, 0.0)
 
-        session_payload = scad.import_session_json(scad.export_session_json(session))
+        session_payload = cad.import_session_json(cad.export_session_json(session))
         self.assertIn("frame_graph", session_payload)
         self.assertGreaterEqual(session_payload["frame_graph"].node_count, 1)
 
-        model_payload = scad.import_model_json(scad.export_model_json(session))
+        model_payload = cad.import_model_json(cad.export_model_json(session))
         self.assertIn("frame_graph", model_payload)
         self.assertGreaterEqual(model_payload["frame_graph"].node_count, 1)
 
-        raw_model = json.loads(scad.export_model_json(session))
+        raw_model = json.loads(cad.export_model_json(session))
         self.assertIn("frame_graph", raw_model)
         self.assertGreaterEqual(len(raw_model["frame_graph"]["nodes"]), 1)
 
@@ -91,10 +91,10 @@ class TestRemainingStructuralSemanticAndFrame(unittest.TestCase):
         self,
     ):
         with GraphSession() as session:
-            face = scad.make_circle_rface((0.0, 0.0, 0.0), 2.0)
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 3.0)
+            face = cad.make_circle_rface((0.0, 0.0, 0.0), 2.0)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 3.0)
 
-        raw = json.loads(scad.export_model_json(session))
+        raw = json.loads(cad.export_model_json(session))
         self.assertIn("semantic_entity_registry", raw)
         entity_types = {item["entity_type"] for item in raw["semantic_entity_registry"]}
         self.assertIn("Sketch", entity_types)
@@ -105,12 +105,12 @@ class TestRemainingStructuralSemanticAndFrame(unittest.TestCase):
 class TestHelicalSweepMacroRecording(unittest.TestCase):
     def test_helical_sweep_expands_to_helix_plus_sweep_nodes(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rwire(0.4, 0.2)
-            result = scad.helical_sweep_rsolid(
+            profile = cad.make_rectangle_rwire(0.4, 0.2)
+            result = cad.helical_sweep_rsolid(
                 profile, pitch=1.0, height=2.0, radius=1.0
             )
 
-        self.assertIsInstance(result, scad.Solid)
+        self.assertIsInstance(result, cad.Solid)
         ops = [node.op for node in session.graph.topological_order()]
         self.assertIn("make_helix_redge", ops)
         self.assertIn("make_wire_from_edges_rwire", ops)
@@ -119,12 +119,12 @@ class TestHelicalSweepMacroRecording(unittest.TestCase):
 
     def test_helical_sweep_roundtrip_replays_as_macro_graph(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rwire(0.4, 0.2)
-            swept = scad.helical_sweep_rsolid(
+            profile = cad.make_rectangle_rwire(0.4, 0.2)
+            swept = cad.helical_sweep_rsolid(
                 profile, pitch=1.0, height=2.0, radius=1.0
             )
 
-        restored = scad.import_graph_json(scad.export_graph_json(session.graph))
+        restored = cad.import_graph_json(cad.export_graph_json(session.graph))
         ops = [node.op for node in restored.topological_order()]
 
         self.assertIn("make_helix_redge", ops)
@@ -132,7 +132,7 @@ class TestHelicalSweepMacroRecording(unittest.TestCase):
         self.assertIn("make_sweep_rsolid", ops)
         self.assertNotIn("helical_sweep", ops)
 
-        replayed = scad.replay_graph(restored)
+        replayed = cad.replay_graph(restored)
         self.assertEqual(len(replayed), 1)
         self.assertAlmostEqual(replayed[0].get_volume(), swept.get_volume(), places=4)
 

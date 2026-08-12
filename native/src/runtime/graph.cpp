@@ -1,6 +1,7 @@
 #include "runtime/graph.h"
 
 #include "kernel/construction.h"
+#include "kernel/advanced.h"
 #include "kernel/edge_features.h"
 #include "kernel/features.h"
 #include "kernel/operations.h"
@@ -165,6 +166,13 @@ std::string execute_graph(core::Session& session, const std::string& program) {
                     session, pitch, height, radius, cx, cy, cz, dx, dy, dz),
                 results,
                 output);
+        } else if (operation == "import_brep" || operation == "import_stl") {
+            std::string path;
+            read_values(row, operation + " expects a path", path);
+            emit_shape(
+                operation == "import_brep" ? kernel::import_brep(session, path.c_str())
+                                            : kernel::import_stl(session, path.c_str()),
+                results, output);
         } else if (operation == "face") {
             std::string profile;
             read_values(row, "face expects a wire handle", profile);
@@ -349,6 +357,54 @@ std::string execute_graph(core::Session& session, const std::string& program) {
                     frenet != 0),
                 results,
                 output);
+        } else if (operation == "bspline") {
+            std::size_t pole_count;
+            int degree;
+            std::size_t knot_count;
+            std::size_t multiplicity_count;
+            int weighted;
+            int periodic;
+            read_values(row, "bspline expects pole count, degree, knot count, multiplicity count, weight flag, and periodic flag", pole_count, degree, knot_count, multiplicity_count, weighted, periodic);
+            std::vector<double> poles(pole_count * 3);
+            for (double& value : poles) read_values(row, "bspline pole data is incomplete", value);
+            std::vector<double> knots(knot_count);
+            for (double& value : knots) read_values(row, "bspline knot data is incomplete", value);
+            std::vector<int> mults(multiplicity_count);
+            for (int& value : mults) read_values(row, "bspline multiplicity data is incomplete", value);
+            std::vector<double> weights;
+            if (weighted) {
+                weights.resize(pole_count);
+                for (double& value : weights) read_values(row, "bspline weight data is incomplete", value);
+            }
+            emit_shape(kernel::make_bspline(session, poles.data(), pole_count, degree, knots.data(), knot_count, mults.data(), mults.size(), weights.empty() ? nullptr : weights.data(), periodic != 0), results, output);
+        } else if (operation == "twisted_sweep") {
+            std::string profile;
+            double distance, twist, ox, oy, oz, ax, ay, az, radius;
+            read_values(row, "twisted_sweep expects profile, distance, twist, origin, axis, and guide radius", profile, distance, twist, ox, oy, oz, ax, ay, az, radius);
+            emit_shape(kernel::twisted_sweep(session, resolve_id(profile, results), distance, twist, ox, oy, oz, ax, ay, az, radius), results, output);
+        } else if (operation == "ruled_surface") {
+            std::string a, b;
+            read_values(row, "ruled_surface expects two wires", a, b);
+            emit_shape(kernel::ruled_surface(session, resolve_id(a, results), resolve_id(b, results)), results, output);
+        } else if (operation == "filling_surface" || operation == "sew") {
+            double tolerance;
+            std::size_t count;
+            read_values(row, operation + " expects tolerance and count", tolerance, count);
+            std::vector<ShapeId> ids(count);
+            for (ShapeId& id : ids) { std::string token; read_values(row, operation + " input data is incomplete", token); id = resolve_id(token, results); }
+            emit_shape(operation == "sew" ? kernel::sew(session, ids.data(), ids.size(), tolerance) : kernel::filling_surface(session, ids.data(), ids.size(), tolerance), results, output);
+        } else if (operation == "gordon_surface") {
+            double tolerance;
+            std::size_t profile_count, guide_count;
+            read_values(row, "gordon_surface expects tolerance and profile/guide counts", tolerance, profile_count, guide_count);
+            std::vector<ShapeId> profiles(profile_count), guides(guide_count);
+            for (ShapeId& id : profiles) { std::string token; read_values(row, "Gordon profile data is incomplete", token); id = resolve_id(token, results); }
+            for (ShapeId& id : guides) { std::string token; read_values(row, "Gordon guide data is incomplete", token); id = resolve_id(token, results); }
+            emit_shape(kernel::gordon_surface(session, profiles.data(), profiles.size(), guides.data(), guides.size(), tolerance), results, output);
+        } else if (operation == "shell_to_solid") {
+            std::string shell;
+            read_values(row, "shell_to_solid expects a shell", shell);
+            emit_shape(kernel::shell_to_solid(session, resolve_id(shell, results)), results, output);
         } else if (
             operation == "cut" || operation == "union" || operation == "intersect") {
             std::string left;

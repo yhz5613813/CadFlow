@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import cadflow as scad
+import cadflow as cad
 
 try:
     from .bearings import (
@@ -88,21 +88,21 @@ except ImportError:  # Support direct execution from this example directory.
     from motor import make_bldc_rotor_rassembly, make_bldc_stator_rassembly
 
 
-@scad.requires_session
+@cad.requires_session
 def make_integrated_bldc_joint_actuator_rassembly(
-    *, materials: dict[str, scad.Material]
-) -> scad.Assembly:
+    *, materials: dict[str, cad.Material]
+) -> cad.Assembly:
     """Build and solve the complete compact 50 mm joint actuator."""
 
     component_specs = make_integrated_bldc_joint_actuator_components_rtuple(
         materials=materials
     )
-    actuator = scad.make_assembly_rassembly(
+    actuator = cad.make_assembly_rassembly(
         assembly_id="integrated_50mm_bldc_joint_actuator",
         name="50 mm 12-slot/14-pole BLDC joint actuator with 20:1 reducer and circular ESC",
     )
     for component_id, item, placement, name in component_specs:
-        actuator = scad.add_component_rassembly(
+        actuator = cad.add_component_rassembly(
             assembly=actuator,
             item=item,
             component_id=component_id,
@@ -112,15 +112,15 @@ def make_integrated_bldc_joint_actuator_rassembly(
 
     actuator = _add_public_connectors_rassembly(assembly=actuator)
     actuator = _add_constraints_rassembly(assembly=actuator)
-    actuator = scad.solve_assembly_constraints_rassembly(assembly=actuator, strict=True)
+    actuator = cad.solve_assembly_constraints_rassembly(assembly=actuator, strict=True)
     ground_constraint_report(label="actuator", assembly=actuator)
     return actuator
 
 
-@scad.requires_session
+@cad.requires_session
 def make_integrated_bldc_joint_actuator_components_rtuple(
-    *, materials: dict[str, scad.Material]
-) -> tuple[tuple[str, scad.Part | scad.Assembly, scad.Placement, str], ...]:
+    *, materials: dict[str, cad.Material]
+) -> tuple[tuple[str, cad.Part | cad.Assembly, cad.Placement, str], ...]:
     """Build the actuator component inventory without creating a parent assembly."""
 
     print(
@@ -179,16 +179,16 @@ def make_integrated_bldc_joint_actuator_components_rtuple(
     )
 
     fixed_components = (
-        ("reducer_housing", reducer_housing, scad.identity_placement_rplacement(), "Fixed reducer housing"),
-        ("motor_shell", motor_shell, scad.identity_placement_rplacement(), "Fixed BLDC shell"),
-        ("rear_bearing_spider", rear_spider, scad.identity_placement_rplacement(), "Rear motor-bearing spider"),
-        ("rear_electronics_cover", rear_cover, scad.identity_placement_rplacement(), "Rear controller cover"),
-        ("output_bearing_cap", output_cap, scad.identity_placement_rplacement(), "Output bearing cap"),
-        ("stator", stator, scad.identity_placement_rplacement(), "12-slot fixed stator"),
-        ("rotor", rotor, scad.identity_placement_rplacement(), "14-pole rotor and direct sun shaft"),
-        ("controller", controller, scad.identity_placement_rplacement(), "Circular integrated controller"),
-        ("stage1_carrier", stage1_carrier, scad.identity_placement_rplacement(), "Stage 1 carrier and stage 2 sun"),
-        ("output_carrier", output_carrier, scad.identity_placement_rplacement(), "Stage 2 carrier and output flange"),
+        ("reducer_housing", reducer_housing, cad.identity_placement_rplacement(), "Fixed reducer housing"),
+        ("motor_shell", motor_shell, cad.identity_placement_rplacement(), "Fixed BLDC shell"),
+        ("rear_bearing_spider", rear_spider, cad.identity_placement_rplacement(), "Rear motor-bearing spider"),
+        ("rear_electronics_cover", rear_cover, cad.identity_placement_rplacement(), "Rear controller cover"),
+        ("output_bearing_cap", output_cap, cad.identity_placement_rplacement(), "Output bearing cap"),
+        ("stator", stator, cad.identity_placement_rplacement(), "12-slot fixed stator"),
+        ("rotor", rotor, cad.identity_placement_rplacement(), "14-pole rotor and direct sun shaft"),
+        ("controller", controller, cad.identity_placement_rplacement(), "Circular integrated controller"),
+        ("stage1_carrier", stage1_carrier, cad.identity_placement_rplacement(), "Stage 1 carrier and stage 2 sun"),
+        ("output_carrier", output_carrier, cad.identity_placement_rplacement(), "Stage 2 carrier and output flange"),
         ("stage1_ring", stage1_ring, _stage_rplacement(stage=STAGE_1), "Stage 1 fixed ring insert"),
         ("stage2_ring", stage2_ring, _stage_rplacement(stage=STAGE_2), "Stage 2 fixed ring insert"),
     )
@@ -260,8 +260,8 @@ def make_integrated_bldc_joint_actuator_components_rtuple(
     )
 
 
-@scad.requires_session
-def _add_public_connectors_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
+@cad.requires_session
+def _add_public_connectors_rassembly(*, assembly: cad.Assembly) -> cad.Assembly:
     forwarded = (
         ("case_clamp_axis", "reducer_housing", "case_clamp_axis", "External split-clamp datum"),
         ("case_mount_axis", "output_bearing_cap", "case_mount_axis", "Fixed actuator case datum"),
@@ -270,7 +270,7 @@ def _add_public_connectors_rassembly(*, assembly: scad.Assembly) -> scad.Assembl
         ("power_can_terminal_access", "controller", "power_can_access", "Rear power/CAN service datum"),
     )
     for connector_id, source_component_id, source_connector_id, name in forwarded:
-        assembly = scad.forward_connector_rassembly(
+        assembly = cad.forward_connector_rassembly(
             assembly=assembly,
             connector_id=connector_id,
             source_component_id=source_component_id,
@@ -282,11 +282,11 @@ def _add_public_connectors_rassembly(*, assembly: scad.Assembly) -> scad.Assembl
     return assembly
 
 
-@scad.requires_session
-def _add_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
-    assembly = scad.ground_component_rassembly(assembly=assembly, component_id="reducer_housing")
-    assembly = scad.ground_component_rassembly(assembly=assembly, component_id="stage1_ring")
-    assembly = scad.ground_component_rassembly(assembly=assembly, component_id="stage2_ring")
+@cad.requires_session
+def _add_constraints_rassembly(*, assembly: cad.Assembly) -> cad.Assembly:
+    assembly = cad.ground_component_rassembly(assembly=assembly, component_id="reducer_housing")
+    assembly = cad.ground_component_rassembly(assembly=assembly, component_id="stage1_ring")
+    assembly = cad.ground_component_rassembly(assembly=assembly, component_id="stage2_ring")
     fixed_pairs = (
         ("motor_shell_to_reducer_housing", "reducer_housing", "motor_mount_axis", "motor_shell", "reducer_mount_axis"),
         ("rear_spider_to_motor_shell", "motor_shell", "rear_spider_axis", "rear_bearing_spider", "shell_axis"),
@@ -298,7 +298,7 @@ def _add_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
         ("output_cap_to_reducer_housing", "reducer_housing", "output_cap_axis", "output_bearing_cap", "housing_axis"),
     )
     for constraint_id, a_component, a_connector, b_component, b_connector in fixed_pairs:
-        assembly = scad.add_fixed_constraint_rassembly(
+        assembly = cad.add_fixed_constraint_rassembly(
             assembly=assembly,
             constraint_id=constraint_id,
             connector_a=connector_ref(component_id=a_component, connector_id=a_connector),
@@ -312,7 +312,7 @@ def _add_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
         ("output_carrier_revolute", "reducer_housing", "stage2_carrier_axis", "output_carrier", "carrier_axis"),
     )
     for constraint_id, a_component, a_connector, b_component, b_connector in primary_revolutes:
-        assembly = scad.add_revolute_constraint_rassembly(
+        assembly = cad.add_revolute_constraint_rassembly(
             assembly=assembly,
             constraint_id=constraint_id,
             connector_a=connector_ref(component_id=a_component, connector_id=a_connector),
@@ -343,19 +343,19 @@ def _add_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
     return assembly
 
 
-@scad.requires_session
+@cad.requires_session
 def _add_stage_constraints_rassembly(
     *,
-    assembly: scad.Assembly,
+    assembly: cad.Assembly,
     stage: StageSpec,
     sun_component: str,
     sun_connector: str,
     ring_component: str,
     carrier_component: str,
-) -> scad.Assembly:
+) -> cad.Assembly:
     for index in range(PLANET_COUNT):
         planet_component = f"{stage.stage_id}_planet_{index + 1}"
-        assembly = scad.add_revolute_constraint_rassembly(
+        assembly = cad.add_revolute_constraint_rassembly(
             assembly=assembly,
             constraint_id=f"{planet_component}_revolute",
             connector_a=connector_ref(component_id=carrier_component, connector_id=f"planet_{index + 1}_axis"),
@@ -364,7 +364,7 @@ def _add_stage_constraints_rassembly(
             angle_limit=None,
             name=f"{stage.label} planet {index + 1} bearing axis",
         )
-        assembly = scad.add_gear_constraint_rassembly(
+        assembly = cad.add_gear_constraint_rassembly(
             assembly=assembly,
             constraint_id=f"{stage.stage_id}_sun_planet_{index + 1}_mesh",
             connector_a=connector_ref(component_id=sun_component, connector_id=sun_connector),
@@ -374,7 +374,7 @@ def _add_stage_constraints_rassembly(
             phase_offset=None,
             name=f"{stage.label} sun to planet {index + 1} external mesh",
         )
-        assembly = scad.add_belt_constraint_rassembly(
+        assembly = cad.add_belt_constraint_rassembly(
             assembly=assembly,
             constraint_id=f"{stage.stage_id}_ring_planet_{index + 1}_internal_mesh",
             connector_a=connector_ref(component_id=ring_component, connector_id="axis"),
@@ -391,8 +391,8 @@ def _add_stage_constraints_rassembly(
     return assembly
 
 
-@scad.requires_session
-def _add_bearing_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
+@cad.requires_session
+def _add_bearing_constraints_rassembly(*, assembly: cad.Assembly) -> cad.Assembly:
     interfaces = (
         ("rear_bearing_outer_to_spider", "rear_bearing_spider", "bearing_axis", "rear_motor_bearing", "outer_axis"),
         ("rear_bearing_inner_to_rotor", "rotor", "rear_bearing_axis", "rear_motor_bearing", "inner_axis"),
@@ -406,7 +406,7 @@ def _add_bearing_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
         ("output_bearing_2_inner_to_carrier", "output_carrier", "bearing_2_axis", "output_bearing_2", "inner_axis"),
     )
     for constraint_id, a_component, a_connector, b_component, b_connector in interfaces:
-        assembly = scad.add_revolute_constraint_rassembly(
+        assembly = cad.add_revolute_constraint_rassembly(
             assembly=assembly,
             constraint_id=constraint_id,
             connector_a=connector_ref(component_id=a_component, connector_id=a_connector),
@@ -419,7 +419,7 @@ def _add_bearing_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
         for index in range(PLANET_COUNT):
             planet = f"{stage.stage_id}_planet_{index + 1}"
             bearing = f"{stage.stage_id}_planet_bearing_{index + 1}"
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly=assembly,
                 constraint_id=f"{bearing}_outer_to_planet",
                 connector_a=connector_ref(component_id=planet, connector_id="bearing_axis"),
@@ -428,7 +428,7 @@ def _add_bearing_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
                 angle_limit=None,
                 name=f"{stage.label} planet {index + 1} bearing outer-ring fit",
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly=assembly,
                 constraint_id=f"{bearing}_inner_to_pin",
                 connector_a=connector_ref(
@@ -443,6 +443,6 @@ def _add_bearing_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
     return assembly
 
 
-@scad.requires_session
-def _stage_rplacement(*, stage: StageSpec) -> scad.Placement:
-    return scad.make_placement_rplacement(origin=(0.0, 0.0, stage.bottom_z))
+@cad.requires_session
+def _stage_rplacement(*, stage: StageSpec) -> cad.Placement:
+    return cad.make_placement_rplacement(origin=(0.0, 0.0, stage.bottom_z))

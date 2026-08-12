@@ -1,8 +1,10 @@
 #include "cadflow_core.h"
 
 #include "core/session.h"
+#include "flexible/shell_mesh.h"
 #include "io/exchange.h"
 #include "kernel/construction.h"
+#include "kernel/advanced.h"
 #include "kernel/edge_features.h"
 #include "kernel/features.h"
 #include "kernel/operations.h"
@@ -94,6 +96,22 @@ unsigned long long cadflow_import_step(cad_session_t handle, const char* path) {
         }
         return with_session(handle, [&](Session& session) {
             return cadflow::io::import_step(session, path);
+        });
+    });
+}
+
+unsigned long long cadflow_import_brep(cad_session_t handle, const char* path) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::import_brep(session, path);
+        });
+    });
+}
+
+unsigned long long cadflow_import_stl(cad_session_t handle, const char* path) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::import_stl(session, path);
         });
     });
 }
@@ -306,6 +324,80 @@ unsigned long long cadflow_sweep(
     });
 }
 
+unsigned long long cadflow_bspline(
+    cad_session_t handle, const double* poles_xyz, size_t pole_count, int degree,
+    const double* knots, size_t knot_count, const int* multiplicities,
+    size_t multiplicity_count, const double* weights, int periodic) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::make_bspline(
+                session, poles_xyz, pole_count, degree, knots, knot_count,
+                multiplicities, multiplicity_count, weights, periodic != 0);
+        });
+    });
+}
+
+unsigned long long cadflow_twisted_sweep(
+    cad_session_t handle, unsigned long long profile, double distance,
+    double twist_degrees, double ox, double oy, double oz, double ax, double ay,
+    double az, double guide_radius) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::twisted_sweep(
+                session, profile, distance, twist_degrees, ox, oy, oz, ax, ay, az,
+                guide_radius);
+        });
+    });
+}
+
+unsigned long long cadflow_ruled_surface(
+    cad_session_t handle, unsigned long long edge_a, unsigned long long edge_b) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::ruled_surface(session, edge_a, edge_b);
+        });
+    });
+}
+
+unsigned long long cadflow_filling_surface(
+    cad_session_t handle, const unsigned long long* edges, size_t edge_count,
+    double tolerance) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::filling_surface(session, edges, edge_count, tolerance);
+        });
+    });
+}
+
+unsigned long long cadflow_gordon_surface(
+    cad_session_t handle, const unsigned long long* profiles, size_t profile_count,
+    const unsigned long long* guides, size_t guide_count, double tolerance) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::gordon_surface(
+                session, profiles, profile_count, guides, guide_count, tolerance);
+        });
+    });
+}
+
+unsigned long long cadflow_sew(
+    cad_session_t handle, const unsigned long long* faces, size_t face_count,
+    double tolerance) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::sew(session, faces, face_count, tolerance);
+        });
+    });
+}
+
+unsigned long long cadflow_shell_to_solid(cad_session_t handle, unsigned long long shell) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::shell_to_solid(session, shell);
+        });
+    });
+}
+
 unsigned long long cadflow_cut(
     cad_session_t handle, unsigned long long left, unsigned long long right) {
     return cadflow::core::guarded([&] {
@@ -462,6 +554,58 @@ int cadflow_topology_counts(
     });
 }
 
+size_t cadflow_subshape_count(
+    cad_session_t handle, unsigned long long shape, int shape_type) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::subshape_count(session, shape, shape_type);
+        });
+    });
+}
+
+size_t cadflow_subshape_handles(
+    cad_session_t handle, unsigned long long shape, int shape_type,
+    unsigned long long* output, size_t capacity) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::subshape_handles(
+                session, shape, shape_type, output, capacity);
+        });
+    });
+}
+
+size_t cadflow_free_boundary_count(
+    cad_session_t handle, unsigned long long shape, double tolerance) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::free_boundary_count(session, shape, tolerance);
+        });
+    });
+}
+
+size_t cadflow_free_boundary_handles(
+    cad_session_t handle, unsigned long long shape, double tolerance,
+    unsigned long long* output, size_t capacity) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::free_boundary_handles(
+                session, shape, tolerance, output, capacity);
+        });
+    });
+}
+
+int cadflow_face_properties(
+    cad_session_t handle, unsigned long long face, double u, double v,
+    double normal_out[3], double curvature_out[3]) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            cadflow::kernel::face_properties(
+                session, face, u, v, normal_out, curvature_out);
+            return 1;
+        });
+    });
+}
+
 const char* cadflow_kind(cad_session_t handle, unsigned long long shape) {
     return cadflow::core::guarded([&] {
         return with_session(handle, [&](Session& session) {
@@ -520,6 +664,52 @@ int cadflow_execute(cad_session_t handle, const char* program, char** result) {
                 cadflow::runtime::execute_graph(session, program));
             return 1;
         });
+    });
+}
+
+int cadflow_flexible_shell_mesh_counts(
+    size_t sample_rows,
+    size_t sample_columns,
+    int periodic_columns,
+    double thickness,
+    size_t output[2]) {
+    return cadflow::core::guarded([&] {
+        if (!output) {
+            throw std::invalid_argument("flexible shell count output is null");
+        }
+        const cadflow::flexible::ShellMeshCounts counts =
+            cadflow::flexible::shell_mesh_counts(
+                sample_rows, sample_columns, periodic_columns != 0, thickness);
+        output[0] = counts.vertex_count;
+        output[1] = counts.triangle_count;
+        return 1;
+    });
+}
+
+int cadflow_build_flexible_shell_mesh(
+    const double* control_xyz,
+    size_t control_rows,
+    size_t control_columns,
+    size_t sample_rows,
+    size_t sample_columns,
+    int periodic_columns,
+    double thickness,
+    double* out_vertices_xyz,
+    double* out_normals_xyz,
+    unsigned int* out_triangles) {
+    return cadflow::core::guarded([&] {
+        cadflow::flexible::build_shell_mesh(
+            {
+                control_xyz,
+                control_rows,
+                control_columns,
+                sample_rows,
+                sample_columns,
+                periodic_columns != 0,
+                thickness,
+            },
+            {out_vertices_xyz, out_normals_xyz, out_triangles});
+        return 1;
     });
 }
 

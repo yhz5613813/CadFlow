@@ -13,19 +13,19 @@ This lets consumers choose between:
 ## Source example
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-width = scad.var("width", 24.0, unit="mm", comment="plate width", tolerance=0.1)
-height = scad.var("height", 12.0, unit="mm", comment="plate height", tolerance=0.1)
-thickness = scad.var("thickness", 4.0, unit="mm", comment="plate thickness", tolerance=(-0.05, 0.1))
+width = cad.var("width", 24.0, unit="mm", comment="plate width", tolerance=0.1)
+height = cad.var("height", 12.0, unit="mm", comment="plate height", tolerance=0.1)
+thickness = cad.var("thickness", 4.0, unit="mm", comment="plate thickness", tolerance=(-0.05, 0.1))
 
-with scad.GraphSession() as session:
-    plate = scad.make_box_rsolid(width, height, thickness)
-    rib = scad.make_box_rsolid(width / 4.0, height, thickness * 2.0)
-    part = scad.union_rsolid(plate, rib)
+with cad.GraphSession() as session:
+    plate = cad.make_box_rsolid(width, height, thickness)
+    rib = cad.make_box_rsolid(width / 4.0, height, thickness * 2.0)
+    part = cad.union_rsolid(plate, rib)
     session.require_tolerance(width + height, 0.2, tolerance_unit="mm", name="plate_envelope")
 
-model_json = scad.export_model_json(session)
+model_json = cad.export_model_json(session)
 ```
 
 Because `make_box_rsolid(...)` lowers to profile + extrude nodes, the expressions appear on the lowered line/profile/extrude nodes rather than on a `make_box` node.
@@ -102,12 +102,12 @@ Replay does validate stored tolerance requirements before rebuilding the nominal
 In practical terms:
 
 ```python
-width = scad.var("width", 24.0)
-with scad.GraphSession() as session:
-    box = scad.make_box_rsolid(width, 10, 2)
+width = cad.var("width", 24.0)
+with cad.GraphSession() as session:
+    box = cad.make_box_rsolid(width, 10, 2)
 
-payload = scad.export_model_json(session)
-rebuilt = scad.replay_model_json(payload)
+payload = cad.export_model_json(session)
+rebuilt = cad.replay_model_json(payload)
 ```
 
 Replay rebuilds using width `24.0`, because that is the value stored in `params`.

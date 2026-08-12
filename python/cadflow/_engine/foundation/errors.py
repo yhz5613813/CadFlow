@@ -66,10 +66,10 @@ def _resolve_operation_callable(operation: str) -> Any:
                 return obj
 
         try:
-            scad = importlib.import_module("cadflow")
+            cad = importlib.import_module("cadflow")
         except Exception:
             return None
-        obj = scad
+        obj = cad
         for part in op.split("."):
             if not hasattr(obj, part):
                 return None
@@ -77,10 +77,10 @@ def _resolve_operation_callable(operation: str) -> Any:
         return obj
 
     try:
-        scad = importlib.import_module("cadflow")
+        cad = importlib.import_module("cadflow")
     except Exception:
         return None
-    return getattr(scad, op, None)
+    return getattr(cad, op, None)
 
 
 def _operation_signature(operation: str) -> Optional[str]:

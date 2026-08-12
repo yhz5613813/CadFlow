@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import cadflow as scad
+import cadflow as cad
 
 if __package__:
     from .bearings import (
@@ -65,8 +65,8 @@ else:
     from materials import make_reducer_materials_rdict
     from shafts import make_input_shaft_rpart
 
-@scad.requires_session
-def make_two_stage_planetary_reducer_rassembly() -> scad.Assembly:
+@cad.requires_session
+def make_two_stage_planetary_reducer_rassembly() -> cad.Assembly:
     """Build the full 20:1 compact reducer assembly and solve constraints."""
 
     print(
@@ -118,19 +118,19 @@ def make_two_stage_planetary_reducer_rassembly() -> scad.Assembly:
         tag_prefix="reducer.bearing.micro.radial",
     )
 
-    reducer = scad.make_assembly_rassembly(
+    reducer = cad.make_assembly_rassembly(
         assembly_id="compact_two_stage_planetary_reducer",
         name="58.8 mm OD 20:1 through-bolted herringbone planetary actuator reducer",
     )
     reducer = _add_fixed_components_rassembly(
         assembly=reducer,
         components=(
-            ("housing", housing, scad.identity_placement_rplacement(), "Fixed outer housing"),
-            ("input_flange", input_flange, scad.identity_placement_rplacement(), "Rotating input flange"),
-            ("output_flange", output_flange, scad.identity_placement_rplacement(), "Rotating output flange"),
-            ("input_shaft", input_shaft, scad.identity_placement_rplacement(), "Input shaft"),
-            ("stage1_carrier", stage1_carrier, scad.identity_placement_rplacement(), "Stage 1 carrier and stage 2 sun shaft"),
-            ("stage2_carrier", stage2_carrier, scad.identity_placement_rplacement(), "Stage 2 carrier and output shaft"),
+            ("housing", housing, cad.identity_placement_rplacement(), "Fixed outer housing"),
+            ("input_flange", input_flange, cad.identity_placement_rplacement(), "Rotating input flange"),
+            ("output_flange", output_flange, cad.identity_placement_rplacement(), "Rotating output flange"),
+            ("input_shaft", input_shaft, cad.identity_placement_rplacement(), "Input shaft"),
+            ("stage1_carrier", stage1_carrier, cad.identity_placement_rplacement(), "Stage 1 carrier and stage 2 sun shaft"),
+            ("stage2_carrier", stage2_carrier, cad.identity_placement_rplacement(), "Stage 2 carrier and output shaft"),
             ("stage1_ring", stage1_ring, _gear_stage_rplacement(stage=STAGE_1), "Stage 1 fixed ring"),
             ("stage1_sun", stage1_sun, _gear_stage_rplacement(stage=STAGE_1), "Stage 1 sun"),
             ("stage2_ring", stage2_ring, _gear_stage_rplacement(stage=STAGE_2), "Stage 2 fixed ring"),
@@ -139,14 +139,14 @@ def make_two_stage_planetary_reducer_rassembly() -> scad.Assembly:
     )
 
     for index in range(PLANET_COUNT):
-        reducer = scad.add_component_rassembly(
+        reducer = cad.add_component_rassembly(
             assembly=reducer,
             item=stage1_planet,
             component_id=f"stage1_planet_{index + 1}",
             placement=make_planet_component_rplacement(stage=STAGE_1, planet_index=index),
             name=f"Stage 1 planet gear {index + 1}",
         )
-        reducer = scad.add_component_rassembly(
+        reducer = cad.add_component_rassembly(
             assembly=reducer,
             item=stage2_planet,
             component_id=f"stage2_planet_{index + 1}",
@@ -160,19 +160,19 @@ def make_two_stage_planetary_reducer_rassembly() -> scad.Assembly:
     )
     reducer = _add_public_interface_connectors_rassembly(assembly=reducer)
     reducer = _add_reducer_constraints_rassembly(assembly=reducer)
-    reducer = scad.solve_assembly_constraints_rassembly(assembly=reducer, strict=True)
+    reducer = cad.solve_assembly_constraints_rassembly(assembly=reducer, strict=True)
     _ground_constraint_report(assembly=reducer)
     return reducer
 
 
-@scad.requires_session
+@cad.requires_session
 def _add_fixed_components_rassembly(
     *,
-    assembly: scad.Assembly,
-    components: tuple[tuple[str, scad.Part, scad.Placement, str], ...],
-) -> scad.Assembly:
+    assembly: cad.Assembly,
+    components: tuple[tuple[str, cad.Part, cad.Placement, str], ...],
+) -> cad.Assembly:
     for component_id, item, placement, name in components:
-        assembly = scad.add_component_rassembly(
+        assembly = cad.add_component_rassembly(
             assembly=assembly,
             item=item,
             component_id=component_id,
@@ -183,12 +183,12 @@ def _add_fixed_components_rassembly(
     return assembly
 
 
-@scad.requires_session
+@cad.requires_session
 def _add_bearing_components_rassembly(
     *,
-    assembly: scad.Assembly,
-    bearing: scad.Assembly,
-) -> scad.Assembly:
+    assembly: cad.Assembly,
+    bearing: cad.Assembly,
+) -> cad.Assembly:
     bearing_component_count = 0
     for component_id, bearing, placement, name in (
         (
@@ -210,7 +210,7 @@ def _add_bearing_components_rassembly(
             "Output shaft radial ball bearing",
         ),
     ):
-        assembly = scad.add_component_rassembly(
+        assembly = cad.add_component_rassembly(
             assembly=assembly,
             item=bearing,
             component_id=component_id,
@@ -221,7 +221,7 @@ def _add_bearing_components_rassembly(
 
     for index, placement in enumerate(make_planet_bearing_rplacements(stage=STAGE_1)):
         component_id = f"stage1_planet_bearing_{index + 1}"
-        assembly = scad.add_component_rassembly(
+        assembly = cad.add_component_rassembly(
             assembly=assembly,
             item=bearing,
             component_id=component_id,
@@ -232,7 +232,7 @@ def _add_bearing_components_rassembly(
 
     for index, placement in enumerate(make_planet_bearing_rplacements(stage=STAGE_2)):
         component_id = f"stage2_planet_bearing_{index + 1}"
-        assembly = scad.add_component_rassembly(
+        assembly = cad.add_component_rassembly(
             assembly=assembly,
             item=bearing,
             component_id=component_id,
@@ -245,8 +245,8 @@ def _add_bearing_components_rassembly(
     return assembly
 
 
-@scad.requires_session
-def _add_public_interface_connectors_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
+@cad.requires_session
+def _add_public_interface_connectors_rassembly(*, assembly: cad.Assembly) -> cad.Assembly:
     """Expose stable actuator module datums without leaking private component ids."""
 
     forwarded = (
@@ -255,7 +255,7 @@ def _add_public_interface_connectors_rassembly(*, assembly: scad.Assembly) -> sc
         ("output_link_axis", "output_flange", "axis", "Output flange datum for driven link"),
     )
     for connector_id, source_component_id, source_connector_id, name in forwarded:
-        assembly = scad.forward_connector_rassembly(
+        assembly = cad.forward_connector_rassembly(
             assembly=assembly,
             connector_id=connector_id,
             source_component_id=source_component_id,
@@ -266,11 +266,11 @@ def _add_public_interface_connectors_rassembly(*, assembly: scad.Assembly) -> sc
     return assembly
 
 
-@scad.requires_session
-def _add_reducer_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
-    assembly = scad.ground_component_rassembly(assembly=assembly, component_id="housing")
-    assembly = scad.ground_component_rassembly(assembly=assembly, component_id="stage1_ring")
-    assembly = scad.ground_component_rassembly(assembly=assembly, component_id="stage2_ring")
+@cad.requires_session
+def _add_reducer_constraints_rassembly(*, assembly: cad.Assembly) -> cad.Assembly:
+    assembly = cad.ground_component_rassembly(assembly=assembly, component_id="housing")
+    assembly = cad.ground_component_rassembly(assembly=assembly, component_id="stage1_ring")
+    assembly = cad.ground_component_rassembly(assembly=assembly, component_id="stage2_ring")
 
     fixed_pairs = (
         ("stage1_ring_fixed", "housing", "stage1_axis", "stage1_ring", "axis"),
@@ -281,7 +281,7 @@ def _add_reducer_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
         ("output_flange_to_stage2_carrier", "stage2_carrier", "output_axis", "output_flange", "axis"),
     )
     for constraint_id, a_component, a_connector, b_component, b_connector in fixed_pairs:
-        assembly = scad.add_fixed_constraint_rassembly(
+        assembly = cad.add_fixed_constraint_rassembly(
             assembly=assembly,
             constraint_id=constraint_id,
             connector_a=_ref(component_id=a_component, connector_id=a_connector),
@@ -295,7 +295,7 @@ def _add_reducer_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
         ("stage2_carrier_revolute", "housing", "output_axis", "stage2_carrier", "carrier_axis"),
     )
     for constraint_id, a_component, a_connector, b_component, b_connector in revolutes:
-        assembly = scad.add_revolute_constraint_rassembly(
+        assembly = cad.add_revolute_constraint_rassembly(
             assembly=assembly,
             constraint_id=constraint_id,
             connector_a=_ref(component_id=a_component, connector_id=a_connector),
@@ -326,8 +326,8 @@ def _add_reducer_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assem
     return assembly
 
 
-@scad.requires_session
-def _add_bearing_interface_constraints_rassembly(*, assembly: scad.Assembly) -> scad.Assembly:
+@cad.requires_session
+def _add_bearing_interface_constraints_rassembly(*, assembly: cad.Assembly) -> cad.Assembly:
     coaxial_interfaces = (
         ("input_bearing_outer_to_housing", "housing", "input_bearing_axis", "input_bearing", "outer_axis"),
         ("input_bearing_inner_to_shaft", "input_shaft", "input_bearing_axis", "input_bearing", "inner_axis"),
@@ -337,7 +337,7 @@ def _add_bearing_interface_constraints_rassembly(*, assembly: scad.Assembly) -> 
         ("output_bearing_inner_to_stage2_carrier", "stage2_carrier", "output_bearing_axis", "output_bearing", "inner_axis"),
     )
     for constraint_id, a_component, a_connector, bearing_component, bearing_connector in coaxial_interfaces:
-        assembly = scad.add_revolute_constraint_rassembly(
+        assembly = cad.add_revolute_constraint_rassembly(
             assembly=assembly,
             constraint_id=constraint_id,
             connector_a=_ref(component_id=a_component, connector_id=a_connector),
@@ -351,7 +351,7 @@ def _add_bearing_interface_constraints_rassembly(*, assembly: scad.Assembly) -> 
         for index in range(PLANET_COUNT):
             planet_id = f"{stage.stage_id}_planet_{index + 1}"
             bearing_id = f"{stage.stage_id}_planet_bearing_{index + 1}"
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly=assembly,
                 constraint_id=f"{bearing_id}_outer_to_planet",
                 connector_a=_ref(component_id=planet_id, connector_id="bearing_axis"),
@@ -360,7 +360,7 @@ def _add_bearing_interface_constraints_rassembly(*, assembly: scad.Assembly) -> 
                 angle_limit=None,
                 name=f"{bearing_id} outer ring to planet gear bore",
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly=assembly,
                 constraint_id=f"{bearing_id}_inner_to_carrier_pin",
                 connector_a=_ref(
@@ -375,19 +375,19 @@ def _add_bearing_interface_constraints_rassembly(*, assembly: scad.Assembly) -> 
     return assembly
 
 
-@scad.requires_session
+@cad.requires_session
 def _add_stage_mesh_constraints_rassembly(
     *,
-    assembly: scad.Assembly,
+    assembly: cad.Assembly,
     stage: StageSpec,
     driver_component_id: str,
     driver_connector_id: str,
     ring_component_id: str,
     carrier_component_id: str,
-) -> scad.Assembly:
+) -> cad.Assembly:
     for index in range(PLANET_COUNT):
         planet_component_id = f"{stage.stage_id}_planet_{index + 1}"
-        assembly = scad.add_revolute_constraint_rassembly(
+        assembly = cad.add_revolute_constraint_rassembly(
             assembly=assembly,
             constraint_id=f"{stage.stage_id}_planet_{index + 1}_revolute",
             connector_a=_ref(
@@ -399,7 +399,7 @@ def _add_stage_mesh_constraints_rassembly(
             angle_limit=None,
             name=f"{stage.label} planet {index + 1} pin bearing axis",
         )
-        assembly = scad.add_gear_constraint_rassembly(
+        assembly = cad.add_gear_constraint_rassembly(
             assembly=assembly,
             constraint_id=f"{stage.stage_id}_sun_planet_{index + 1}_external_mesh",
             connector_a=_ref(component_id=driver_component_id, connector_id=driver_connector_id),
@@ -409,7 +409,7 @@ def _add_stage_mesh_constraints_rassembly(
             phase_offset=None,
             name=f"{stage.label} external sun to planet {index + 1} mesh",
         )
-        assembly = scad.add_belt_constraint_rassembly(
+        assembly = cad.add_belt_constraint_rassembly(
             assembly=assembly,
             constraint_id=f"{stage.stage_id}_ring_planet_{index + 1}_internal_mesh",
             connector_a=_ref(component_id=ring_component_id, connector_id="axis"),
@@ -426,25 +426,25 @@ def _add_stage_mesh_constraints_rassembly(
     return assembly
 
 
-@scad.requires_session
-def _gear_stage_rplacement(*, stage: StageSpec) -> scad.Placement:
-    return scad.make_placement_rplacement(
+@cad.requires_session
+def _gear_stage_rplacement(*, stage: StageSpec) -> cad.Placement:
+    return cad.make_placement_rplacement(
         origin=(0.0, 0.0, stage.bottom_z),
         x_axis=(1.0, 0.0, 0.0),
         y_axis=(0.0, 1.0, 0.0),
     )
 
 
-@scad.requires_session
-def _ref(*, component_id: str, connector_id: str) -> scad.ConnectorRef:
-    return scad.make_connector_ref_rconnectorref(
+@cad.requires_session
+def _ref(*, component_id: str, connector_id: str) -> cad.ConnectorRef:
+    return cad.make_connector_ref_rconnectorref(
         component_id=component_id,
         connector_id=connector_id,
     )
 
 
-def _ground_constraint_report(*, assembly: scad.Assembly) -> None:
-    report = scad.inspect_assembly_constraints_rconstraintreport(assembly=assembly)
+def _ground_constraint_report(*, assembly: cad.Assembly) -> None:
+    report = cad.inspect_assembly_constraints_rconstraintreport(assembly=assembly)
     print(
         f"assembly_constraints: solved={report.solved} components={len(assembly.component_ids())} "
         f"constraints={len(assembly.constraints)} grounded={len(assembly.grounded_component_ids)}"

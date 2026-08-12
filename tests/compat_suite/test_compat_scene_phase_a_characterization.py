@@ -11,7 +11,7 @@ from OCP.BRepTools import BRepTools
 from OCP.TopAbs import TopAbs_FORWARD, TopAbs_REVERSED
 from OCP.TopLoc import TopLoc_Location
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.core import Compound, Edge, Face
 from cadflow.kernel.ocp_export import make_compound_always
 from cadflow.operations import _make_geo_selector
@@ -86,9 +86,9 @@ def test_all_render_profile_characterization_cases_have_targeted_evidence():
 
 
 def test_model_schema_2_topology_witnesses_and_roles_survive_clean_replay():
-    with scad.GraphSession(graph_id="scene-characterization") as session:
-        profile = scad.make_rectangle_rface(width=5, height=3)
-        scad.extrude_rsolid(
+    with cad.GraphSession(graph_id="scene-characterization") as session:
+        profile = cad.make_rectangle_rface(width=5, height=3)
+        cad.extrude_rsolid(
             profile=profile,
             direction=(0, 0, 1),
             distance=2,
@@ -96,7 +96,7 @@ def test_model_schema_2_topology_witnesses_and_roles_survive_clean_replay():
             end_face_tag="role.end",
         )
 
-    model_json = scad.export_model_json(session=session)
+    model_json = cad.export_model_json(session=session)
     payload = json.loads(model_json)
     assert payload["schema_version"] == "2.0"
     assert payload["graph"]["schema_version"] == "2.0"
@@ -127,11 +127,11 @@ def test_model_schema_2_topology_witnesses_and_roles_survive_clean_replay():
         for entry in delta["entries"]
     )
 
-    replayed = scad.replay_model_json(json_str=model_json)
+    replayed = cad.replay_model_json(json_str=model_json)
     assert len(replayed) == 1
     solid = replayed[0]
     assert {
-        role: sum(scad.ql.output_role(role)(face) for face in solid.get_faces())
+        role: sum(cad.ql.output_role(role)(face) for face in solid.get_faces())
         for role in ("extrusion.start", "extrusion.end", "extrusion.side")
     } == {
         "extrusion.start": 1,
@@ -146,7 +146,7 @@ def test_profile_forces_reversed_edges_forward_before_selector_evaluation():
     assert preparation["edge_orientation_call"] == "edge.Oriented(TopAbs_FORWARD)"
     assert preparation["edge_orientation_order"] == "force_forward_before_location_bake"
 
-    edge = scad.make_line_redge(start=(0, 0, 0), end=(3, 4, 0))
+    edge = cad.make_line_redge(start=(0, 0, 0), end=(3, 4, 0))
     reversed_edge = Edge(edge.wrapped.Oriented(TopAbs_REVERSED))
     forward_edge = Edge(reversed_edge.wrapped.Oriented(TopAbs_FORWARD))
 
@@ -160,13 +160,13 @@ def test_profile_forces_reversed_edges_forward_before_selector_evaluation():
 
 
 def test_reversed_kernel_traversal_preserves_normalized_evaluated_properties():
-    first = scad.make_box_rsolid(
+    first = cad.make_box_rsolid(
         width=1,
         height=2,
         depth=3,
         bottom_face_center=(-5, 0, 0),
     )
-    second = scad.make_box_rsolid(
+    second = cad.make_box_rsolid(
         width=2,
         height=3,
         depth=4,
@@ -214,8 +214,8 @@ def test_symmetric_entities_are_selector_ambiguous_even_if_legacy_resolver_picks
     threshold = selector_rules["threshold"]
     assert selector_rules["multiple_match_status"] == "selector_ambiguous"
 
-    first = scad.make_box_rsolid(width=2, height=2, depth=2)
-    second = scad.make_box_rsolid(width=2, height=2, depth=2)
+    first = cad.make_box_rsolid(width=2, height=2, depth=2)
+    second = cad.make_box_rsolid(width=2, height=2, depth=2)
     compound = Compound(make_compound_always([first.wrapped, second.wrapped]))
     selector = _make_geo_selector(compound.get_edges()[0])
     candidates = _candidate_shapes_for_geo_selection(compound, "edge")
@@ -237,15 +237,15 @@ def test_serialized_closed_edge_connector_replays_but_has_no_current_frame():
         == "missing_endpoint_or_coincident_endpoints"
     )
 
-    with scad.GraphSession(graph_id="closed-edge-characterization") as session:
-        edge = scad.make_circle_redge(center=(0, 0, 0), radius=2)
-        scad.make_edge_connector_rconnector(
+    with cad.GraphSession(graph_id="closed-edge-characterization") as session:
+        edge = cad.make_circle_redge(center=(0, 0, 0), radius=2)
+        cad.make_edge_connector_rconnector(
             connector_id="closed_edge",
             edge=edge,
         )
 
-    replayed = scad.replay_model_json(
-        json_str=scad.export_model_json(session=session)
+    replayed = cad.replay_model_json(
+        json_str=cad.export_model_json(session=session)
     )
     assert len(replayed) == 1
     connector = replayed[0]
@@ -268,7 +268,7 @@ def test_short_valid_ocp_edge_collapses_after_gltf_float32_conversion():
     assert profile["rules"]["canonical_blocks"]["edge_empty_policy"] == (
         "retain_degenerate_entity_without_render_block"
     )
-    edge = scad.make_line_redge(
+    edge = cad.make_line_redge(
         start=(1000, 0, 0),
         end=(1000.00001, 0, 0),
     )
@@ -286,7 +286,7 @@ def test_missing_kernel_normals_use_oriented_triangle_fallback():
     assert profile["rules"]["normal"]["fallback"] == (
         "oriented_triangle_cross_product_after_coordinate_conversion"
     )
-    face = scad.make_rectangle_rface(width=2, height=3)
+    face = cad.make_rectangle_rface(width=2, height=3)
     reversed_face = Face(face.wrapped.Oriented(TopAbs_REVERSED))
 
     assert _fallback_normal(face) == pytest.approx((0, 1, 0))
@@ -294,8 +294,8 @@ def test_missing_kernel_normals_use_oriented_triangle_fallback():
 
 
 def test_duplicate_geometry_metadata_changes_selector_bytes_but_not_score():
-    first = scad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
-    second = scad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
+    first = cad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
+    second = cad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
     first.set_metadata("geo", {"label": "first"})
     second.set_metadata("geo", {"label": "second"})
     first_selector = _make_geo_selector(first)
@@ -307,9 +307,9 @@ def test_duplicate_geometry_metadata_changes_selector_bytes_but_not_score():
 
 
 def test_duplicate_geometry_provenance_is_distinct_but_not_selector_scored():
-    with scad.GraphSession(graph_id="duplicate-provenance"):
-        first = scad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
-        second = scad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
+    with cad.GraphSession(graph_id="duplicate-provenance"):
+        first = cad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
+        second = cad.make_line_redge(start=(0, 0, 0), end=(1, 0, 0))
 
     first_node = first._get_runtime("graph.node")
     second_node = second._get_runtime("graph.node")
@@ -326,7 +326,7 @@ def test_shared_shape_compound_violates_disjoint_solid_ownership_target():
     )
     assert "shared_face_between_solids" in topology["rejected_roots"]
 
-    solid = scad.make_box_rsolid(width=2, height=2, depth=2)
+    solid = cad.make_box_rsolid(width=2, height=2, depth=2)
     compound = Compound(make_compound_always([solid.wrapped, solid.wrapped]))
     solids = compound.get_solids()
     assert len(solids) == 2

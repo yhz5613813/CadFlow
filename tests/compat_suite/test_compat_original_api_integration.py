@@ -4,18 +4,18 @@ from pathlib import Path
 
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.graph import GraphSession
 from cadflow import ql as Q
 
 
 class TestOriginalBooleanApiIntegration(unittest.TestCase):
     def test_cut_rsolid_auto_applies_semantic_tags(self):
-        body = scad.make_box_rsolid(10, 10, 10)
-        tool = scad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
+        body = cad.make_box_rsolid(10, 10, 10)
+        tool = cad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
 
-        result = scad.cut_rsolid(body, tool)
-        self.assertIsInstance(result, scad.Solid)
+        result = cad.cut_rsolid(body, tool)
+        self.assertIsInstance(result, cad.Solid)
 
         faces = result.get_faces()
         modified = Q.select(faces).where(Q.op("cut", "modified")).all()
@@ -27,11 +27,11 @@ class TestOriginalBooleanApiIntegration(unittest.TestCase):
         self.assertEqual(result.get_metadata("track")["op"], "make_cut_rsolid")
 
     def test_intersect_rsolid_auto_applies_semantic_tags(self):
-        a = scad.make_box_rsolid(10, 10, 10)
-        b = scad.make_cylinder_rsolid(4.0, 10.0, bottom_face_center=(3, 3, 0))
+        a = cad.make_box_rsolid(10, 10, 10)
+        b = cad.make_cylinder_rsolid(4.0, 10.0, bottom_face_center=(3, 3, 0))
 
-        result = scad.intersect_rsolid(a, b)
-        self.assertIsInstance(result, scad.Solid)
+        result = cad.intersect_rsolid(a, b)
+        self.assertIsInstance(result, cad.Solid)
 
         faces = result.get_faces()
         tagged = Q.select(faces).where(Q.op("intersect")).all()
@@ -41,11 +41,11 @@ class TestOriginalBooleanApiIntegration(unittest.TestCase):
         )
 
     def test_union_rsolid_auto_applies_semantic_tags(self):
-        a = scad.make_box_rsolid(10, 10, 10)
-        b = scad.make_cylinder_rsolid(4.0, 10.0, bottom_face_center=(3, 3, 0))
+        a = cad.make_box_rsolid(10, 10, 10)
+        b = cad.make_cylinder_rsolid(4.0, 10.0, bottom_face_center=(3, 3, 0))
 
-        result = scad.union_rsolid(a, b)
-        self.assertIsInstance(result, scad.Solid)
+        result = cad.union_rsolid(a, b)
+        self.assertIsInstance(result, cad.Solid)
 
         faces = result.get_faces()
         tagged = Q.select(faces).where(Q.op("union")).all()
@@ -55,11 +55,11 @@ class TestOriginalBooleanApiIntegration(unittest.TestCase):
 
 class TestScreenshotRenderingIntegration(unittest.TestCase):
     def test_render_screenshot_uses_vtk_with_tags_and_annotations(self):
-        box = scad.make_box_rsolid(4.0, 3.0, 2.0)
-        scad.apply_tag(box, "role.body")
+        box = cad.make_box_rsolid(4.0, 3.0, 2.0)
+        cad.apply_tag(box, "role.body")
         output = Path(self._testMethodName + ".png")
         try:
-            result = scad.render_screenshot_rpath(
+            result = cad.render_screenshot_rpath(
                 box,
                 str(output),
                 highlight_tags=["role.body"],
@@ -79,10 +79,10 @@ class TestScreenshotRenderingIntegration(unittest.TestCase):
 
 class TestOriginalTransformApiIntegration(unittest.TestCase):
     def test_translate_shape_auto_applies_track_metadata(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-        moved = scad.translate_shape(box, (1, 0, 0))
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+        moved = cad.translate_shape(box, (1, 0, 0))
 
-        self.assertIsInstance(moved, scad.Solid)
+        self.assertIsInstance(moved, cad.Solid)
         self.assertEqual(moved.get_metadata("track")["op"], "make_translate_rshape")
         faces = moved.get_faces()
         self.assertGreater(
@@ -93,10 +93,10 @@ class TestOriginalTransformApiIntegration(unittest.TestCase):
         )
 
     def test_rotate_shape_auto_applies_track_metadata(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-        moved = scad.rotate_shape(box, 45.0, (0, 0, 1))
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+        moved = cad.rotate_shape(box, 45.0, (0, 0, 1))
 
-        self.assertIsInstance(moved, scad.Solid)
+        self.assertIsInstance(moved, cad.Solid)
         self.assertEqual(moved.get_metadata("track")["op"], "make_rotate_rshape")
         faces = moved.get_faces()
         self.assertGreater(
@@ -107,8 +107,8 @@ class TestOriginalTransformApiIntegration(unittest.TestCase):
 
 class TestOriginalFeatureApiIntegration(unittest.TestCase):
     def test_extrude_rsolid_exposes_kernel_proven_output_roles(self):
-        profile = scad.make_rectangle_rface(2.0, 1.0)
-        extruded = scad.extrude_rsolid(profile, (0, 0, 1), 2.0)
+        profile = cad.make_rectangle_rface(2.0, 1.0)
+        extruded = cad.extrude_rsolid(profile, (0, 0, 1), 2.0)
 
         self.assertEqual(extruded.get_metadata("track")["op"], "make_extrude_rsolid")
         faces = extruded.get_faces()
@@ -123,9 +123,9 @@ class TestOriginalFeatureApiIntegration(unittest.TestCase):
         )
 
     def test_fillet_rsolid_auto_applies_semantic_tags(self):
-        box = scad.make_box_rsolid(4.0, 4.0, 4.0)
+        box = cad.make_box_rsolid(4.0, 4.0, 4.0)
         edges = [box.get_edges(i) for i in range(4)]
-        filleted = scad.fillet_rsolid(box, edges, 0.2)
+        filleted = cad.fillet_rsolid(box, edges, 0.2)
 
         self.assertEqual(filleted.get_metadata("track")["op"], "make_fillet_rsolid")
         faces = filleted.get_faces()
@@ -133,16 +133,16 @@ class TestOriginalFeatureApiIntegration(unittest.TestCase):
         self.assertGreater(len(tagged), 0)
 
     def test_shell_rsolid_auto_applies_track_metadata(self):
-        box = scad.make_box_rsolid(4.0, 4.0, 4.0)
+        box = cad.make_box_rsolid(4.0, 4.0, 4.0)
         faces_to_remove = [box.get_faces(0)]
-        shelled = scad.shell_rsolid(box, faces_to_remove, 0.2)
+        shelled = cad.shell_rsolid(box, faces_to_remove, 0.2)
 
         self.assertEqual(shelled.get_metadata("track")["op"], "make_shell_rsolid")
 
     def test_loft_rsolid_auto_applies_track_metadata(self):
-        a = scad.make_rectangle_rwire(2.0, 2.0, center=(0, 0, 0))
-        b = scad.make_rectangle_rwire(1.0, 1.0, center=(0, 0, 2.0))
-        lofted = scad.loft_rsolid([a, b])
+        a = cad.make_rectangle_rwire(2.0, 2.0, center=(0, 0, 0))
+        b = cad.make_rectangle_rwire(1.0, 1.0, center=(0, 0, 2.0))
+        lofted = cad.loft_rsolid([a, b])
 
         self.assertEqual(lofted.get_metadata("track")["op"], "make_loft_rsolid")
 
@@ -150,9 +150,9 @@ class TestOriginalFeatureApiIntegration(unittest.TestCase):
 class TestOriginalApiGraphRecording(unittest.TestCase):
     def test_original_apis_record_graph_automatically(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(10, 10, 10)
-            tool = scad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
-            result = scad.cut_rsolid(body, tool)
+            body = cad.make_box_rsolid(10, 10, 10)
+            tool = cad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
+            result = cad.cut_rsolid(body, tool)
 
         graph = session.graph
         self.assertGreaterEqual(graph.node_count, 3)
@@ -161,8 +161,8 @@ class TestOriginalApiGraphRecording(unittest.TestCase):
 
     def test_original_transform_records_graph_automatically(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            moved = scad.translate_shape(box, (1, 0, 0))
+            box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            moved = cad.translate_shape(box, (1, 0, 0))
 
         self.assertGreaterEqual(session.graph.node_count, 2)
         self.assertEqual(session.graph.leaf_nodes()[0].op, "make_translate_rshape")
@@ -170,8 +170,8 @@ class TestOriginalApiGraphRecording(unittest.TestCase):
 
     def test_linear_pattern_records_single_user_level_node(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            pattern = scad.linear_pattern_rsolidlist(box, (1, 0, 0), 3, 2.0)
+            box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            pattern = cad.linear_pattern_rsolidlist(box, (1, 0, 0), 3, 2.0)
 
         self.assertGreaterEqual(session.graph.node_count, 4)
         self.assertEqual(session.graph.leaf_nodes()[0].op, "make_translate_rshape")
@@ -184,8 +184,8 @@ class TestOriginalApiGraphRecording(unittest.TestCase):
 
     def test_radial_pattern_records_single_user_level_node(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            pattern = scad.radial_pattern_rsolidlist(
+            box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            pattern = cad.radial_pattern_rsolidlist(
                 box, (0, 0, 0), (0, 0, 1), 3, 360.0
             )
 
@@ -201,8 +201,8 @@ class TestOriginalApiGraphRecording(unittest.TestCase):
 
     def test_profile_creation_and_extrude_record_graph_automatically(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rface(2.0, 1.0)
-            extruded = scad.extrude_rsolid(profile, (0, 0, 1), 2.0)
+            profile = cad.make_rectangle_rface(2.0, 1.0)
+            extruded = cad.extrude_rsolid(profile, (0, 0, 1), 2.0)
 
         self.assertGreaterEqual(session.graph.node_count, 2)
         self.assertEqual(session.graph.leaf_nodes()[0].op, "make_extrude_rsolid")
@@ -210,7 +210,7 @@ class TestOriginalApiGraphRecording(unittest.TestCase):
 
     def test_circle_wire_records_one_user_level_node(self):
         with GraphSession() as session:
-            wire = scad.make_circle_rwire((0, 0, 0), 2.0)
+            wire = cad.make_circle_rwire((0, 0, 0), 2.0)
 
         self.assertEqual(session.graph.node_count, 2)
         self.assertEqual(session.graph.leaf_nodes()[0].op, "make_wire_from_edges_rwire")
@@ -218,7 +218,7 @@ class TestOriginalApiGraphRecording(unittest.TestCase):
 
     def test_subshape_objects_carry_serializable_topo_refs(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
 
         face_ref = box.get_faces(0).get_metadata("topo_ref")
         edge_ref = box.get_edges(0).get_metadata("topo_ref")

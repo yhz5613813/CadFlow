@@ -7,8 +7,8 @@ This guide covers replayable feature operations, boolean operations, transforms,
 Source:
 
 ```python
-profile = scad.make_rectangle_rface(4.0, 2.0)
-solid = scad.extrude_rsolid(profile, (0, 0, 1), 3.0)
+profile = cad.make_rectangle_rface(4.0, 2.0)
+solid = cad.extrude_rsolid(profile, (0, 0, 1), 3.0)
 ```
 
 Serialized node:
@@ -35,11 +35,11 @@ Replay effect:
 Source:
 
 ```python
-profile = scad.make_polyline_rwire(
+profile = cad.make_polyline_rwire(
     [(0.5, 0, 0), (1.2, 0, 0), (1.0, 0, 1.6), (0.5, 0, 1.6)],
     closed=True,
 )
-solid = scad.revolve_rsolid(
+solid = cad.revolve_rsolid(
     profile,
     axis=(0, 0, 1),
     angle=360.0,
@@ -69,9 +69,9 @@ Replay effect: replays the profile and calls `revolve_rsolid(profile, axis, angl
 Source:
 
 ```python
-a = scad.make_rectangle_rwire(2.0, 1.0, center=(0, 0, 0))
-b = scad.make_rectangle_rwire(1.0, 0.5, center=(0, 0, 3))
-solid = scad.loft_rsolid([a, b], ruled=True)
+a = cad.make_rectangle_rwire(2.0, 1.0, center=(0, 0, 0))
+b = cad.make_rectangle_rwire(1.0, 0.5, center=(0, 0, 3))
+solid = cad.loft_rsolid([a, b], ruled=True)
 ```
 
 Serialized node:
@@ -100,9 +100,9 @@ Profile geometry is recovered from `inputs`; only count/options are stored in `p
 Source:
 
 ```python
-profile = scad.make_circle_rface((0, 0, 0), 0.3, normal=(1, 0, 0))
-path = scad.make_polyline_rwire([(0, 0, 0), (2, 0, 1), (4, 1, 1)])
-solid = scad.sweep_rsolid(profile, path, is_frenet=False)
+profile = cad.make_circle_rface((0, 0, 0), 0.3, normal=(1, 0, 0))
+path = cad.make_polyline_rwire([(0, 0, 0), (2, 0, 1), (4, 1, 1)])
+solid = cad.sweep_rsolid(profile, path, is_frenet=False)
 ```
 
 Serialized node:
@@ -127,8 +127,8 @@ Replay effect:
 Source:
 
 ```python
-profile = scad.make_rectangle_rface(width=2.0, height=1.0)
-solid = scad.twisted_sweep_rsolid(
+profile = cad.make_rectangle_rface(width=2.0, height=1.0)
+solid = cad.twisted_sweep_rsolid(
     profile=profile,
     distance=8.0,
     twist_angle=30.0,
@@ -161,8 +161,8 @@ sections are stored or inferred.
 Source:
 
 ```python
-profile = scad.make_rectangle_rwire(0.25, 0.18)
-solid = scad.helical_sweep_rsolid(
+profile = cad.make_rectangle_rwire(0.25, 0.18)
+solid = cad.helical_sweep_rsolid(
     profile,
     pitch=0.7,
     height=2.2,
@@ -188,7 +188,7 @@ There is no canonical `helical_sweep` node. Replay rebuilds the helix and sweeps
 Source:
 
 ```python
-moved = scad.translate_shape(shape, (1.0, 2.0, 0.0))
+moved = cad.translate_shape(shape, (1.0, 2.0, 0.0))
 ```
 
 Serialized node:
@@ -209,7 +209,7 @@ Replay effect: replays input shape and calls `translate_shape(shape, vector)`.
 Source:
 
 ```python
-rotated = scad.rotate_shape(shape, 90.0, axis=(0, 0, 1), origin=(0, 0, 0))
+rotated = cad.rotate_shape(shape, 90.0, axis=(0, 0, 1), origin=(0, 0, 0))
 ```
 
 Serialized node:
@@ -236,7 +236,7 @@ Note: `rotate_shape(shape, 0.0)` returns the original shape and does not record 
 Source:
 
 ```python
-mirrored = scad.mirror_shape(
+mirrored = cad.mirror_shape(
     shape,
     plane_origin=(0, 0, 0),
     plane_normal=(1, 0, 0),
@@ -264,9 +264,9 @@ Replay effect: replays input shape and calls `mirror_shape(shape, plane_origin, 
 Source:
 
 ```python
-a = scad.make_box_rsolid(3, 2, 1)
-b = scad.make_box_rsolid(3, 2, 1, bottom_face_center=(1.5, 0, 0))
-result = scad.union_rsolid(a, b)
+a = cad.make_box_rsolid(3, 2, 1)
+b = cad.make_box_rsolid(3, 2, 1, bottom_face_center=(1.5, 0, 0))
+result = cad.union_rsolid(a, b)
 ```
 
 Serialized node:
@@ -297,9 +297,9 @@ Important: `union_rsolid` expects one connected solid result. If inputs remain d
 Source:
 
 ```python
-body = scad.make_box_rsolid(4, 4, 2)
-tool = scad.make_cylinder_rsolid(0.8, 4, bottom_face_center=(0, 0, -1))
-result = scad.cut_rsolid(body, tool)
+body = cad.make_box_rsolid(4, 4, 2)
+tool = cad.make_cylinder_rsolid(0.8, 4, bottom_face_center=(0, 0, -1))
+result = cad.cut_rsolid(body, tool)
 ```
 
 Serialized node:
@@ -327,9 +327,9 @@ Replay effect:
 Source:
 
 ```python
-a = scad.make_box_rsolid(2, 2, 2)
-b = scad.make_box_rsolid(2, 2, 2, bottom_face_center=(1, 0, 0))
-result = scad.intersect_rsolid(a, b)
+a = cad.make_box_rsolid(2, 2, 2)
+b = cad.make_box_rsolid(2, 2, 2, bottom_face_center=(1, 0, 0))
+result = cad.intersect_rsolid(a, b)
 ```
 
 Serialized node:
@@ -355,7 +355,7 @@ Source with serializable QL selector:
 from cadflow import ql as Q
 
 selector = Q.edges().where(Q.curve_type("line")).take(4)
-result = scad.fillet_rsolid(solid, selector, 0.25)
+result = cad.fillet_rsolid(solid, selector, 0.25)
 ```
 
 Serialized node:
@@ -401,7 +401,7 @@ Source:
 
 ```python
 selector = Q.edges().order_by(Q.center_axis("z"), desc=True).take(4)
-result = scad.chamfer_rsolid(solid, selector, 0.15)
+result = cad.chamfer_rsolid(solid, selector, 0.15)
 ```
 
 Serialized node shape is the same as fillet, except:
@@ -427,7 +427,7 @@ Source:
 
 ```python
 selector = Q.faces().order_by(Q.center_axis("z"), desc=True).take(1).exactly(1)
-result = scad.shell_rsolid(solid, selector, 0.25)
+result = cad.shell_rsolid(solid, selector, 0.25)
 ```
 
 Serialized node:
@@ -463,7 +463,7 @@ Then replay calls `shell_rsolid(solid, resolved_faces, thickness)`.
 Source:
 
 ```python
-copies = scad.linear_pattern_rsolidlist(seed, (1, 0, 0), count=3, spacing=2.0)
+copies = cad.linear_pattern_rsolidlist(seed, (1, 0, 0), count=3, spacing=2.0)
 ```
 
 When recording is active, this does not emit a `linear_pattern` node. It emits one translate node per generated copy:
@@ -481,7 +481,7 @@ Replay effect: each generated copy is replayed as an ordinary translated shape.
 Source:
 
 ```python
-copies = scad.radial_pattern_rsolidlist(
+copies = cad.radial_pattern_rsolidlist(
     seed,
     center=(0, 0, 0),
     axis=(0, 0, 1),

@@ -6,12 +6,12 @@ All examples assume:
 
 ```python
 import json
-import cadflow as scad
+import cadflow as cad
 
-with scad.GraphSession() as session:
+with cad.GraphSession() as session:
     ...
 
-payload = json.loads(scad.export_model_json(session))
+payload = json.loads(cad.export_model_json(session))
 ```
 
 In exported JSON, each operation appears in `payload["graph"]["nodes"]` as:
@@ -37,7 +37,7 @@ In exported JSON, each operation appears in `payload["graph"]["nodes"]` as:
 Source:
 
 ```python
-p = scad.make_point_rvertex(1.0, 2.0, 3.0)
+p = cad.make_point_rvertex(1.0, 2.0, 3.0)
 ```
 
 Serialized node:
@@ -58,7 +58,7 @@ Replay effect: calls `make_point_rvertex(x, y, z)` and returns a `Vertex`.
 Source:
 
 ```python
-edge = scad.make_line_redge((0, 0, 0), (5, 0, 0))
+edge = cad.make_line_redge((0, 0, 0), (5, 0, 0))
 ```
 
 Serialized node:
@@ -90,7 +90,7 @@ There is no canonical `make_segment_wire` node in model JSON.
 Source edge:
 
 ```python
-edge = scad.make_circle_redge((0, 0, 0), 2.0, normal=(0, 0, 1))
+edge = cad.make_circle_redge((0, 0, 0), 2.0, normal=(0, 0, 1))
 ```
 
 Serialized node:
@@ -113,7 +113,7 @@ Replay effect: calls `make_circle_redge(center, radius, normal)`.
 Source wire:
 
 ```python
-wire = scad.make_circle_rwire((0, 0, 0), 2.0)
+wire = cad.make_circle_rwire((0, 0, 0), 2.0)
 ```
 
 Lowered serialized graph:
@@ -125,7 +125,7 @@ make_circle_redge -> make_wire_from_edges_rwire
 Source face:
 
 ```python
-face = scad.make_circle_rface((0, 0, 0), 2.0)
+face = cad.make_circle_rface((0, 0, 0), 2.0)
 ```
 
 Lowered serialized graph:
@@ -141,7 +141,7 @@ There is no canonical `make_circle_wire` or `make_circle_face` node.
 Source edge:
 
 ```python
-arc = scad.make_three_point_arc_redge(
+arc = cad.make_three_point_arc_redge(
     (0, 0, 0),
     (1, 1, 0),
     (2, 0, 0),
@@ -176,7 +176,7 @@ make_three_point_arc_redge -> make_wire_from_edges_rwire
 Source edge:
 
 ```python
-arc = scad.make_angle_arc_redge(
+arc = cad.make_angle_arc_redge(
     center=(0, 0, 0),
     radius=1.0,
     start_angle=0.0,
@@ -215,11 +215,11 @@ make_angle_arc_redge -> make_wire_from_edges_rwire
 Source edge:
 
 ```python
-fit = scad.fit_cubic_bspline_control_points(
+fit = cad.fit_cubic_bspline_control_points(
     [(0, 0, 0), (1, 1, 0), (2, 0, 0)],
     tolerance=0.01,
 )
-spline = scad.make_spline_redge(
+spline = cad.make_spline_redge(
     control_points=fit.control_points,
     knots=fit.unique_knots,
     multiplicities=fit.multiplicities,
@@ -259,7 +259,7 @@ make_spline_redge -> make_wire_from_edges_rwire
 Source edge:
 
 ```python
-helix = scad.make_helix_redge(
+helix = cad.make_helix_redge(
     pitch=0.7,
     height=2.2,
     radius=0.9,
@@ -298,9 +298,9 @@ make_helix_redge -> make_wire_from_edges_rwire
 Source:
 
 ```python
-a = scad.make_line_redge((0, 0, 0), (1, 0, 0))
-b = scad.make_line_redge((1, 0, 0), (1, 1, 0))
-wire = scad.make_wire_from_edges_rwire([a, b])
+a = cad.make_line_redge((0, 0, 0), (1, 0, 0))
+b = cad.make_line_redge((1, 0, 0), (1, 1, 0))
+wire = cad.make_wire_from_edges_rwire([a, b])
 ```
 
 Serialized node:
@@ -327,7 +327,7 @@ The actual edge geometry is not duplicated inside this node; it is recovered thr
 Source:
 
 ```python
-face = scad.make_face_from_wire_rface(wire, normal=(0, 0, 1))
+face = cad.make_face_from_wire_rface(wire, normal=(0, 0, 1))
 ```
 
 Serialized node:
@@ -351,8 +351,8 @@ Replay effect:
 Source:
 
 ```python
-wire = scad.make_rectangle_rwire(4.0, 2.0, center=(0, 0, 0))
-face = scad.make_rectangle_rface(4.0, 2.0, center=(0, 0, 0))
+wire = cad.make_rectangle_rwire(4.0, 2.0, center=(0, 0, 0))
+face = cad.make_rectangle_rface(4.0, 2.0, center=(0, 0, 0))
 ```
 
 Lowered serialized graph:
@@ -372,7 +372,7 @@ There is no canonical `make_rectangle_wire` or `make_rectangle_face` node.
 Source:
 
 ```python
-wire = scad.make_polyline_rwire(
+wire = cad.make_polyline_rwire(
     [(0, 0, 0), (1, 0, 0), (1, 1, 0)],
     closed=False,
 )
@@ -397,7 +397,7 @@ These user-facing primitive solids are intentionally lowered to canonical profil
 Source:
 
 ```python
-box = scad.make_box_rsolid(4.0, 2.0, 1.0)
+box = cad.make_box_rsolid(4.0, 2.0, 1.0)
 ```
 
 Lowered serialized graph:
@@ -418,7 +418,7 @@ There is no canonical `make_box` node.
 Source:
 
 ```python
-cyl = scad.make_cylinder_rsolid(1.0, 3.0)
+cyl = cad.make_cylinder_rsolid(1.0, 3.0)
 ```
 
 Lowered serialized graph:
@@ -437,7 +437,7 @@ There is no canonical `make_cylinder` node.
 Source:
 
 ```python
-sphere = scad.make_sphere_rsolid(1.5, center=(0, 0, 0))
+sphere = cad.make_sphere_rsolid(1.5, center=(0, 0, 0))
 ```
 
 Lowered serialized graph:
@@ -453,7 +453,7 @@ There is no canonical `make_sphere` node.
 Source:
 
 ```python
-cone = scad.make_cone_rsolid(1.2, 2.0, top_radius=0.4)
+cone = cad.make_cone_rsolid(1.2, 2.0, top_radius=0.4)
 ```
 
 Lowered serialized graph:

@@ -4,12 +4,12 @@ import json
 import math
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 
 
 class TestRollerChainSprocket(unittest.TestCase):
     def test_iso_606_12b_candidate_geometry(self):
-        sprocket = scad.std.chain.make_roller_chain_sprocket_rsolid(
+        sprocket = cad.std.chain.make_roller_chain_sprocket_rsolid(
             n_teeth=18,
             chain_pitch=19.05,
             roller_diameter=12.07,
@@ -33,15 +33,15 @@ class TestRollerChainSprocket(unittest.TestCase):
         )
 
     def test_roller_seats_are_recorded_as_strict_cuts(self):
-        with scad.GraphSession() as session:
-            sprocket = scad.std.chain.make_roller_chain_sprocket_rsolid(
+        with cad.GraphSession() as session:
+            sprocket = cad.std.chain.make_roller_chain_sprocket_rsolid(
                 n_teeth=18,
                 chain_pitch=19.05,
                 roller_diameter=12.07,
                 sprocket_thickness=11.1,
                 bore_radius=10.2,
             )
-            model_json = scad.export_model_json(session=session)
+            model_json = cad.export_model_json(session=session)
 
         payload = json.loads(model_json)
         cut_nodes = [
@@ -57,7 +57,7 @@ class TestRollerChainSprocket(unittest.TestCase):
             all("topo_delta" not in node for node in payload["graph"]["nodes"])
         )
 
-        replayed = scad.replay_model_json(json_str=model_json, strict=True)
+        replayed = cad.replay_model_json(json_str=model_json, strict=True)
         self.assertEqual(len(replayed), 1)
         self.assertAlmostEqual(
             replayed[0].get_volume(), sprocket.get_volume(), places=5
@@ -99,7 +99,7 @@ class TestRollerChainSprocket(unittest.TestCase):
         )
         for kwargs in invalid_kwargs:
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
-                scad.std.chain.make_roller_chain_sprocket_rsolid(**kwargs)
+                cad.std.chain.make_roller_chain_sprocket_rsolid(**kwargs)
 
 
 if __name__ == "__main__":

@@ -5,33 +5,33 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import operations
 from cadflow.graph import GraphSession
 
 
 class TestRearchitecture20CoreOps(unittest.TestCase):
     def test_cylinder_accepts_expression_parameters(self):
-        r = scad.var("r", 1.5)
-        h = scad.var("h", 4.0)
-        solid = scad.make_cylinder_rsolid(r, h, bottom_face_center=(0, 0, 0))
-        self.assertIsInstance(solid, scad.Solid)
+        r = cad.var("r", 1.5)
+        h = cad.var("h", 4.0)
+        solid = cad.make_cylinder_rsolid(r, h, bottom_face_center=(0, 0, 0))
+        self.assertIsInstance(solid, cad.Solid)
         self.assertGreater(solid.get_volume(), 0.0)
 
     def test_revolve_accepts_expression_angle(self):
-        angle = scad.var("angle", 180.0)
-        face = scad.make_rectangle_rface(1.0, 2.0, center=(1.0, 0.0, 0.0))
-        solid = scad.revolve_rsolid(face, axis=(0, 1, 0), angle=angle, origin=(0, 0, 0))
-        self.assertIsInstance(solid, scad.Solid)
+        angle = cad.var("angle", 180.0)
+        face = cad.make_rectangle_rface(1.0, 2.0, center=(1.0, 0.0, 0.0))
+        solid = cad.revolve_rsolid(face, axis=(0, 1, 0), angle=angle, origin=(0, 0, 0))
+        self.assertIsInstance(solid, cad.Solid)
 
     def test_revolve_produces_topology_delta_at_runtime(self):
-        face = scad.make_rectangle_rface(1.0, 2.0, center=(1.0, 0.0, 0.0))
+        face = cad.make_rectangle_rface(1.0, 2.0, center=(1.0, 0.0, 0.0))
         with GraphSession() as session:
-            solid = scad.revolve_rsolid(
+            solid = cad.revolve_rsolid(
                 face, axis=(0, 1, 0), angle=180.0, origin=(0, 0, 0)
             )
 
-        self.assertIsInstance(solid, scad.Solid)
+        self.assertIsInstance(solid, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_revolve_rsolid")
         self.assertIsNotNone(leaf.topo_delta)
@@ -43,11 +43,11 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         )
 
     def test_revolve_topology_delta_survives_graph_json_roundtrip(self):
-        face = scad.make_rectangle_rface(1.0, 2.0, center=(1.0, 0.0, 0.0))
+        face = cad.make_rectangle_rface(1.0, 2.0, center=(1.0, 0.0, 0.0))
         with GraphSession() as session:
-            scad.revolve_rsolid(face, axis=(0, 1, 0), angle=180.0, origin=(0, 0, 0))
+            cad.revolve_rsolid(face, axis=(0, 1, 0), angle=180.0, origin=(0, 0, 0))
 
-        restored = scad.import_graph_json(scad.export_graph_json(session.graph))
+        restored = cad.import_graph_json(cad.export_graph_json(session.graph))
         leaf = restored.leaf_nodes()[0]
 
         self.assertEqual(leaf.op, "make_revolve_rsolid")
@@ -60,12 +60,12 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         )
 
     def test_loft_produces_topology_delta_at_runtime(self):
-        a = scad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
-        b = scad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
+        a = cad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
+        b = cad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
         with GraphSession() as session:
-            solid = scad.loft_rsolid([a, b])
+            solid = cad.loft_rsolid([a, b])
 
-        self.assertIsInstance(solid, scad.Solid)
+        self.assertIsInstance(solid, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_loft_rsolid")
         self.assertIsNotNone(leaf.topo_delta)
@@ -77,12 +77,12 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         )
 
     def test_loft_topology_delta_survives_graph_json_roundtrip(self):
-        a = scad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
-        b = scad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
+        a = cad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
+        b = cad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
         with GraphSession() as session:
-            scad.loft_rsolid([a, b])
+            cad.loft_rsolid([a, b])
 
-        restored = scad.import_graph_json(scad.export_graph_json(session.graph))
+        restored = cad.import_graph_json(cad.export_graph_json(session.graph))
         leaf = restored.leaf_nodes()[0]
 
         self.assertEqual(leaf.op, "make_loft_rsolid")
@@ -96,9 +96,9 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
 
     def test_point_profile_loft_replays_with_existing_endpoint_roles(self):
         with GraphSession() as session:
-            base = scad.make_circle_rwire((0.0, 0.0, 0.0), 2.0)
-            tip = scad.make_point_rvertex(0.0, 0.0, 5.0)
-            solid = scad.loft_rsolid(
+            base = cad.make_circle_rwire((0.0, 0.0, 0.0), 2.0)
+            tip = cad.make_point_rvertex(0.0, 0.0, 5.0)
+            solid = cad.loft_rsolid(
                 [base, tip],
                 tag_prefix="cone",
                 start_face_tag="anchor.base",
@@ -106,29 +106,29 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
             )
             session.capture_result(value=solid)
 
-        replayed = scad.replay_model_json(scad.export_model_json(session), strict=True)[0]
-        self.assertIsInstance(replayed, scad.Solid)
+        replayed = cad.replay_model_json(cad.export_model_json(session), strict=True)[0]
+        self.assertIsInstance(replayed, cad.Solid)
         self.assertAlmostEqual(replayed.get_volume(), solid.get_volume(), places=6)
         self.assertEqual(
-            len(scad.ql.faces().where(scad.ql.tag("anchor.base")).resolve(replayed)),
+            len(cad.ql.faces().where(cad.ql.tag("anchor.base")).resolve(replayed)),
             1,
         )
         self.assertEqual(
-            len(scad.ql.faces().where(scad.ql.tag("group.side")).resolve(replayed)),
+            len(cad.ql.faces().where(cad.ql.tag("group.side")).resolve(replayed)),
             1,
         )
         self.assertEqual(
-            len(scad.ql.faces().where(scad.ql.tag("cone.face.start")).resolve(replayed)),
+            len(cad.ql.faces().where(cad.ql.tag("cone.face.start")).resolve(replayed)),
             1,
         )
 
 
     def test_loft_graph_tracking_records_replayable_node_without_topology_delta(self):
         with GraphSession() as session:
-            a = scad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
-            b = scad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
-            solid = scad.loft_rsolid(
-                [a, b], tracking_policy=scad.TrackingPolicy.GRAPH
+            a = cad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
+            b = cad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
+            solid = cad.loft_rsolid(
+                [a, b], tracking_policy=cad.TrackingPolicy.GRAPH
             )
             session.capture_result(value=solid)
 
@@ -139,37 +139,37 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         self.assertEqual(loft.params["tracking_policy"], "graph")
         self.assertEqual(len(loft.inputs), 2)
 
-        replayed = scad.replay_model_json(scad.export_model_json(session))[0]
-        self.assertIsInstance(replayed, scad.Solid)
+        replayed = cad.replay_model_json(cad.export_model_json(session))[0]
+        self.assertIsInstance(replayed, cad.Solid)
         self.assertAlmostEqual(replayed.get_volume(), solid.get_volume(), places=6)
 
     def test_loft_graph_tracking_rejects_topology_role_tags(self):
-        a = scad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
-        b = scad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
+        a = cad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
+        b = cad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 2.0))
 
         with self.assertRaisesRegex(
-            scad.CadFlowError, "GRAPH tracking does not provide loft face-role evidence"
+            cad.CadFlowError, "GRAPH tracking does not provide loft face-role evidence"
         ):
-            scad.loft_rsolid(
+            cad.loft_rsolid(
                 [a, b],
-                tracking_policy=scad.TrackingPolicy.GRAPH,
+                tracking_policy=cad.TrackingPolicy.GRAPH,
                 side_faces_tag="face.loft.side",
             )
 
     def test_union_graph_tracking_records_replayable_node_without_topology_delta(self):
         with GraphSession() as session:
-            a = scad.make_box_rsolid(2.0, 2.0, 2.0)
-            b = scad.make_box_rsolid(
+            a = cad.make_box_rsolid(2.0, 2.0, 2.0)
+            b = cad.make_box_rsolid(
                 2.0,
                 2.0,
                 2.0,
                 bottom_face_center=(1.0, 0.0, 0.0),
             )
-            solid = scad.union_rsolid(
+            solid = cad.union_rsolid(
                 a,
                 b,
                 glue=False,
-                tracking_policy=scad.TrackingPolicy.GRAPH,
+                tracking_policy=cad.TrackingPolicy.GRAPH,
             )
             session.capture_result(value=solid)
 
@@ -182,23 +182,23 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         self.assertEqual(len(union.inputs), 2)
         self.assertNotIn("has_delta", solid.get_metadata("track"))
 
-        replayed = scad.replay_model_json(scad.export_model_json(session))[0]
-        self.assertIsInstance(replayed, scad.Solid)
+        replayed = cad.replay_model_json(cad.export_model_json(session))[0]
+        self.assertIsInstance(replayed, cad.Solid)
         self.assertAlmostEqual(replayed.get_volume(), solid.get_volume(), places=6)
 
     def test_cut_graph_tracking_records_replayable_node_without_topology_delta(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            tool = scad.make_cylinder_rsolid(
+            body = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            tool = cad.make_cylinder_rsolid(
                 0.75,
                 6.0,
                 bottom_face_center=(0.0, 0.0, -1.0),
             )
-            solid = scad.cut_rsolid(
+            solid = cad.cut_rsolid(
                 body,
                 tool,
                 skip_non_intersecting=False,
-                tracking_policy=scad.TrackingPolicy.GRAPH,
+                tracking_policy=cad.TrackingPolicy.GRAPH,
             )
             session.capture_result(value=solid)
 
@@ -210,20 +210,20 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         self.assertEqual(cut.params["tracking_policy"], "graph")
         self.assertEqual(len(cut.inputs), 2)
         self.assertNotIn("has_delta", solid.get_metadata("track"))
-        self.assertIn("solid.boolean.cut", scad.list_tags(solid, scope="local"))
+        self.assertIn("solid.boolean.cut", cad.list_tags(solid, scope="local"))
 
-        replayed = scad.replay_model_json(scad.export_model_json(session))[0]
-        self.assertIsInstance(replayed, scad.Solid)
+        replayed = cad.replay_model_json(cad.export_model_json(session))[0]
+        self.assertIsInstance(replayed, cad.Solid)
         self.assertAlmostEqual(replayed.get_volume(), solid.get_volume(), places=6)
 
     def test_graph_booleans_do_not_call_topology_history_helpers(self):
-        body = scad.make_box_rsolid(4.0, 4.0, 4.0)
-        cutter = scad.make_cylinder_rsolid(
+        body = cad.make_box_rsolid(4.0, 4.0, 4.0)
+        cutter = cad.make_cylinder_rsolid(
             0.75,
             6.0,
             bottom_face_center=(0.0, 0.0, -1.0),
         )
-        rib = scad.make_box_rsolid(
+        rib = cad.make_box_rsolid(
             2.0,
             2.0,
             2.0,
@@ -235,10 +235,10 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
             "tracked_cut",
             side_effect=AssertionError("GRAPH cut queried topology history"),
         ):
-            cut = scad.cut_rsolid(
+            cut = cad.cut_rsolid(
                 body,
                 cutter,
-                tracking_policy=scad.TrackingPolicy.GRAPH,
+                tracking_policy=cad.TrackingPolicy.GRAPH,
             )
 
         with mock.patch.object(
@@ -250,23 +250,23 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
             "track_union_history",
             side_effect=AssertionError("GRAPH union queried topology history"),
         ):
-            fused = scad.union_rsolid(
+            fused = cad.union_rsolid(
                 body,
                 rib,
                 glue=False,
-                tracking_policy=scad.TrackingPolicy.GRAPH,
+                tracking_policy=cad.TrackingPolicy.GRAPH,
             )
 
         self.assertLess(cut.get_volume(), body.get_volume())
         self.assertGreater(fused.get_volume(), body.get_volume())
 
     def test_sweep_produces_topology_delta_at_runtime(self):
-        profile = scad.make_circle_rface((0.0, 0.0, 0.0), 0.5)
-        path = scad.make_segment_rwire((0.0, 0.0, 0.0), (0.0, 0.0, 3.0))
+        profile = cad.make_circle_rface((0.0, 0.0, 0.0), 0.5)
+        path = cad.make_segment_rwire((0.0, 0.0, 0.0), (0.0, 0.0, 3.0))
         with GraphSession() as session:
-            solid = scad.sweep_rsolid(profile, path)
+            solid = cad.sweep_rsolid(profile, path)
 
-        self.assertIsInstance(solid, scad.Solid)
+        self.assertIsInstance(solid, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_sweep_rsolid")
         self.assertIsNotNone(leaf.topo_delta)
@@ -278,12 +278,12 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         )
 
     def test_sweep_topology_delta_survives_graph_json_roundtrip(self):
-        profile = scad.make_circle_rface((0.0, 0.0, 0.0), 0.5)
-        path = scad.make_segment_rwire((0.0, 0.0, 0.0), (0.0, 0.0, 3.0))
+        profile = cad.make_circle_rface((0.0, 0.0, 0.0), 0.5)
+        path = cad.make_segment_rwire((0.0, 0.0, 0.0), (0.0, 0.0, 3.0))
         with GraphSession() as session:
-            scad.sweep_rsolid(profile, path)
+            cad.sweep_rsolid(profile, path)
 
-        restored = scad.import_graph_json(scad.export_graph_json(session.graph))
+        restored = cad.import_graph_json(cad.export_graph_json(session.graph))
         leaf = restored.leaf_nodes()[0]
 
         self.assertEqual(leaf.op, "make_sweep_rsolid")
@@ -297,8 +297,8 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
 
     def test_twisted_sweep_produces_replayable_topology_delta(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rface(width=2.0, height=1.0)
-            solid = scad.twisted_sweep_rsolid(
+            profile = cad.make_rectangle_rface(width=2.0, height=1.0)
+            solid = cad.twisted_sweep_rsolid(
                 profile=profile,
                 distance=5.0,
                 twist_angle=-45.0,
@@ -313,22 +313,22 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         self.assertIsNotNone(node.topo_delta)
         self.assertEqual(len(solid.get_faces()), 6)
 
-        replayed = scad.replay_model_json(
-            scad.export_model_json(session), strict=True
+        replayed = cad.replay_model_json(
+            cad.export_model_json(session), strict=True
         )[0]
         self.assertEqual(len(replayed.get_faces()), 6)
         self.assertAlmostEqual(replayed.get_volume(), solid.get_volume(), places=8)
 
     def test_twisted_sweep_supports_expression_parameters_and_arbitrary_axis(self):
-        distance = scad.var("twisted_distance", 5.0)
-        angle = scad.var("twisted_angle", 45.0)
+        distance = cad.var("twisted_distance", 5.0)
+        angle = cad.var("twisted_angle", 45.0)
         with GraphSession() as session:
-            profile = scad.make_rectangle_rface(
+            profile = cad.make_rectangle_rface(
                 width=2.0,
                 height=1.0,
                 normal=(1.0, 1.0, 1.0),
             )
-            solid = scad.twisted_sweep_rsolid(
+            solid = cad.twisted_sweep_rsolid(
                 profile=profile,
                 distance=distance,
                 twist_angle=angle,
@@ -344,83 +344,83 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
         self.assertEqual(set(node.param_exprs), {"distance", "twist_angle"})
         self.assertEqual(len(solid.get_faces()), 6)
 
-        replayed = scad.replay_model_json(
-            scad.export_model_json(session), strict=True
+        replayed = cad.replay_model_json(
+            cad.export_model_json(session), strict=True
         )[0]
         self.assertAlmostEqual(replayed.get_volume(), solid.get_volume(), places=8)
 
     def test_twisted_sweep_rejects_inner_wires_and_invalid_axis(self):
-        outer = scad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=2.0)
-        inner = scad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=1.0)
-        ring = scad.make_2d_cut_rface(body=outer, tool=inner)
+        outer = cad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=2.0)
+        inner = cad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=1.0)
+        ring = cad.make_2d_cut_rface(body=outer, tool=inner)
 
-        with self.assertRaises(scad.CadFlowError):
-            scad.twisted_sweep_rsolid(
+        with self.assertRaises(cad.CadFlowError):
+            cad.twisted_sweep_rsolid(
                 profile=ring,
                 distance=2.0,
                 twist_angle=20.0,
             )
-        with self.assertRaises(scad.CadFlowError):
-            scad.twisted_sweep_rsolid(
+        with self.assertRaises(cad.CadFlowError):
+            cad.twisted_sweep_rsolid(
                 profile=outer,
                 distance=2.0,
                 twist_angle=20.0,
                 axis=(0.0, 0.0, 0.0),
             )
-        with self.assertRaises(scad.CadFlowError):
-            scad.twisted_sweep_rsolid(
+        with self.assertRaises(cad.CadFlowError):
+            cad.twisted_sweep_rsolid(
                 profile=outer,
                 distance=2.0,
                 twist_angle=20.0,
                 axis=(1.0, 0.0, 0.0),
             )
-        offset = scad.translate_shape(outer, vector=(0.0, 0.0, 1.0))
-        with self.assertRaises(scad.CadFlowError):
-            scad.twisted_sweep_rsolid(
+        offset = cad.translate_shape(outer, vector=(0.0, 0.0, 1.0))
+        with self.assertRaises(cad.CadFlowError):
+            cad.twisted_sweep_rsolid(
                 profile=offset,
                 distance=2.0,
                 twist_angle=20.0,
             )
 
     def test_fillet_accepts_expression_radius_and_records_param_expr(self):
-        radius = scad.var("fillet_r", 0.2)
+        radius = cad.var("fillet_r", 0.2)
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            result = scad.fillet_rsolid(box, [box.get_edges(i) for i in range(4)], radius)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            result = cad.fillet_rsolid(box, [box.get_edges(i) for i in range(4)], radius)
 
-        self.assertIsInstance(result, scad.Solid)
+        self.assertIsInstance(result, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_fillet_rsolid")
         self.assertIn("radius", leaf.param_exprs)
 
     def test_chamfer_accepts_expression_distance_and_records_param_expr(self):
-        distance = scad.var("chamfer_d", 0.2)
+        distance = cad.var("chamfer_d", 0.2)
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            result = scad.chamfer_rsolid(box, [box.get_edges(i) for i in range(4)], distance)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            result = cad.chamfer_rsolid(box, [box.get_edges(i) for i in range(4)], distance)
 
-        self.assertIsInstance(result, scad.Solid)
+        self.assertIsInstance(result, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_chamfer_rsolid")
         self.assertIn("distance", leaf.param_exprs)
 
     def test_shell_accepts_expression_thickness_and_records_param_expr(self):
-        thickness = scad.var("shell_t", 0.2)
+        thickness = cad.var("shell_t", 0.2)
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            result = scad.shell_rsolid(box, [box.get_faces(0)], thickness)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            result = cad.shell_rsolid(box, [box.get_faces(0)], thickness)
 
-        self.assertIsInstance(result, scad.Solid)
+        self.assertIsInstance(result, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_shell_rsolid")
         self.assertIn("thickness", leaf.param_exprs)
 
     def test_shell_produces_topology_delta_at_runtime(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            result = scad.shell_rsolid(box, [box.get_faces(0)], 0.2)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            result = cad.shell_rsolid(box, [box.get_faces(0)], 0.2)
 
-        self.assertIsInstance(result, scad.Solid)
+        self.assertIsInstance(result, cad.Solid)
         leaf = session.graph.leaf_nodes()[0]
         self.assertEqual(leaf.op, "make_shell_rsolid")
         self.assertIsNotNone(leaf.topo_delta)
@@ -433,10 +433,10 @@ class TestRearchitecture20CoreOps(unittest.TestCase):
 
     def test_shell_topology_delta_survives_graph_json_roundtrip(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            scad.shell_rsolid(box, [box.get_faces(0)], 0.2)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            cad.shell_rsolid(box, [box.get_faces(0)], 0.2)
 
-        restored = scad.import_graph_json(scad.export_graph_json(session.graph))
+        restored = cad.import_graph_json(cad.export_graph_json(session.graph))
         leaf = restored.leaf_nodes()[0]
 
         self.assertEqual(leaf.op, "make_shell_rsolid")

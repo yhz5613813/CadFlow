@@ -4,16 +4,16 @@ import subprocess
 import sys
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 
 
 class TestErrorHarness(unittest.TestCase):
     def test_cadflow_error_is_public(self):
-        self.assertTrue(hasattr(scad, "CadFlowError"))
+        self.assertTrue(hasattr(cad, "CadFlowError"))
 
     def test_make_box_raises_llm_friendly_english_error(self):
-        with self.assertRaises(scad.CadFlowError) as ctx:
-            scad.make_box_rsolid(0.0, 1.0, 1.0)
+        with self.assertRaises(cad.CadFlowError) as ctx:
+            cad.make_box_rsolid(0.0, 1.0, 1.0)
 
         message = str(ctx.exception)
         self.assertIn("Operation: make_box_rsolid", message)
@@ -31,10 +31,10 @@ class TestErrorHarness(unittest.TestCase):
         self.assertNotRegex(message, r"[\u3400-\u9fff\uf900-\ufaff]")
 
     def test_extrude_raises_actionable_closed_wire_guidance(self):
-        wire = scad.make_segment_rwire((0.0, 0.0, 0.0), (1.0, 0.0, 0.0))
+        wire = cad.make_segment_rwire((0.0, 0.0, 0.0), (1.0, 0.0, 0.0))
 
-        with self.assertRaises(scad.CadFlowError) as ctx:
-            scad.extrude_rsolid(wire, (0.0, 0.0, 1.0), 2.0)
+        with self.assertRaises(cad.CadFlowError) as ctx:
+            cad.extrude_rsolid(wire, (0.0, 0.0, 1.0), 2.0)
 
         message = str(ctx.exception)
         self.assertIn("Operation: extrude_rsolid", message)
@@ -47,8 +47,8 @@ class TestErrorHarness(unittest.TestCase):
         self.assertNotRegex(message, r"[\u3400-\u9fff\uf900-\ufaff]")
 
     def test_import_graph_json_reports_signature_and_help(self):
-        with self.assertRaises(scad.CadFlowError) as ctx:
-            scad.import_graph_json('{"schema_version":"1.0","nodes":[],"edges":[]}')
+        with self.assertRaises(cad.CadFlowError) as ctx:
+            cad.import_graph_json('{"schema_version":"1.0","nodes":[],"edges":[]}')
 
         message = str(ctx.exception)
         self.assertIn("Operation: import_graph_json", message)

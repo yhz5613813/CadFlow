@@ -6,7 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-import cadflow as scad
+import cadflow as cad
 
 try:
     from .assembly import make_integrated_bldc_joint_actuator_rassembly
@@ -43,20 +43,20 @@ sys.setrecursionlimit(30000)
 OUT_DIR = Path("examples/out/integrated_bldc_joint_actuator")
 
 
-@scad.model(graph_id="integrated_50mm_bldc_joint_actuator")
+@cad.model(graph_id="integrated_50mm_bldc_joint_actuator")
 def build_integrated_bldc_joint_actuator():
     """Build the replayable actuator and return product and interchange outputs."""
 
     validate_design_dimensions()
     materials = make_actuator_materials_rdict()
     assembly = make_integrated_bldc_joint_actuator_rassembly(materials=materials)
-    preview = scad.make_compound_from_assembly_rcompound(assembly=assembly)
-    preview = scad.apply_tag(
+    preview = cad.make_compound_from_assembly_rcompound(assembly=assembly)
+    preview = cad.apply_tag(
         shape=preview,
         tag="scene.integrated.bldc.joint.actuator.preview",
     )
     ground_compound(label="integrated_actuator_preview", compound=preview)
-    scad.capture_result(value=(assembly, preview))
+    cad.capture_result(value=(assembly, preview))
     return assembly, preview
 
 
@@ -75,13 +75,13 @@ def main() -> None:
     assembly, preview = result.value
     model_path.write_text(result.model_json, encoding="utf-8")
     session_path.write_text(result.session_json, encoding="utf-8")
-    scad.export_step(shapes=preview, filename=str(step_path))
+    cad.export_step(shapes=preview, filename=str(step_path))
 
     payload = json.loads(result.model_json)
 
     fcstd_status = "not attempted"
     try:
-        scad.translator.freecad_translator.translate_model_json_to_fcstd(
+        cad.translator.freecad_translator.translate_model_json_to_fcstd(
             json_str=result.model_json,
             output_path=str(fcstd_path.resolve()),
             document_name="Integrated50mmBLDCJointActuator",

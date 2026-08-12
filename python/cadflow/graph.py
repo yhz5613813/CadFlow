@@ -73,6 +73,21 @@ class Graph:
                 lines.append(
                     "helix " + " ".join(str(float(value)) for value in values)
                 )
+            elif node.op in {"import_brep", "import_stl"}:
+                lines.append(f"{node.op} {args[0]}")
+            elif node.op == "bspline":
+                points = tuple(args[0])
+                degree = int(args[1])
+                knots = tuple(float(value) for value in args[2])
+                multiplicities = tuple(int(value) for value in args[3])
+                weights = args[4] if len(args) > 4 else None
+                periodic = bool(args[5]) if len(args) > 5 else False
+                values = " ".join(str(float(value)) for point in points for value in point)
+                values += " " + " ".join(str(value) for value in knots)
+                values += " " + " ".join(str(value) for value in multiplicities)
+                if weights is not None:
+                    values += " " + " ".join(str(float(value)) for value in weights)
+                lines.append(f"bspline {len(points)} {degree} {len(knots)} {len(multiplicities)} {int(weights is not None)} {int(periodic)} {values}")
             elif node.op == "face":
                 lines.append(f"face ${int(args[0])}")
             elif node.op == "bezier_surface":
@@ -142,6 +157,30 @@ class Graph:
                     f"sweep ${int(args[0])} ${int(args[1])} "
                     f"{int(solid)} {int(frenet)}"
                 )
+            elif node.op == "twisted_sweep":
+                origin = args[3] if len(args) > 3 else (0, 0, 0)
+                axis = args[4] if len(args) > 4 else (0, 0, 1)
+                radius = float(args[5]) if len(args) > 5 else 1.0
+                lines.append(
+                    f"twisted_sweep ${int(args[0])} {float(args[1])} {float(args[2])} "
+                    + " ".join(str(float(value)) for value in (*origin, *axis, radius))
+                )
+            elif node.op in {"ruled_surface", "shell_to_solid"}:
+                if node.op == "shell_to_solid":
+                    lines.append(f"shell_to_solid ${int(args[0])}")
+                else:
+                    lines.append(f"ruled_surface ${int(args[0])} ${int(args[1])}")
+            elif node.op in {"filling_surface", "sew"}:
+                values = tuple(args[0])
+                tolerance = float(args[1]) if len(args) > 1 else 1e-6
+                refs = " ".join(f"${int(value)}" for value in values)
+                lines.append(f"{node.op} {tolerance} {len(values)} {refs}")
+            elif node.op == "gordon_surface":
+                profiles = tuple(args[0])
+                guides = tuple(args[1])
+                tolerance = float(args[2]) if len(args) > 2 else 1e-6
+                refs = " ".join(f"${int(value)}" for value in (*profiles, *guides))
+                lines.append(f"gordon_surface {tolerance} {len(profiles)} {len(guides)} {refs}")
             elif node.op in {"cut", "union", "intersect"}:
                 lines.append(f"{node.op} ${int(args[0])} ${int(args[1])}")
             elif node.op == "translate":

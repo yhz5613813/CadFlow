@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import operations, tagging
 
 
@@ -13,8 +13,8 @@ class TestTaggingRefactor(unittest.TestCase):
         self.assertFalse(tagging.is_normalized_tag("size: 2x3x4"))
 
     def test_apply_tag_does_not_infer_propagation_from_prefix(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-        scad.apply_tag(box, "role.mounting_surface")
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+        cad.apply_tag(box, "role.mounting_surface")
 
         self.assertIn("role.mounting_surface", box._list_tags("local"))
         self.assertFalse(
@@ -25,7 +25,7 @@ class TestTaggingRefactor(unittest.TestCase):
         )
 
     def test_explicit_downward_propagation_is_computed_not_copied(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
         binding = box._apply_user_tag(
             "role.mounting_surface", topology_propagation="downward"
         )
@@ -42,8 +42,8 @@ class TestTaggingRefactor(unittest.TestCase):
         self.assertIn("role.mounting_surface", face._tags)
 
     def test_effective_excludes_lineage(self):
-        source = scad.make_point_rvertex(0.0, 0.0, 0.0)
-        result = scad.make_point_rvertex(1.0, 0.0, 0.0)
+        source = cad.make_point_rvertex(0.0, 0.0, 0.0)
+        result = cad.make_point_rvertex(1.0, 0.0, 0.0)
         binding = source._apply_user_tag("role.datum")
         result._add_tag_lineage(
             binding,
@@ -59,7 +59,7 @@ class TestTaggingRefactor(unittest.TestCase):
         self.assertEqual(result._list_tags("lineage"), ["role.datum"])
 
     def test_lineage_requires_complete_history(self):
-        vertex = scad.make_point_rvertex(0.0, 0.0, 0.0)
+        vertex = cad.make_point_rvertex(0.0, 0.0, 0.0)
 
         with self.assertRaises(tagging.UnsupportedQueryCapabilityError):
             vertex._list_tags("lineage")
@@ -69,8 +69,8 @@ class TestTaggingRefactor(unittest.TestCase):
             vertex._list_tags("lineage")
 
     def test_default_lineage_policy_rejects_boundary(self):
-        source = scad.make_point_rvertex(0.0, 0.0, 0.0)
-        result = scad.make_point_rvertex(1.0, 0.0, 0.0)
+        source = cad.make_point_rvertex(0.0, 0.0, 0.0)
+        result = cad.make_point_rvertex(1.0, 0.0, 0.0)
         binding = source._apply_user_tag("role.datum")
         result._add_tag_lineage(
             binding,
@@ -83,18 +83,18 @@ class TestTaggingRefactor(unittest.TestCase):
         self.assertEqual(result._list_tags("lineage"), [])
 
     def test_lineage_continues_across_multiple_proven_hops(self):
-        source = scad.make_point_rvertex(0.0, 0.0, 0.0)
-        scad.apply_tag(source, "role.datum")
+        source = cad.make_point_rvertex(0.0, 0.0, 0.0)
+        cad.apply_tag(source, "role.datum")
 
-        first = scad.translate_shape(source, (1.0, 0.0, 0.0))
-        second = scad.translate_shape(first, (1.0, 0.0, 0.0))
+        first = cad.translate_shape(source, (1.0, 0.0, 0.0))
+        second = cad.translate_shape(first, (1.0, 0.0, 0.0))
 
-        self.assertNotIn("role.datum", scad.list_tags(second, "effective"))
-        self.assertEqual(scad.list_tags(second, "lineage"), ["role.datum"])
+        self.assertNotIn("role.datum", cad.list_tags(second, "effective"))
+        self.assertEqual(cad.list_tags(second, "lineage"), ["role.datum"])
 
     def test_disallowed_lineage_does_not_seed_later_continuation(self):
-        source = scad.make_point_rvertex(0.0, 0.0, 0.0)
-        intermediate = scad.make_point_rvertex(1.0, 0.0, 0.0)
+        source = cad.make_point_rvertex(0.0, 0.0, 0.0)
+        intermediate = cad.make_point_rvertex(1.0, 0.0, 0.0)
         binding = source._apply_user_tag("role.datum")
         intermediate._add_tag_lineage(
             binding,
@@ -104,13 +104,13 @@ class TestTaggingRefactor(unittest.TestCase):
         )
         intermediate._set_runtime("semantic.lineage.coverage", "complete")
 
-        result = scad.translate_shape(intermediate, (1.0, 0.0, 0.0))
+        result = cad.translate_shape(intermediate, (1.0, 0.0, 0.0))
 
-        self.assertEqual(scad.list_tags(result, "lineage"), [])
+        self.assertEqual(cad.list_tags(result, "lineage"), [])
 
     def test_lineage_explanation_filters_disallowed_witnesses(self):
-        source = scad.make_point_rvertex(0.0, 0.0, 0.0)
-        result = scad.make_point_rvertex(1.0, 0.0, 0.0)
+        source = cad.make_point_rvertex(0.0, 0.0, 0.0)
+        result = cad.make_point_rvertex(1.0, 0.0, 0.0)
         binding = source._apply_user_tag("role.datum")
         result._add_tag_lineage(
             binding,
@@ -120,7 +120,7 @@ class TestTaggingRefactor(unittest.TestCase):
         )
         result._set_runtime("semantic.lineage.coverage", "complete")
 
-        self.assertEqual(scad.explain_tag(result, "role.datum", "lineage"), [])
+        self.assertEqual(cad.explain_tag(result, "role.datum", "lineage"), [])
 
     def test_lineage_witness_roundtrip_preserves_source_binding(self):
         binding = tagging.user_tag_binding("role.datum", node_id="node_source")
@@ -176,7 +176,7 @@ class TestTaggingRefactor(unittest.TestCase):
             tagging.TagBinding.from_dict(missing_scope)
 
     def test_same_token_dedupes_but_explanation_preserves_producers(self):
-        vertex = scad.make_point_rvertex(0.0, 0.0, 0.0)
+        vertex = cad.make_point_rvertex(0.0, 0.0, 0.0)
         user_binding = tagging.user_tag_binding(
             "role.datum", node_id="node_user"
         )
@@ -210,7 +210,7 @@ class TestTaggingRefactor(unittest.TestCase):
         )
 
     def test_internal_and_legacy_bindings_are_not_user_assertions(self):
-        vertex = scad.make_point_rvertex(0.0, 0.0, 0.0)
+        vertex = cad.make_point_rvertex(0.0, 0.0, 0.0)
         vertex._add_tag("internal.marker")
         internal = vertex._explain_tag("internal.marker", "local")[0]
         self.assertEqual(internal["producer"]["kind"], "auto_rule")
@@ -223,59 +223,59 @@ class TestTaggingRefactor(unittest.TestCase):
             vertex._list_tags("local")
 
     def test_tagging_public_surface_is_functional_and_sorted(self):
-        vertex = scad.make_point_rvertex(0.0, 0.0, 0.0)
+        vertex = cad.make_point_rvertex(0.0, 0.0, 0.0)
 
-        scad.apply_tag(vertex, "role.zeta")
-        scad.apply_tag(vertex, "role.alpha")
+        cad.apply_tag(vertex, "role.zeta")
+        cad.apply_tag(vertex, "role.alpha")
 
-        self.assertEqual(scad.list_tags(vertex), ["role.alpha", "role.zeta"])
+        self.assertEqual(cad.list_tags(vertex), ["role.alpha", "role.zeta"])
         for member_name in ("add_tag", "apply_tag", "get_tags", "has_tag", "remove_tag"):
             self.assertFalse(hasattr(vertex, member_name))
-        self.assertFalse(hasattr(scad, "set_tag"))
+        self.assertFalse(hasattr(cad, "set_tag"))
 
     def test_apply_tag_mutates_without_cloning_semantic_topology(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
 
         with mock.patch.object(
             operations,
             "clone_semantic_shape_view",
             wraps=operations.clone_semantic_shape_view,
         ) as clone:
-            tagged = scad.apply_tag(box, "role.structure")
+            tagged = cad.apply_tag(box, "role.structure")
 
         self.assertIs(tagged, box)
         self.assertEqual(clone.call_count, 0)
-        self.assertIn("role.structure", scad.list_tags(box, scope="local"))
+        self.assertIn("role.structure", cad.list_tags(box, scope="local"))
 
     def test_apply_tag_rselection_keeps_independent_clone(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
 
         with mock.patch.object(
             operations,
             "clone_semantic_shape_view",
             wraps=operations.clone_semantic_shape_view,
         ) as clone:
-            tagged = scad.apply_tag_rselection(
+            tagged = cad.apply_tag_rselection(
                 box,
-                scad.ql.solids().exactly(1),
+                cad.ql.solids().exactly(1),
                 "role.structure",
             )
 
         self.assertIsNot(tagged, box)
         self.assertEqual(clone.call_count, 1)
-        self.assertNotIn("role.structure", scad.list_tags(box, scope="local"))
-        self.assertIn("role.structure", scad.list_tags(tagged, scope="local"))
+        self.assertNotIn("role.structure", cad.list_tags(box, scope="local"))
+        self.assertIn("role.structure", cad.list_tags(tagged, scope="local"))
 
     def test_apply_tag_rselection_and_explain_tag_public_surface(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
         source_face = box.get_faces(0)
 
-        tagged = scad.apply_tag_rselection(
+        tagged = cad.apply_tag_rselection(
             box,
             [source_face],
             "role.mounting_surface",
-            topology_propagation=scad.TopologyPropagation.LOCAL,
-            lineage_policy=scad.LineagePolicy.CONTINUATION_FRAGMENT,
+            topology_propagation=cad.TopologyPropagation.LOCAL,
+            lineage_policy=cad.LineagePolicy.CONTINUATION_FRAGMENT,
         )
         tagged_face = next(
             face for face in tagged.get_faces() if face.topo_id == source_face.topo_id
@@ -283,10 +283,10 @@ class TestTaggingRefactor(unittest.TestCase):
 
         self.assertIn(
             "role.mounting_surface",
-            scad.list_tags(tagged_face, scad.TagScope.LOCAL),
+            cad.list_tags(tagged_face, cad.TagScope.LOCAL),
         )
-        explanation = scad.explain_tag(
-            tagged_face, "role.mounting_surface", scad.TagScope.LOCAL
+        explanation = cad.explain_tag(
+            tagged_face, "role.mounting_surface", cad.TagScope.LOCAL
         )
         self.assertEqual(len(explanation), 1)
         self.assertEqual(explanation[0]["producer"]["kind"], "user_operation")
@@ -300,9 +300,9 @@ class TestTaggingRefactor(unittest.TestCase):
         self.assertEqual(candidates[-1], "mounting_surface")
 
     def test_new_primitive_tags_are_normalized_and_geo_metadata_carries_values(self):
-        box = scad.make_box_rsolid(1.0, 2.0, 3.0)
+        box = cad.make_box_rsolid(1.0, 2.0, 3.0)
 
-        box_tags = scad.list_tags(box)
+        box_tags = cad.list_tags(box)
         self.assertEqual(box_tags, sorted(box_tags))
         self.assertTrue(all(tagging.is_normalized_tag(tag) for tag in box_tags))
         self.assertFalse(any(tag.isdigit() for tag in box_tags))
@@ -310,11 +310,11 @@ class TestTaggingRefactor(unittest.TestCase):
         self.assertEqual(box.get_metadata("geo")["size"], {"x": 1.0, "y": 2.0, "z": 3.0})
 
     def test_wire_edge_indices_live_in_geo_metadata_not_tags(self):
-        wire = scad.make_rectangle_rwire(1.0, 1.0)
+        wire = cad.make_rectangle_rwire(1.0, 1.0)
         edges = wire.get_edges()
 
         self.assertTrue(edges)
-        self.assertFalse(any(tag.isdigit() for edge in edges for tag in scad.list_tags(edge)))
+        self.assertFalse(any(tag.isdigit() for edge in edges for tag in cad.list_tags(edge)))
         self.assertTrue(all(edge.get_metadata("geo")["edge_index"] >= 0 for edge in edges))
 
     def test_anchor_resolution_prefers_role_over_anchor_and_topology_tags(self):
@@ -326,26 +326,26 @@ class TestTaggingRefactor(unittest.TestCase):
 
 class TestAutoTagFacesNamespaces(unittest.TestCase):
     def test_box_faces_have_new_tags(self):
-        box = scad.make_box_rsolid(1.0, 1.0, 1.0)
+        box = cad.make_box_rsolid(1.0, 1.0, 1.0)
         box.auto_tag_faces("box")
         faces = box.get_faces()
-        self.assertTrue(any("face.top" in scad.list_tags(face) for face in faces))
-        self.assertTrue(any("face.bottom" in scad.list_tags(face) for face in faces))
+        self.assertTrue(any("face.top" in cad.list_tags(face) for face in faces))
+        self.assertTrue(any("face.bottom" in cad.list_tags(face) for face in faces))
 
     def test_cylinder_faces_have_new_tags(self):
-        cylinder = scad.make_cylinder_rsolid(1.0, 2.0)
+        cylinder = cad.make_cylinder_rsolid(1.0, 2.0)
         cylinder.auto_tag_faces("cylinder")
         faces = cylinder.get_faces()
-        self.assertTrue(any("face.top" in scad.list_tags(face) for face in faces))
-        self.assertTrue(any("face.bottom" in scad.list_tags(face) for face in faces))
-        self.assertTrue(any("face.side" in scad.list_tags(face) for face in faces))
+        self.assertTrue(any("face.top" in cad.list_tags(face) for face in faces))
+        self.assertTrue(any("face.bottom" in cad.list_tags(face) for face in faces))
+        self.assertTrue(any("face.side" in cad.list_tags(face) for face in faces))
 
     def test_sphere_faces_have_new_tags(self):
-        sphere = scad.make_sphere_rsolid(1.0)
+        sphere = cad.make_sphere_rsolid(1.0)
         sphere.auto_tag_faces("sphere")
         faces = sphere.get_faces()
         self.assertEqual(len(faces), 1)
-        self.assertIn("face.surface", scad.list_tags(faces[0]))
+        self.assertIn("face.surface", cad.list_tags(faces[0]))
 
 
 if __name__ == "__main__":

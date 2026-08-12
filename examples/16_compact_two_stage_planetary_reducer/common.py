@@ -5,29 +5,29 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql
 
 
-@scad.requires_session
+@cad.requires_session
 def make_z_rotation_rplacement(
     *,
     origin: tuple[float, float, float],
     angle_degrees: float,
-) -> scad.Placement:
+) -> cad.Placement:
     """Return a placement rotated about the local Z axis."""
 
     angle_radians = math.radians(angle_degrees)
     cos_a = math.cos(angle_radians)
     sin_a = math.sin(angle_radians)
-    return scad.make_placement_rplacement(
+    return cad.make_placement_rplacement(
         origin=origin,
         x_axis=(cos_a, sin_a, 0.0),
         y_axis=(-sin_a, cos_a, 0.0),
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_annular_cylinder_rsolid(
     *,
     outer_radius: float,
@@ -36,12 +36,12 @@ def make_annular_cylinder_rsolid(
     bottom_z: float,
     tag_prefix: str,
     tag: str,
-) -> scad.Solid:
+) -> cad.Solid:
     """Create a single hollow cylindrical solid with a through bore."""
 
     if inner_radius <= 0.0 or outer_radius <= inner_radius:
         raise ValueError("annular cylinder requires 0 < inner_radius < outer_radius")
-    outer = scad.make_cylinder_rsolid(
+    outer = cad.make_cylinder_rsolid(
         radius=outer_radius,
         height=height,
         bottom_face_center=(0.0, 0.0, bottom_z),
@@ -49,7 +49,7 @@ def make_annular_cylinder_rsolid(
         tag_prefix=f"{tag_prefix}.outer",
         result_tag=f"solid.{tag_prefix}.outer",
     )
-    bore = scad.make_cylinder_rsolid(
+    bore = cad.make_cylinder_rsolid(
         radius=inner_radius,
         height=height + 2.0,
         bottom_face_center=(0.0, 0.0, bottom_z - 1.0),
@@ -57,23 +57,23 @@ def make_annular_cylinder_rsolid(
         tag_prefix=f"{tag_prefix}.bore",
         result_tag=f"solid.{tag_prefix}.bore.cutter",
     )
-    annular = scad.cut_rsolid(outer, bore, skip_non_intersecting=False)
-    annular = scad.apply_tag(shape=annular, tag=tag)
+    annular = cad.cut_rsolid(outer, bore, skip_non_intersecting=False)
+    annular = cad.apply_tag(shape=annular, tag=tag)
     _ground_solid(label=tag, solid=annular)
     return annular
 
 
-@scad.requires_session
+@cad.requires_session
 def make_axis_connector_rconnector(
     *,
     connector_id: str,
-    solid: scad.Solid,
+    solid: cad.Solid,
     center_xy: tuple[float, float],
     target_z: float,
     normal_z: float,
     name: str | None = None,
     flip: bool = False,
-) -> scad.Connector:
+) -> cad.Connector:
     """Create a face connector on the axial face nearest the requested center."""
 
     face = _axis_face(
@@ -83,7 +83,7 @@ def make_axis_connector_rconnector(
         target_z=target_z,
         normal_z=normal_z,
     )
-    return scad.make_face_connector_rconnector(
+    return cad.make_face_connector_rconnector(
         connector_id=connector_id,
         face=face,
         name=name,
@@ -91,22 +91,22 @@ def make_axis_connector_rconnector(
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_axis_part_rpart(
     *,
     part_id: str,
-    solid: scad.Solid,
+    solid: cad.Solid,
     name: str,
     connector_specs: Iterable[dict[str, object]],
-    material: scad.Material | None = None,
-) -> scad.Part:
+    material: cad.Material | None = None,
+) -> cad.Part:
     """Wrap a solid as a Part and attach axial face connectors."""
 
-    part = scad.make_part_rpart(part_id=part_id, body=solid, name=name)
+    part = cad.make_part_rpart(part_id=part_id, body=solid, name=name)
     if material is not None:
-        part = scad.assign_material_rpart(part=part, material=material)
+        part = cad.assign_material_rpart(part=part, material=material)
     for spec in connector_specs:
-        part = scad.add_connector_rpart(
+        part = cad.add_connector_rpart(
             part=part,
             connector=make_axis_connector_rconnector(
                 connector_id=str(spec["connector_id"]),
@@ -122,42 +122,42 @@ def make_axis_part_rpart(
     return part
 
 
-@scad.requires_session
+@cad.requires_session
 def add_placement_axis_connector_rpart(
     *,
-    part: scad.Part,
+    part: cad.Part,
     connector_id: str,
     origin: tuple[float, float, float],
     name: str | None = None,
-) -> scad.Part:
+) -> cad.Part:
     """Attach a topology-free axis connector at an explicit local placement."""
 
-    connector = scad.make_placement_connector_rconnector(
+    connector = cad.make_placement_connector_rconnector(
         connector_id=connector_id,
-        placement=scad.make_placement_rplacement(origin=origin),
+        placement=cad.make_placement_rplacement(origin=origin),
         name=name,
     )
-    return scad.add_connector_rpart(part=part, connector=connector)
+    return cad.add_connector_rpart(part=part, connector=connector)
 
 
-@scad.requires_session
-def _apply_tags(shape: scad.Solid, tags: Iterable[str]) -> scad.Solid:
+@cad.requires_session
+def _apply_tags(shape: cad.Solid, tags: Iterable[str]) -> cad.Solid:
     """Apply normalized tags through the public CadFlow tag API."""
 
     tagged = shape
     for tag in tags:
-        tagged = scad.apply_tag(shape=tagged, tag=tag)
+        tagged = cad.apply_tag(shape=tagged, tag=tag)
     return tagged
 
 
 def _axis_face(
     *,
     label: str,
-    solid: scad.Solid,
+    solid: cad.Solid,
     center_xy: tuple[float, float],
     target_z: float,
     normal_z: float,
-) -> scad.Face:
+) -> cad.Face:
     candidates = []
     for face in ql.select(items=solid.get_faces()).all():
         normal = face.get_normal_at()
@@ -181,20 +181,20 @@ def _axis_face(
     return face
 
 
-def _ground_solid(*, label: str, solid: scad.Solid) -> None:
+def _ground_solid(*, label: str, solid: cad.Solid) -> None:
     faces = ql.select(items=solid.get_faces()).all()
     local_roles = [
         tag
-        for tag in scad.list_tags(shape=solid, scope="local")
+        for tag in cad.list_tags(shape=solid, scope="local")
         if tag.startswith("role.")
     ]
     print(
         f"{label}: faces={len(faces)} local_roles={len(local_roles)} "
-        f"volume={solid.get_volume():.3f} tags={','.join(scad.list_tags(shape=solid))}"
+        f"volume={solid.get_volume():.3f} tags={','.join(cad.list_tags(shape=solid))}"
     )
 
 
-def _ground_compound(*, label: str, compound: scad.Compound) -> None:
+def _ground_compound(*, label: str, compound: cad.Compound) -> None:
     """Print a compact QL-backed summary of an assembly preview compound."""
 
     solids = ql.select(items=compound.get_solids()).all()

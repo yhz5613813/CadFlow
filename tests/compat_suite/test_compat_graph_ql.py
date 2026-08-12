@@ -2,7 +2,7 @@
 
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql as Q
 from cadflow.topology import OperationGraph, OperationNode
 from cadflow.graph import GraphSession, record_operation, get_active_session
@@ -90,9 +90,9 @@ class TestQLSugar(unittest.TestCase):
         self.assertTrue(pred(obj))
 
     def test_select_faces_by_op(self):
-        body = scad.make_box_rsolid(10, 10, 10)
+        body = cad.make_box_rsolid(10, 10, 10)
         body.auto_tag_faces("box")
-        tool = scad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
+        tool = cad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
         result = tracked_cut(body, tool)
         tagged = apply_tracking_tags_to_delta(
             result.solid, result.delta, result.delta_entries, op="cut"
@@ -101,8 +101,8 @@ class TestQLSugar(unittest.TestCase):
         self.assertGreater(len(modified), 0)
 
     def test_select_faces_by_origin(self):
-        body = scad.make_box_rsolid(10, 10, 10)
-        tool = scad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
+        body = cad.make_box_rsolid(10, 10, 10)
+        tool = cad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
         result = tracked_cut(body, tool)
         tagged = apply_tracking_tags_to_delta(
             result.solid, result.delta, result.delta_entries, op="cut"
@@ -148,8 +148,8 @@ class TestGraphSession(unittest.TestCase):
         session.stop()
 
     def test_record_with_topo_delta(self):
-        body = scad.make_box_rsolid(10, 10, 10)
-        tool = scad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
+        body = cad.make_box_rsolid(10, 10, 10)
+        tool = cad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
         result = tracked_cut(body, tool)
 
         session = GraphSession()

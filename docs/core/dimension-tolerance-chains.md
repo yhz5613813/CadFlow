@@ -11,10 +11,10 @@ This feature is separate from sketch-solver residual tolerances, boolean fuzzy t
 Every variable that participates in a tolerance chain must declare a tolerance:
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-width = scad.var("width", 10.0, unit="mm", tolerance=0.1)
-shaft = scad.var(
+width = cad.var("width", 10.0, unit="mm", tolerance=0.1)
+shaft = cad.var(
     "shaft",
     0.315,
     unit="in",
@@ -36,11 +36,11 @@ the `Var` for display and serialization.
 The same values can be represented explicitly:
 
 ```python
-tolerance = scad.DimensionTolerance(
+tolerance = cad.DimensionTolerance(
     lower_deviation=-0.05,
     upper_deviation=0.0,
 )
-shaft = scad.var("shaft", 8.0, unit="mm", tolerance=tolerance)
+shaft = cad.var("shaft", 8.0, unit="mm", tolerance=tolerance)
 ```
 
 Tolerance identity follows `expr_id`, not the human-readable variable name. Two variables with the same name remain separate tolerance sources.
@@ -48,14 +48,14 @@ Tolerance identity follows `expr_id`, not the human-readable variable name. Two 
 ## Propagate A Chain
 
 ```python
-housing = scad.var("housing", 100.0, unit="mm", tolerance=0.15)
-bearing = scad.var(
+housing = cad.var("housing", 100.0, unit="mm", tolerance=0.15)
+bearing = cad.var(
     "bearing", 2.0, unit="cm", tolerance=(-0.04, 0.05), tolerance_unit="mm"
 )
-spacer = scad.var("spacer", 79.4, unit="mm", tolerance=0.05)
+spacer = cad.var("spacer", 79.4, unit="mm", tolerance=0.05)
 clearance = housing - bearing - spacer
 
-result = scad.analyze_tolerance(clearance, method="worst_case")
+result = cad.analyze_tolerance(clearance, method="worst_case")
 
 print(result.nominal)
 print(result.lower_bound, result.upper_bound)
@@ -72,13 +72,13 @@ The unit system validates the expression before propagation. This permits
 physically meaningful nonlinear chains such as:
 
 ```python
-width = scad.var("width", 30.0, unit="mm", tolerance=0.1)
-height = scad.var("height", 40.0, unit="mm", tolerance=0.2)
-diagonal = scad.sqrt(width**2 + height**2)
+width = cad.var("width", 30.0, unit="mm", tolerance=0.1)
+height = cad.var("height", 40.0, unit="mm", tolerance=0.2)
+diagonal = cad.sqrt(width**2 + height**2)
 
-analysis = scad.analyze_tolerance(diagonal)
-assert analysis.dimension == scad.LENGTH
-assert analysis.unit == scad.MM
+analysis = cad.analyze_tolerance(diagonal)
+assert analysis.dimension == cad.LENGTH
+assert analysis.unit == cad.MM
 ```
 
 Area and volume expressions can be inferred and analyzed. Persisted manufacturing
@@ -106,7 +106,7 @@ Conservative interval propagation can intentionally overestimate a strongly corr
 `method="rss"` uses first-order analytic sensitivities and root-sum-square combination:
 
 ```python
-result = scad.analyze_tolerance(clearance, method="rss")
+result = cad.analyze_tolerance(clearance, method="rss")
 ```
 
 Distinct variables are assumed independent. Repeated occurrences of the same variable are merged before RSS, so `x - x` still has zero sensitivity and `x + x` has twice the sensitivity of `x`.
@@ -120,7 +120,7 @@ Covariance matrices, correlation groups, probability distributions, and Monte Ca
 `check_tolerance()` returns a result without raising when the derived tolerance exceeds the permitted deviations:
 
 ```python
-check = scad.check_tolerance(
+check = cad.check_tolerance(
     clearance,
     tolerance=(-0.25, 0.24),
     method="worst_case",
@@ -141,8 +141,8 @@ from `tolerance_unit` to the target's canonical unit before comparison.
 Use `GraphSession.require_tolerance()` for design requirements that must travel with the model:
 
 ```python
-with scad.GraphSession() as session:
-    body = scad.make_box_rsolid(housing, 10.0, 10.0)
+with cad.GraphSession() as session:
+    body = cad.make_box_rsolid(housing, 10.0, 10.0)
     session.require_tolerance(
         clearance,
         (-0.25, 0.24),
@@ -153,7 +153,7 @@ with scad.GraphSession() as session:
     )
 
 report = session.validate_tolerances(raise_on_failure=True)
-model_json = scad.export_model_json(session)
+model_json = cad.export_model_json(session)
 ```
 
 Automatic validation occurs when:

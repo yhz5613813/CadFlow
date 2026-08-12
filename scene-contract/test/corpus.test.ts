@@ -365,7 +365,7 @@ function embeddedSourcePackage(): {
   asRecords(scene.nodes)[0].definition_id = definitionId;
   sidecar.definition_id = definitionId;
 
-  const callText = "scad.make_box_rsolid(width=1)";
+  const callText = "cad.make_box_rsolid(width=1)";
   const sourcePath = "models/box.py";
   const sourceUri = `sources/${sourcePath}`;
   const sourceBytes = Buffer.from(`body = ${callText}\n`, "utf8");

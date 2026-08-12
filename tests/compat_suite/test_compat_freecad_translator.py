@@ -16,7 +16,7 @@ from unittest import mock
 import unittest
 import xml.etree.ElementTree as ET
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql
 from cadflow.graph import GraphSession
 from cadflow.kernel.ocp_properties import bounding_box
@@ -29,13 +29,13 @@ from cadflow.translator.freecad_translator.semantic import (
 
 class TestFreeCADTranslator(unittest.TestCase):
     def test_freecad_translator_is_only_exported_from_translator_namespace(self):
-        self.assertTrue(hasattr(scad, "translator"))
+        self.assertTrue(hasattr(cad, "translator"))
         self.assertIs(
-            scad.translator.freecad_translator.translate_model_json_to_fcstd,
+            cad.translator.freecad_translator.translate_model_json_to_fcstd,
             freecad_translator.translate_model_json_to_fcstd,
         )
-        self.assertFalse(hasattr(scad, "translate_model_json_to_fcstd"))
-        self.assertFalse(hasattr(scad, "translate_model_json_to_freecad_script"))
+        self.assertFalse(hasattr(cad, "translate_model_json_to_fcstd"))
+        self.assertFalse(hasattr(cad, "translate_model_json_to_freecad_script"))
         with self.assertRaises(ModuleNotFoundError):
             importlib.import_module("cadflow.freecad_translator")
 
@@ -219,11 +219,11 @@ class TestFreeCADTranslator(unittest.TestCase):
 
     def test_translate_model_json_emits_freecad_api_script_for_steps(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(2.0, 3.0, 4.0)
-            scad.translate_shape(box, (1.0, 2.0, 3.0))
+            box = cad.make_box_rsolid(2.0, 3.0, 4.0)
+            cad.translate_shape(box, (1.0, 2.0, 3.0))
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("import FreeCAD as App", script)
@@ -236,15 +236,15 @@ class TestFreeCADTranslator(unittest.TestCase):
 
     def test_translate_model_json_emits_tag_metadata_without_freecad_feature(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
-            scad.apply_tag_rselection(
+            box = cad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
+            cad.apply_tag_rselection(
                 scope=box,
                 targets=[box],
                 tag="role.semantic_view",
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("# Step", script)
@@ -255,14 +255,14 @@ class TestFreeCADTranslator(unittest.TestCase):
 
     def test_translate_tagged_cylinder_preserves_topology_identity_bindings(self):
         with GraphSession() as session:
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=2.0,
                 height=5.0,
                 tag_prefix="shaft",
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Cylinder", script)
@@ -272,7 +272,7 @@ class TestFreeCADTranslator(unittest.TestCase):
 
     def test_translate_tagged_box_preserves_topology_identity_bindings(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(
+            cad.make_box_rsolid(
                 width=2.0,
                 height=3.0,
                 depth=4.0,
@@ -281,7 +281,7 @@ class TestFreeCADTranslator(unittest.TestCase):
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Box", script)
@@ -293,7 +293,7 @@ class TestFreeCADTranslator(unittest.TestCase):
 
     def test_translate_tagged_cone_preserves_topology_identity_bindings(self):
         with GraphSession() as session:
-            scad.make_cone_rsolid(
+            cad.make_cone_rsolid(
                 bottom_radius=2.0,
                 height=4.0,
                 top_radius=1.0,
@@ -302,7 +302,7 @@ class TestFreeCADTranslator(unittest.TestCase):
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Cone", script)
@@ -315,24 +315,24 @@ class TestFreeCADTranslator(unittest.TestCase):
 
     def test_translate_constrained_sketch_preserves_topology_tag_contract(self):
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch(name="rect")
+            sketch = cad.make_sketch_rsketch(name="rect")
             for point_id, x, y in (
                 ("p0", 0.0, 0.0),
                 ("p1", 2.0, 0.0),
                 ("p2", 2.0, 1.0),
                 ("p3", 0.0, 1.0),
             ):
-                sketch = scad.add_point_rsketch(sketch, point_id, x, y)
+                sketch = cad.add_point_rsketch(sketch, point_id, x, y)
             for entity_id, start, end in (
                 ("bottom", "p0", "p1"),
                 ("right", "p1", "p2"),
                 ("top", "p2", "p3"),
                 ("left", "p3", "p0"),
             ):
-                sketch = scad.add_line_rsketch(sketch, entity_id, start, end)
-            scad.make_face_from_sketch_rface(sketch)
+                sketch = cad.add_line_rsketch(sketch, entity_id, start, end)
+            cad.make_face_from_sketch_rface(sketch)
 
-        model_json = scad.export_model_json(session)
+        model_json = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(model_json)
 
         self.assertIn("CadFlowSketchPromotion", script)
@@ -344,20 +344,20 @@ class TestFreeCADTranslator(unittest.TestCase):
         self,
     ):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
-            left = scad.apply_tag_rselection(
+            box = cad.make_box_rsolid(width=2.0, height=3.0, depth=4.0)
+            left = cad.apply_tag_rselection(
                 scope=box,
                 targets=[box],
                 tag="role.left_branch",
             )
-            right = scad.apply_tag_rselection(
+            right = cad.apply_tag_rselection(
                 scope=box,
                 targets=[box],
                 tag="role.right_branch",
             )
-            scad.capture_result(value=(left, right))
+            cad.capture_result(value=(left, right))
 
-        model_json = scad.export_model_json(session)
+        model_json = cad.export_model_json(session)
         payload = json.loads(model_json)
         expected_by_tag = {
             binding["tag"]: binding for binding in payload["semantic_bindings"]
@@ -401,48 +401,48 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_tagged_parts_preserve_nested_placements(self):
         with GraphSession() as session:
-            lower_body = scad.make_box_rsolid(
+            lower_body = cad.make_box_rsolid(
                 width=2.0,
                 height=4.0,
                 depth=1.0,
                 bottom_face_center=(0.0, 0.0, 0.0),
             )
-            upper_body = scad.make_box_rsolid(
+            upper_body = cad.make_box_rsolid(
                 width=2.0,
                 height=4.0,
                 depth=1.0,
                 bottom_face_center=(0.0, 0.0, 10.0),
             )
-            lower_body = scad.apply_tag(shape=lower_body, tag="role.structure")
-            upper_body = scad.apply_tag(shape=upper_body, tag="role.structure")
-            upper_body = scad.apply_tag(shape=upper_body, tag="role.upper")
-            lower = scad.make_part_rpart(part_id="lower", body=lower_body)
-            upper = scad.make_part_rpart(part_id="upper", body=upper_body)
-            child = scad.make_assembly_rassembly(assembly_id="child")
-            child = scad.add_component_rassembly(
+            lower_body = cad.apply_tag(shape=lower_body, tag="role.structure")
+            upper_body = cad.apply_tag(shape=upper_body, tag="role.structure")
+            upper_body = cad.apply_tag(shape=upper_body, tag="role.upper")
+            lower = cad.make_part_rpart(part_id="lower", body=lower_body)
+            upper = cad.make_part_rpart(part_id="upper", body=upper_body)
+            child = cad.make_assembly_rassembly(assembly_id="child")
+            child = cad.add_component_rassembly(
                 assembly=child,
                 item=lower,
                 component_id="lower",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            child = scad.add_component_rassembly(
+            child = cad.add_component_rassembly(
                 assembly=child,
                 item=upper,
                 component_id="upper",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            root = scad.make_assembly_rassembly(assembly_id="root")
-            root = scad.add_component_rassembly(
+            root = cad.make_assembly_rassembly(assembly_id="root")
+            root = cad.add_component_rassembly(
                 assembly=root,
                 item=child,
                 component_id="child",
-                placement=scad.make_placement_rplacement(
+                placement=cad.make_placement_rplacement(
                     origin=(20.0, 30.0, 5.0),
                     x_axis=(0.0, 1.0, 0.0),
                     y_axis=(-1.0, 0.0, 0.0),
                 ),
             )
-            scad.make_compound_from_assembly_rcompound(assembly=root)
+            cad.make_compound_from_assembly_rcompound(assembly=root)
 
         probe = """
 import json
@@ -484,7 +484,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
     }, fh)
 """
         result = self._inspect_fcstd_json(
-            scad.export_model_json(session=session), probe
+            cad.export_model_json(session=session), probe
         )
 
         self.assertEqual(result["tag_object_count"], 0)
@@ -500,24 +500,24 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_preserves_part_assembly_semantics_in_script(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(2.0, 3.0, 1.0)
-            material = scad.make_material_rmaterial(
+            body = cad.make_box_rsolid(2.0, 3.0, 1.0)
+            material = cad.make_material_rmaterial(
                 "steel_8_8", density=7.85e-6, density_unit="kg/mm^3"
             )
-            part = scad.assign_material_rpart(
-                scad.make_part_rpart("plate", body), material
+            part = cad.assign_material_rpart(
+                cad.make_part_rpart("plate", body), material
             )
-            assembly = scad.make_assembly_rassembly("fixture")
-            assembly = scad.add_component_rassembly(
+            assembly = cad.make_assembly_rassembly("fixture")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="plate_1",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("PRODUCT_VALUES = {}", script)
@@ -530,7 +530,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertIn("Part.makeCompound", script)
 
     def test_translate_model_json_assigns_external_material_params_in_script(self):
-        material = scad.make_material_rmaterial(
+        material = cad.make_material_rmaterial(
             "external_aluminum_6061",
             name="External 6061 aluminum",
             density=2.7e-6,
@@ -539,11 +539,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         )
         with GraphSession() as session:
             for part_id in ("external_material_plate_a", "external_material_plate_b"):
-                body = scad.make_box_rsolid(2.0, 3.0, 1.0)
-                part = scad.make_part_rpart(part_id, body)
-                scad.assign_material_rpart(part, material)
+                body = cad.make_box_rsolid(2.0, 3.0, 1.0)
+                part = cad.make_part_rpart(part_id, body)
+                cad.assign_material_rpart(part, material)
 
-        payload = json.loads(scad.export_model_json(session))
+        payload = json.loads(cad.export_model_json(session))
         assign_nodes = [
             node
             for node in payload["graph"]["nodes"]
@@ -562,7 +562,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             [node["params"]["material"] for node in assign_nodes],
             [expected_material, expected_material],
         )
-        replayed = scad.replay_model_json(json.dumps(payload))
+        replayed = cad.replay_model_json(json.dumps(payload))
         self.assertEqual(len(replayed), 2)
         self.assertTrue(
             all(part.material.to_dict() == material.to_dict() for part in replayed)
@@ -580,21 +580,21 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_emits_forwarded_connector_datums_in_script(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            part = scad.make_part_rpart("translator_connector_part", body)
-            axis = scad.make_placement_connector_rconnector(
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            part = cad.make_part_rpart("translator_connector_part", body)
+            axis = cad.make_placement_connector_rconnector(
                 "axis",
-                scad.make_placement_rplacement(origin=(2.0, 0.0, 0.0)),
+                cad.make_placement_rplacement(origin=(2.0, 0.0, 0.0)),
             )
-            part = scad.add_connector_rpart(part, axis)
-            child = scad.make_assembly_rassembly("translator_connector_child")
-            child = scad.add_component_rassembly(
+            part = cad.add_connector_rpart(part, axis)
+            child = cad.make_assembly_rassembly("translator_connector_child")
+            child = cad.add_component_rassembly(
                 child,
                 part,
                 component_id="inner",
-                placement=scad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
+                placement=cad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
             )
-            scad.forward_connector_rassembly(
+            cad.forward_connector_rassembly(
                 child,
                 connector_id="public_axis",
                 source_component_id="inner",
@@ -602,7 +602,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("make_placement_connector_rconnector", script)
@@ -613,37 +613,37 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_emits_native_constraint_joints_in_script(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
             top_face = ql.faces().resolve(body)[-1]
-            connector = scad.make_face_connector_rconnector("axis", top_face)
-            part = scad.add_connector_rpart(
-                scad.make_part_rpart("block", body), connector
+            connector = cad.make_face_connector_rconnector("axis", top_face)
+            part = cad.add_connector_rpart(
+                cad.make_part_rpart("block", body), connector
             )
-            assembly = scad.make_assembly_rassembly("fixture")
-            assembly = scad.add_component_rassembly(
+            assembly = cad.make_assembly_rassembly("fixture")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="base",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.add_component_rassembly(
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="slider",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.ground_component_rassembly(assembly, "base")
-            assembly = scad.add_prismatic_constraint_rassembly(
+            assembly = cad.ground_component_rassembly(assembly, "base")
+            assembly = cad.add_prismatic_constraint_rassembly(
                 assembly,
                 "slide",
-                scad.make_connector_ref_rconnectorref("base", "axis"),
-                scad.make_connector_ref_rconnectorref("slider", "axis"),
+                cad.make_connector_ref_rconnectorref("base", "axis"),
+                cad.make_connector_ref_rconnectorref("slider", "axis"),
                 drive_distance=3.0,
             )
-            scad.solve_assembly_constraints_rassembly(assembly)
+            cad.solve_assembly_constraints_rassembly(assembly)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("import JointObject", script)
@@ -654,17 +654,17 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_emits_native_coupling_joints_in_script(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
             top_face = ql.faces().resolve(body)[-1]
             x_edge = ql.edges().resolve(body)[8]
-            axis_connector = scad.make_face_connector_rconnector("axis_z", top_face)
-            slide_connector = scad.make_edge_connector_rconnector(
+            axis_connector = cad.make_face_connector_rconnector("axis_z", top_face)
+            slide_connector = cad.make_edge_connector_rconnector(
                 "slide_x", x_edge, flip=True
             )
-            part = scad.make_part_rpart("coupler_block", body)
-            part = scad.add_connector_rpart(part, axis_connector)
-            part = scad.add_connector_rpart(part, slide_connector)
-            assembly = scad.make_assembly_rassembly("coupler_fixture")
+            part = cad.make_part_rpart("coupler_block", body)
+            part = cad.add_connector_rpart(part, axis_connector)
+            part = cad.add_connector_rpart(part, slide_connector)
+            assembly = cad.make_assembly_rassembly("coupler_fixture")
             placements = {
                 "ground_gear_a": (0.0, 0.0, 0.0),
                 "gear_a": (0.0, 0.0, 0.0),
@@ -680,78 +680,78 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 "pinion": (0.0, 25.0, 0.0),
             }
             for component_id, origin in placements.items():
-                assembly = scad.add_component_rassembly(
+                assembly = cad.add_component_rassembly(
                     assembly,
                     part,
                     component_id=component_id,
-                    placement=scad.make_placement_rplacement(origin=origin),
+                    placement=cad.make_placement_rplacement(origin=origin),
                 )
             for component_id in placements:
                 if component_id.startswith("ground_"):
-                    assembly = scad.ground_component_rassembly(assembly, component_id)
-            ground_gear_a_ref = scad.make_connector_ref_rconnectorref(
+                    assembly = cad.ground_component_rassembly(assembly, component_id)
+            ground_gear_a_ref = cad.make_connector_ref_rconnectorref(
                 "ground_gear_a", "axis_z"
             )
-            ground_gear_b_ref = scad.make_connector_ref_rconnectorref(
+            ground_gear_b_ref = cad.make_connector_ref_rconnectorref(
                 "ground_gear_b", "axis_z"
             )
-            ground_pulley_a_ref = scad.make_connector_ref_rconnectorref(
+            ground_pulley_a_ref = cad.make_connector_ref_rconnectorref(
                 "ground_pulley_a", "axis_z"
             )
-            ground_pulley_b_ref = scad.make_connector_ref_rconnectorref(
+            ground_pulley_b_ref = cad.make_connector_ref_rconnectorref(
                 "ground_pulley_b", "axis_z"
             )
-            ground_rack_ref = scad.make_connector_ref_rconnectorref(
+            ground_rack_ref = cad.make_connector_ref_rconnectorref(
                 "ground_rack", "slide_x"
             )
-            ground_pinion_ref = scad.make_connector_ref_rconnectorref(
+            ground_pinion_ref = cad.make_connector_ref_rconnectorref(
                 "ground_pinion", "axis_z"
             )
-            gear_a_ref = scad.make_connector_ref_rconnectorref("gear_a", "axis_z")
-            gear_b_ref = scad.make_connector_ref_rconnectorref("gear_b", "axis_z")
-            pulley_a_ref = scad.make_connector_ref_rconnectorref("pulley_a", "axis_z")
-            pulley_b_ref = scad.make_connector_ref_rconnectorref("pulley_b", "axis_z")
-            rack_ref = scad.make_connector_ref_rconnectorref("rack", "slide_x")
-            pinion_ref = scad.make_connector_ref_rconnectorref("pinion", "axis_z")
-            assembly = scad.add_revolute_constraint_rassembly(
+            gear_a_ref = cad.make_connector_ref_rconnectorref("gear_a", "axis_z")
+            gear_b_ref = cad.make_connector_ref_rconnectorref("gear_b", "axis_z")
+            pulley_a_ref = cad.make_connector_ref_rconnectorref("pulley_a", "axis_z")
+            pulley_b_ref = cad.make_connector_ref_rconnectorref("pulley_b", "axis_z")
+            rack_ref = cad.make_connector_ref_rconnectorref("rack", "slide_x")
+            pinion_ref = cad.make_connector_ref_rconnectorref("pinion", "axis_z")
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "gear_a_axis",
                 ground_gear_a_ref,
                 gear_a_ref,
                 drive_angle_degrees=90.0,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "gear_b_axis",
                 ground_gear_b_ref,
                 gear_b_ref,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "pulley_a_axis",
                 ground_pulley_a_ref,
                 pulley_a_ref,
                 drive_angle_degrees=90.0,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "pulley_b_axis",
                 ground_pulley_b_ref,
                 pulley_b_ref,
             )
-            assembly = scad.add_prismatic_constraint_rassembly(
+            assembly = cad.add_prismatic_constraint_rassembly(
                 assembly,
                 "rack_slide",
                 ground_rack_ref,
                 rack_ref,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "pinion_axis",
                 ground_pinion_ref,
                 pinion_ref,
             )
-            assembly = scad.add_gear_constraint_rassembly(
+            assembly = cad.add_gear_constraint_rassembly(
                 assembly,
                 "gear_mesh",
                 gear_a_ref,
@@ -759,7 +759,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 pitch_radius_a=1.0,
                 pitch_radius_b=2.0,
             )
-            assembly = scad.add_belt_constraint_rassembly(
+            assembly = cad.add_belt_constraint_rassembly(
                 assembly,
                 "belt_loop",
                 pulley_a_ref,
@@ -767,17 +767,17 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 pulley_radius_a=3.0,
                 pulley_radius_b=4.0,
             )
-            assembly = scad.add_rack_pinion_constraint_rassembly(
+            assembly = cad.add_rack_pinion_constraint_rassembly(
                 assembly,
                 "rack_mesh",
                 rack_ref,
                 pinion_ref,
                 pitch_radius=5.0,
             )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("'Gears'", script)
@@ -798,17 +798,17 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_coupling_fcstd_contains_native_joint_properties(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
             top_face = ql.faces().resolve(body)[-1]
             x_edge = ql.edges().resolve(body)[8]
-            axis_connector = scad.make_face_connector_rconnector("axis_z", top_face)
-            slide_connector = scad.make_edge_connector_rconnector(
+            axis_connector = cad.make_face_connector_rconnector("axis_z", top_face)
+            slide_connector = cad.make_edge_connector_rconnector(
                 "slide_x", x_edge, flip=True
             )
-            part = scad.make_part_rpart("coupler_block", body)
-            part = scad.add_connector_rpart(part, axis_connector)
-            part = scad.add_connector_rpart(part, slide_connector)
-            assembly = scad.make_assembly_rassembly("coupler_fixture")
+            part = cad.make_part_rpart("coupler_block", body)
+            part = cad.add_connector_rpart(part, axis_connector)
+            part = cad.add_connector_rpart(part, slide_connector)
+            assembly = cad.make_assembly_rassembly("coupler_fixture")
             placements = {
                 "ground_gear_a": (0.0, 0.0, 0.0),
                 "gear_a": (0.0, 0.0, 0.0),
@@ -824,78 +824,78 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 "pinion": (0.0, 25.0, 0.0),
             }
             for component_id, origin in placements.items():
-                assembly = scad.add_component_rassembly(
+                assembly = cad.add_component_rassembly(
                     assembly,
                     part,
                     component_id=component_id,
-                    placement=scad.make_placement_rplacement(origin=origin),
+                    placement=cad.make_placement_rplacement(origin=origin),
                 )
             for component_id in placements:
                 if component_id.startswith("ground_"):
-                    assembly = scad.ground_component_rassembly(assembly, component_id)
-            ground_gear_a_ref = scad.make_connector_ref_rconnectorref(
+                    assembly = cad.ground_component_rassembly(assembly, component_id)
+            ground_gear_a_ref = cad.make_connector_ref_rconnectorref(
                 "ground_gear_a", "axis_z"
             )
-            ground_gear_b_ref = scad.make_connector_ref_rconnectorref(
+            ground_gear_b_ref = cad.make_connector_ref_rconnectorref(
                 "ground_gear_b", "axis_z"
             )
-            ground_pulley_a_ref = scad.make_connector_ref_rconnectorref(
+            ground_pulley_a_ref = cad.make_connector_ref_rconnectorref(
                 "ground_pulley_a", "axis_z"
             )
-            ground_pulley_b_ref = scad.make_connector_ref_rconnectorref(
+            ground_pulley_b_ref = cad.make_connector_ref_rconnectorref(
                 "ground_pulley_b", "axis_z"
             )
-            ground_rack_ref = scad.make_connector_ref_rconnectorref(
+            ground_rack_ref = cad.make_connector_ref_rconnectorref(
                 "ground_rack", "slide_x"
             )
-            ground_pinion_ref = scad.make_connector_ref_rconnectorref(
+            ground_pinion_ref = cad.make_connector_ref_rconnectorref(
                 "ground_pinion", "axis_z"
             )
-            gear_a_ref = scad.make_connector_ref_rconnectorref("gear_a", "axis_z")
-            gear_b_ref = scad.make_connector_ref_rconnectorref("gear_b", "axis_z")
-            pulley_a_ref = scad.make_connector_ref_rconnectorref("pulley_a", "axis_z")
-            pulley_b_ref = scad.make_connector_ref_rconnectorref("pulley_b", "axis_z")
-            rack_ref = scad.make_connector_ref_rconnectorref("rack", "slide_x")
-            pinion_ref = scad.make_connector_ref_rconnectorref("pinion", "axis_z")
-            assembly = scad.add_revolute_constraint_rassembly(
+            gear_a_ref = cad.make_connector_ref_rconnectorref("gear_a", "axis_z")
+            gear_b_ref = cad.make_connector_ref_rconnectorref("gear_b", "axis_z")
+            pulley_a_ref = cad.make_connector_ref_rconnectorref("pulley_a", "axis_z")
+            pulley_b_ref = cad.make_connector_ref_rconnectorref("pulley_b", "axis_z")
+            rack_ref = cad.make_connector_ref_rconnectorref("rack", "slide_x")
+            pinion_ref = cad.make_connector_ref_rconnectorref("pinion", "axis_z")
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "gear_a_axis",
                 ground_gear_a_ref,
                 gear_a_ref,
                 drive_angle_degrees=90.0,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "gear_b_axis",
                 ground_gear_b_ref,
                 gear_b_ref,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "pulley_a_axis",
                 ground_pulley_a_ref,
                 pulley_a_ref,
                 drive_angle_degrees=90.0,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "pulley_b_axis",
                 ground_pulley_b_ref,
                 pulley_b_ref,
             )
-            assembly = scad.add_prismatic_constraint_rassembly(
+            assembly = cad.add_prismatic_constraint_rassembly(
                 assembly,
                 "rack_slide",
                 ground_rack_ref,
                 rack_ref,
             )
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "pinion_axis",
                 ground_pinion_ref,
                 pinion_ref,
             )
-            assembly = scad.add_gear_constraint_rassembly(
+            assembly = cad.add_gear_constraint_rassembly(
                 assembly,
                 "gear_mesh",
                 gear_a_ref,
@@ -903,7 +903,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 pitch_radius_a=1.0,
                 pitch_radius_b=2.0,
             )
-            assembly = scad.add_belt_constraint_rassembly(
+            assembly = cad.add_belt_constraint_rassembly(
                 assembly,
                 "belt_loop",
                 pulley_a_ref,
@@ -911,14 +911,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 pulley_radius_a=3.0,
                 pulley_radius_b=4.0,
             )
-            assembly = scad.add_rack_pinion_constraint_rassembly(
+            assembly = cad.add_rack_pinion_constraint_rassembly(
                 assembly,
                 "rack_mesh",
                 rack_ref,
                 pinion_ref,
                 pitch_radius=5.0,
             )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         probe = """
 import json
@@ -942,7 +942,7 @@ for obj in doc.Objects:
 with open(OUT_PATH, 'w', encoding='utf-8') as fh:
     json.dump(payload, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["gear"]["joint_type"], "Gears")
         self.assertEqual(result["gear"]["distance"], 1.0)
@@ -959,34 +959,34 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_constraint_fcstd_contains_native_joint_metadata(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
             top_face = ql.faces().resolve(body)[-1]
-            connector = scad.make_face_connector_rconnector("axis", top_face)
-            part = scad.add_connector_rpart(
-                scad.make_part_rpart("block", body), connector
+            connector = cad.make_face_connector_rconnector("axis", top_face)
+            part = cad.add_connector_rpart(
+                cad.make_part_rpart("block", body), connector
             )
-            assembly = scad.make_assembly_rassembly("fixture")
-            assembly = scad.add_component_rassembly(
+            assembly = cad.make_assembly_rassembly("fixture")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="base",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.add_component_rassembly(
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="slider",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.ground_component_rassembly(assembly, "base")
-            assembly = scad.add_prismatic_constraint_rassembly(
+            assembly = cad.ground_component_rassembly(assembly, "base")
+            assembly = cad.add_prismatic_constraint_rassembly(
                 assembly,
                 "slide",
-                scad.make_connector_ref_rconnectorref("base", "axis"),
-                scad.make_connector_ref_rconnectorref("slider", "axis"),
+                cad.make_connector_ref_rconnectorref("base", "axis"),
+                cad.make_connector_ref_rconnectorref("slider", "axis"),
                 drive_distance=3.0,
             )
-            scad.solve_assembly_constraints_rassembly(assembly)
+            cad.solve_assembly_constraints_rassembly(assembly)
 
         probe = """
 import json
@@ -1004,7 +1004,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'slider_z': {obj.CadFlowComponentId: round(float(obj.Placement.Base.z), 3) for obj in links},
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["joint_count"], 1)
         self.assertEqual(result["joint_types"], ["Slider"])
@@ -1014,62 +1014,62 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_forwarded_connector_joint_references_components(self):
         with GraphSession() as session:
-            shaft_body = scad.make_cylinder_rsolid(
+            shaft_body = cad.make_cylinder_rsolid(
                 radius=1.0,
                 height=4.0,
                 bottom_face_center=(0.0, 0.0, -2.0),
                 axis=(0.0, 0.0, 1.0),
             )
-            shaft = scad.make_part_rpart("shaft", shaft_body)
-            shaft_axis = scad.make_placement_connector_rconnector(
+            shaft = cad.make_part_rpart("shaft", shaft_body)
+            shaft_axis = cad.make_placement_connector_rconnector(
                 "axis",
-                scad.make_placement_rplacement(origin=(0.0, 0.0, 0.0)),
+                cad.make_placement_rplacement(origin=(0.0, 0.0, 0.0)),
             )
-            shaft = scad.add_connector_rpart(shaft, shaft_axis)
+            shaft = cad.add_connector_rpart(shaft, shaft_axis)
 
-            inner_body = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            inner = scad.make_part_rpart("bearing_inner", inner_body)
-            inner_axis = scad.make_placement_connector_rconnector(
+            inner_body = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            inner = cad.make_part_rpart("bearing_inner", inner_body)
+            inner_axis = cad.make_placement_connector_rconnector(
                 "axis",
-                scad.make_placement_rplacement(origin=(0.0, 0.0, 0.0)),
+                cad.make_placement_rplacement(origin=(0.0, 0.0, 0.0)),
             )
-            inner = scad.add_connector_rpart(inner, inner_axis)
+            inner = cad.add_connector_rpart(inner, inner_axis)
 
-            bearing = scad.make_assembly_rassembly("bearing_unit")
-            bearing = scad.add_component_rassembly(
+            bearing = cad.make_assembly_rassembly("bearing_unit")
+            bearing = cad.add_component_rassembly(
                 bearing,
                 inner,
                 component_id="inner_ring",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            bearing = scad.forward_connector_rassembly(
+            bearing = cad.forward_connector_rassembly(
                 bearing,
                 connector_id="inner_axis",
                 source_component_id="inner_ring",
                 source_connector_id="axis",
             )
 
-            assembly = scad.make_assembly_rassembly("fixture")
-            assembly = scad.add_component_rassembly(
+            assembly = cad.make_assembly_rassembly("fixture")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 shaft,
                 component_id="shaft",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.add_component_rassembly(
+            assembly = cad.add_component_rassembly(
                 assembly,
                 bearing,
                 component_id="bearing",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.ground_component_rassembly(assembly, "shaft")
-            assembly = scad.add_revolute_constraint_rassembly(
+            assembly = cad.ground_component_rassembly(assembly, "shaft")
+            assembly = cad.add_revolute_constraint_rassembly(
                 assembly,
                 "shaft_to_bearing_inner",
-                scad.make_connector_ref_rconnectorref("shaft", "axis"),
-                scad.make_connector_ref_rconnectorref("bearing", "inner_axis"),
+                cad.make_connector_ref_rconnectorref("shaft", "axis"),
+                cad.make_connector_ref_rconnectorref("bearing", "inner_axis"),
             )
-            scad.solve_assembly_constraints_rassembly(assembly)
+            cad.solve_assembly_constraints_rassembly(assembly)
 
         probe = """
 import json
@@ -1108,7 +1108,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         ],
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["joint_count"], 1)
         self.assertEqual(result["status"], "native_equivalent")
@@ -1120,7 +1120,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_fcstd_resolves_complex_face_connector(self):
         with GraphSession() as session:
-            gear = scad.std.gear.make_herringbone_gear_rsolid(
+            gear = cad.std.gear.make_herringbone_gear_rsolid(
                 n_teeth=18,
                 module=1.5,
                 helix_angle=25.0,
@@ -1129,32 +1129,32 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             top_face = max(
                 ql.select(gear.get_faces()).all(), key=lambda face: face.get_center().z
             )
-            connector = scad.make_face_connector_rconnector("axis", top_face)
-            part = scad.add_connector_rpart(
-                scad.make_part_rpart("gear", gear), connector
+            connector = cad.make_face_connector_rconnector("axis", top_face)
+            part = cad.add_connector_rpart(
+                cad.make_part_rpart("gear", gear), connector
             )
-            assembly = scad.make_assembly_rassembly("gear_fixture")
-            assembly = scad.add_component_rassembly(
+            assembly = cad.make_assembly_rassembly("gear_fixture")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="base",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            assembly = scad.add_component_rassembly(
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="follower",
-                placement=scad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
+                placement=cad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
             )
-            assembly = scad.ground_component_rassembly(assembly, "base")
-            assembly = scad.add_fixed_constraint_rassembly(
+            assembly = cad.ground_component_rassembly(assembly, "base")
+            assembly = cad.add_fixed_constraint_rassembly(
                 assembly,
                 "gear_face_fixed",
-                scad.make_connector_ref_rconnectorref("base", "axis"),
-                scad.make_connector_ref_rconnectorref("follower", "axis"),
+                cad.make_connector_ref_rconnectorref("base", "axis"),
+                cad.make_connector_ref_rconnectorref("follower", "axis"),
             )
-            assembly = scad.solve_assembly_constraints_rassembly(assembly)
-            scad.make_compound_from_assembly_rcompound(assembly)
+            assembly = cad.solve_assembly_constraints_rassembly(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         probe = """
 import json
@@ -1171,7 +1171,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'link_x': {obj.CadFlowComponentId: round(float(obj.Placement.Base.x), 3) for obj in links},
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["joint_count"], 1)
         self.assertEqual(result["statuses"], ["native_equivalent"])
@@ -1180,21 +1180,21 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_part_assembly_fcstd_valid(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(2.0, 3.0, 1.0)
-            material = scad.make_material_rmaterial(
+            body = cad.make_box_rsolid(2.0, 3.0, 1.0)
+            material = cad.make_material_rmaterial(
                 "steel_8_8", density=7.85e-6, density_unit="kg/mm^3"
             )
-            part = scad.assign_material_rpart(
-                scad.make_part_rpart("plate", body), material
+            part = cad.assign_material_rpart(
+                cad.make_part_rpart("plate", body), material
             )
-            assembly = scad.make_assembly_rassembly("fixture")
-            assembly = scad.add_component_rassembly(
+            assembly = cad.make_assembly_rassembly("fixture")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="plate_1",
-                placement=scad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
+                placement=cad.make_placement_rplacement(origin=(5.0, 0.0, 0.0)),
             )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         probe = """
 import json
@@ -1220,7 +1220,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'compound_volume': 0.0 if not compound_objs else float(compound_objs[-1].Shape.Volume),
     }, fh)
 """
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result = self._inspect_fcstd_json(payload, probe)
 
         self.assertEqual(result["part_ids"], ["plate"])
@@ -1236,14 +1236,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertGreater(result["compound_volume"], 0.0)
 
     def test_translate_model_json_fcstd_preserves_editable_materials_and_colors(self):
-        blue = scad.make_material_rmaterial(
+        blue = cad.make_material_rmaterial(
             "blue_aluminum",
             name="Blue aluminum",
             density=2.7e-6,
             density_unit="kg/mm^3",
             color=(0.2, 0.4, 0.6),
         )
-        uncolored = scad.make_material_rmaterial(
+        uncolored = cad.make_material_rmaterial(
             "uncolored_steel",
             name="Uncolored steel",
         )
@@ -1254,23 +1254,23 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 ("blue_b", 2.0, blue),
                 ("plain", 4.0, uncolored),
             ):
-                body = scad.make_box_rsolid(
+                body = cad.make_box_rsolid(
                     1.0, 1.0, 1.0, bottom_face_center=(x, 0.0, 0.0)
                 )
                 parts.append(
-                    scad.assign_material_rpart(
-                        scad.make_part_rpart(part_id, body), material
+                    cad.assign_material_rpart(
+                        cad.make_part_rpart(part_id, body), material
                     )
                 )
-            assembly = scad.make_assembly_rassembly("material_fixture")
+            assembly = cad.make_assembly_rassembly("material_fixture")
             for part in parts:
-                assembly = scad.add_component_rassembly(
+                assembly = cad.add_component_rassembly(
                     assembly,
                     part,
                     component_id=f"{part.part_id}_1",
-                    placement=scad.identity_placement_rplacement(),
+                    placement=cad.identity_placement_rplacement(),
                 )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         probe = """
 import json
@@ -1301,7 +1301,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'component_names': {obj.CadFlowMaterialId: sorted(candidate.Name for candidate in components if candidate.CadFlowMaterialObject == obj) for obj in materials},
     }, fh)
 """
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result = self._inspect_fcstd_json(payload, probe)
 
         self.assertEqual(set(result["materials"]), {"blue_aluminum", "uncolored_steel"})
@@ -1368,23 +1368,23 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_nested_assembly_uses_native_assembly_link(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            part = scad.make_part_rpart("cube", body)
-            child = scad.make_assembly_rassembly("child")
-            child = scad.add_component_rassembly(
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            part = cad.make_part_rpart("cube", body)
+            child = cad.make_assembly_rassembly("child")
+            child = cad.add_component_rassembly(
                 child,
                 part,
                 component_id="cube_1",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            root = scad.make_assembly_rassembly("root")
-            root = scad.add_component_rassembly(
+            root = cad.make_assembly_rassembly("root")
+            root = cad.add_component_rassembly(
                 root,
                 child,
                 component_id="child_1",
-                placement=scad.make_placement_rplacement(origin=(4.0, 0.0, 0.0)),
+                placement=cad.make_placement_rplacement(origin=(4.0, 0.0, 0.0)),
             )
-            scad.make_compound_from_assembly_rcompound(root)
+            cad.make_compound_from_assembly_rcompound(root)
 
         probe = """
 import json
@@ -1406,7 +1406,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'subassembly_rigid': [bool(obj.Rigid) for obj in subassembly_links],
     }, fh)
 """
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result = self._inspect_fcstd_json(payload, probe)
 
         self.assertEqual(result["assembly_ids"], ["child", "root"])
@@ -1423,56 +1423,56 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_articulated_subassembly_link_is_flexible(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            part = scad.make_part_rpart("cube", body)
-            connector = scad.make_placement_connector_rconnector(
-                "axis", scad.identity_placement_rplacement()
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            part = cad.make_part_rpart("cube", body)
+            connector = cad.make_placement_connector_rconnector(
+                "axis", cad.identity_placement_rplacement()
             )
-            part = scad.add_connector_rpart(part, connector)
-            child = scad.make_assembly_rassembly("child")
+            part = cad.add_connector_rpart(part, connector)
+            child = cad.make_assembly_rassembly("child")
             for component_id in ("base", "arm"):
-                child = scad.add_component_rassembly(
+                child = cad.add_component_rassembly(
                     child,
                     part,
                     component_id=component_id,
-                    placement=scad.identity_placement_rplacement(),
+                    placement=cad.identity_placement_rplacement(),
                 )
-            child = scad.ground_component_rassembly(child, "base")
-            child = scad.add_revolute_constraint_rassembly(
+            child = cad.ground_component_rassembly(child, "base")
+            child = cad.add_revolute_constraint_rassembly(
                 child,
                 "pivot",
-                scad.make_connector_ref_rconnectorref("base", "axis"),
-                scad.make_connector_ref_rconnectorref("arm", "axis"),
+                cad.make_connector_ref_rconnectorref("base", "axis"),
+                cad.make_connector_ref_rconnectorref("arm", "axis"),
             )
-            child = scad.solve_assembly_constraints_rassembly(child)
-            child = scad.forward_connector_rassembly(
+            child = cad.solve_assembly_constraints_rassembly(child)
+            child = cad.forward_connector_rassembly(
                 child,
                 connector_id="output_axis",
                 source_component_id="arm",
                 source_connector_id="axis",
             )
-            root = scad.make_assembly_rassembly("root")
-            root = scad.add_component_rassembly(
+            root = cad.make_assembly_rassembly("root")
+            root = cad.add_component_rassembly(
                 root,
                 child,
                 component_id="child_1",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            root = scad.add_component_rassembly(
+            root = cad.add_component_rassembly(
                 root,
                 part,
                 component_id="fixture",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            root = scad.ground_component_rassembly(root, "fixture")
-            root = scad.add_fixed_constraint_rassembly(
+            root = cad.ground_component_rassembly(root, "fixture")
+            root = cad.add_fixed_constraint_rassembly(
                 root,
                 "mount_output",
-                scad.make_connector_ref_rconnectorref("fixture", "axis"),
-                scad.make_connector_ref_rconnectorref("child_1", "output_axis"),
+                cad.make_connector_ref_rconnectorref("fixture", "axis"),
+                cad.make_connector_ref_rconnectorref("child_1", "output_axis"),
             )
-            root = scad.solve_assembly_constraints_rassembly(root)
-            scad.make_compound_from_assembly_rcompound(root)
+            root = cad.solve_assembly_constraints_rassembly(root)
+            cad.make_compound_from_assembly_rcompound(root)
 
         probe = """
 import json
@@ -1534,8 +1534,8 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'ground_names': [str(obj.Name) for obj in grounds],
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
-        gui = self._inspect_fcstd_gui_visibility(scad.export_model_json(session))
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
+        gui = self._inspect_fcstd_gui_visibility(cad.export_model_json(session))
 
         self.assertEqual(result["count"], 1)
         self.assertEqual(result["rigid"], [False])
@@ -1568,41 +1568,41 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_places_articulated_subassembly_children_once(self):
         with GraphSession() as session:
-            body = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            part = scad.make_part_rpart("cube", body)
-            connector = scad.make_placement_connector_rconnector(
-                "axis", scad.identity_placement_rplacement()
+            body = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            part = cad.make_part_rpart("cube", body)
+            connector = cad.make_placement_connector_rconnector(
+                "axis", cad.identity_placement_rplacement()
             )
-            part = scad.add_connector_rpart(part, connector)
-            child = scad.make_assembly_rassembly("child")
+            part = cad.add_connector_rpart(part, connector)
+            child = cad.make_assembly_rassembly("child")
             for component_id in ("base", "arm"):
-                child = scad.add_component_rassembly(
+                child = cad.add_component_rassembly(
                     child,
                     part,
                     component_id=component_id,
-                    placement=scad.identity_placement_rplacement(),
+                    placement=cad.identity_placement_rplacement(),
                 )
-            child = scad.ground_component_rassembly(child, "base")
-            child = scad.add_revolute_constraint_rassembly(
+            child = cad.ground_component_rassembly(child, "base")
+            child = cad.add_revolute_constraint_rassembly(
                 child,
                 "pivot",
-                scad.make_connector_ref_rconnectorref("base", "axis"),
-                scad.make_connector_ref_rconnectorref("arm", "axis"),
+                cad.make_connector_ref_rconnectorref("base", "axis"),
+                cad.make_connector_ref_rconnectorref("arm", "axis"),
             )
-            child = scad.solve_assembly_constraints_rassembly(child)
-            root = scad.make_assembly_rassembly("root")
-            root = scad.add_component_rassembly(
+            child = cad.solve_assembly_constraints_rassembly(child)
+            root = cad.make_assembly_rassembly("root")
+            root = cad.add_component_rassembly(
                 root,
                 child,
                 component_id="child_1",
-                placement=scad.make_placement_rplacement(origin=(1.0, 2.0, 3.0)),
+                placement=cad.make_placement_rplacement(origin=(1.0, 2.0, 3.0)),
             )
-            root = scad.place_component_rassembly(
+            root = cad.place_component_rassembly(
                 root,
                 component_id="child_1",
-                placement=scad.make_placement_rplacement(origin=(4.0, 5.0, 6.0)),
+                placement=cad.make_placement_rplacement(origin=(4.0, 5.0, 6.0)),
             )
-            scad.make_compound_from_assembly_rcompound(root)
+            cad.make_compound_from_assembly_rcompound(root)
 
         probe = """
 import json
@@ -1631,7 +1631,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         },
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["outer"], [0.0, 0.0, 0.0])
         self.assertEqual(
@@ -1641,7 +1641,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_x_axis_cylinder_fcstd_valid(self):
         with GraphSession() as session:
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=2.0,
                 height=10.0,
                 bottom_face_center=(0.0, 0.0, 0.0),
@@ -1661,7 +1661,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'volumes': [round(float(obj.Shape.Volume), 3) for obj in cylinders],
     }, fh)
 """
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result = self._inspect_fcstd_json(payload, probe)
 
         self.assertEqual(result["cylinder_count"], 1)
@@ -1670,21 +1670,21 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_assembly_fcstd_keeps_clean_product_tree(self):
         with GraphSession() as session:
-            body = scad.make_cylinder_rsolid(
+            body = cad.make_cylinder_rsolid(
                 radius=2.0,
                 height=10.0,
                 bottom_face_center=(0.0, 0.0, 0.0),
                 axis=(1.0, 0.0, 0.0),
             )
-            part = scad.make_part_rpart("rod", body, name="Rod")
-            assembly = scad.make_assembly_rassembly("rod_assembly", name="Rod assembly")
-            assembly = scad.add_component_rassembly(
+            part = cad.make_part_rpart("rod", body, name="Rod")
+            assembly = cad.make_assembly_rassembly("rod_assembly", name="Rod assembly")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="rod_1",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         probe = """
 import json
@@ -1720,7 +1720,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'product_library_present': doc.getObject('CadFlowProductLibrary') is not None,
     }, fh)
 """
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result = self._inspect_fcstd_json(payload, probe)
 
         self.assertEqual(result["loose_sketch_count"], 0)
@@ -1778,39 +1778,39 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self,
     ):
         with GraphSession() as session:
-            lower = scad.make_box_rsolid(
+            lower = cad.make_box_rsolid(
                 width=10.0,
                 height=10.0,
                 depth=4.0,
                 bottom_face_center=(0.0, 0.0, 0.0),
             )
-            upper = scad.make_box_rsolid(
+            upper = cad.make_box_rsolid(
                 width=10.0,
                 height=10.0,
                 depth=4.0,
                 bottom_face_center=(0.0, 0.0, 20.0),
             )
-            bridge = scad.make_box_rsolid(
+            bridge = cad.make_box_rsolid(
                 width=4.0,
                 height=4.0,
                 depth=24.0,
                 bottom_face_center=(0.0, 0.0, 0.0),
             )
-            body = scad.union_rsolid(lower, upper, bridge, glue=False)
-            connector = scad.make_placement_connector_rconnector(
+            body = cad.union_rsolid(lower, upper, bridge, glue=False)
+            connector = cad.make_placement_connector_rconnector(
                 connector_id="axis",
-                placement=scad.make_placement_rplacement(origin=(0.0, 0.0, 0.0)),
+                placement=cad.make_placement_rplacement(origin=(0.0, 0.0, 0.0)),
             )
-            part = scad.make_part_rpart("bridged_part", body)
-            part = scad.add_connector_rpart(part, connector)
-            assembly = scad.make_assembly_rassembly("bridged_assembly")
-            assembly = scad.add_component_rassembly(
+            part = cad.make_part_rpart("bridged_part", body)
+            part = cad.add_connector_rpart(part, connector)
+            assembly = cad.make_assembly_rassembly("bridged_assembly")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="bridged_1",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            scad.make_compound_from_assembly_rcompound(assembly)
+            cad.make_compound_from_assembly_rcompound(assembly)
 
         probe = """
 import json
@@ -1832,7 +1832,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'connector_visible': [bool(child.Visibility) for child in connector_children],
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertIn("body", result["child_labels"])
         self.assertEqual(result["body_solids"], 1)
@@ -1842,14 +1842,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertEqual(result["connector_visible"], [False])
 
     def test_translate_model_json_folds_single_use_translate_into_extrusion_fcstd(self):
-        tx = scad.var("fold_tx", 1.0)
-        ty = scad.var("fold_ty", 2.0)
-        tz = scad.var("fold_tz", 3.0)
+        tx = cad.var("fold_tx", 1.0)
+        ty = cad.var("fold_ty", 2.0)
+        tz = cad.var("fold_tz", 3.0)
         with GraphSession() as session:
-            profile = scad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
-            solid = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
-            scad.translate_shape(solid, (tx, ty, tz))
-        payload = scad.export_model_json(session)
+            profile = cad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
+            solid = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
+            cad.translate_shape(solid, (tx, ty, tz))
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
         self.assertIn("_register_graph_folded_alias", script)
         self.assertNotIn("doc.addObject('App::Link'", script)
@@ -1896,12 +1896,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_extrudes_tag_wrapped_face_profile(self):
         with GraphSession(graph_id="tagged_extrude_profile") as session:
-            profile = scad.make_rectangle_rface(width=4.0, height=3.0)
-            profile = scad.apply_tag(profile, "role.profile.primary")
-            profile = scad.apply_tag(profile, "group.profile.extrude")
-            body = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
+            profile = cad.make_rectangle_rface(width=4.0, height=3.0)
+            profile = cad.apply_tag(profile, "role.profile.primary")
+            profile = cad.apply_tag(profile, "group.profile.extrude")
+            body = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
         self.assertIn("Part::Extrusion", script)
 
@@ -1943,20 +1943,20 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_extrudes_tag_wrapped_sketch_profile(self):
         with GraphSession(graph_id="tagged_sketch_extrude") as session:
-            sketch = scad.make_sketch_rsketch("tagged_rect")
-            sketch = scad.add_point_rsketch(sketch, "p0", 0.0, 0.0)
-            sketch = scad.add_point_rsketch(sketch, "p1", 2.0, 0.0)
-            sketch = scad.add_point_rsketch(sketch, "p2", 2.0, 1.0)
-            sketch = scad.add_point_rsketch(sketch, "p3", 0.0, 1.0)
-            sketch = scad.add_line_rsketch(sketch, "bottom", "p0", "p1")
-            sketch = scad.add_line_rsketch(sketch, "right", "p1", "p2")
-            sketch = scad.add_line_rsketch(sketch, "top", "p2", "p3")
-            sketch = scad.add_line_rsketch(sketch, "left", "p3", "p0")
-            profile = scad.make_face_from_sketch_rface(sketch)
-            profile = scad.apply_tag(profile, "role.sketch.profile")
-            body = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 3.0)
+            sketch = cad.make_sketch_rsketch("tagged_rect")
+            sketch = cad.add_point_rsketch(sketch, "p0", 0.0, 0.0)
+            sketch = cad.add_point_rsketch(sketch, "p1", 2.0, 0.0)
+            sketch = cad.add_point_rsketch(sketch, "p2", 2.0, 1.0)
+            sketch = cad.add_point_rsketch(sketch, "p3", 0.0, 1.0)
+            sketch = cad.add_line_rsketch(sketch, "bottom", "p0", "p1")
+            sketch = cad.add_line_rsketch(sketch, "right", "p1", "p2")
+            sketch = cad.add_line_rsketch(sketch, "top", "p2", "p3")
+            sketch = cad.add_line_rsketch(sketch, "left", "p3", "p0")
+            profile = cad.make_face_from_sketch_rface(sketch)
+            profile = cad.apply_tag(profile, "role.sketch.profile")
+            body = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 3.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -1979,15 +1979,15 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertAlmostEqual(result["volume"], body.get_volume(), places=6)
 
     def test_expression_circle_normal_uses_extrusion_profile_fcstd(self):
-        normal_y = scad.var("circle_normal_y", 1.0)
+        normal_y = cad.var("circle_normal_y", 1.0)
         with GraphSession() as session:
-            profile = scad.make_circle_rface(
+            profile = cad.make_circle_rface(
                 (0.0, 0.0, 0.0),
                 1.0,
                 normal=(0.0, normal_y, 0.0),
             )
-            scad.extrude_rsolid(profile, (0.0, 1.0, 0.0), 2.0)
-        payload = scad.export_model_json(session)
+            cad.extrude_rsolid(profile, (0.0, 1.0, 0.0), 2.0)
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
 
         self.assertNotIn("doc.addObject('Part::Cylinder'", script)
@@ -2027,9 +2027,9 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_oblique_circle_extrusion_preserves_source_geometry_fcstd(self):
         with GraphSession() as session:
-            profile = scad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
-            source = scad.extrude_rsolid(profile, (1.0, 0.0, 1.0), 2.0)
-        payload = scad.export_model_json(session)
+            profile = cad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
+            source = cad.extrude_rsolid(profile, (1.0, 0.0, 1.0), 2.0)
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
 
         self.assertNotIn("doc.addObject('Part::Cylinder'", script)
@@ -2071,15 +2071,15 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_transform_links_compose_non_identity_source_placement_fcstd(self):
         with GraphSession() as session:
-            source = scad.make_box_rsolid(
+            source = cad.make_box_rsolid(
                 1.0,
                 1.0,
                 1.0,
                 bottom_face_center=(2.0, 0.0, 0.0),
             )
-            scad.translate_shape(source, (3.0, 0.0, 0.0))
-            scad.translate_shape(source, (0.0, 3.0, 0.0))
-        payload = scad.export_model_json(session)
+            cad.translate_shape(source, (3.0, 0.0, 0.0))
+            cad.translate_shape(source, (0.0, 3.0, 0.0))
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -2113,11 +2113,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_keeps_link_when_translate_input_is_shared(self):
         with GraphSession() as session:
-            profile = scad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
-            solid = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
-            scad.translate_shape(solid, (1.0, 0.0, 0.0))
-            scad.translate_shape(solid, (0.0, 1.0, 0.0))
-        payload = scad.export_model_json(session)
+            profile = cad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
+            solid = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
+            cad.translate_shape(solid, (1.0, 0.0, 0.0))
+            cad.translate_shape(solid, (0.0, 1.0, 0.0))
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
         self.assertIn("doc.addObject('App::Link'", script)
         probe = """
@@ -2149,10 +2149,10 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_uses_single_low_level_graph(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(2.0, 3.0, 4.0)
+            cad.make_box_rsolid(2.0, 3.0, 4.0)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Box", script)
@@ -2161,8 +2161,8 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_semantic_plan_treats_apply_tag_as_result_metadata(self):
         with GraphSession(graph_id="semantic_tag_metadata") as session:
-            body = scad.make_box_rsolid(2.0, 3.0, 4.0)
-            tagged = scad.apply_tag(body, "role.finished")
+            body = cad.make_box_rsolid(2.0, 3.0, 4.0)
+            tagged = cad.apply_tag(body, "role.finished")
 
         result_node_id = tagged.get_metadata("graph")["node_id"]
         plan = build_freecad_semantic_plan(
@@ -2179,17 +2179,17 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_semantic_plan_collapses_tagged_assembly_preview_into_product_root(self):
         with GraphSession(graph_id="semantic_assembly_preview") as session:
-            body = scad.make_box_rsolid(2.0, 3.0, 4.0)
-            part = scad.make_part_rpart("part", body)
-            assembly = scad.make_assembly_rassembly("assembly")
-            assembly = scad.add_component_rassembly(
+            body = cad.make_box_rsolid(2.0, 3.0, 4.0)
+            part = cad.make_part_rpart("part", body)
+            assembly = cad.make_assembly_rassembly("assembly")
+            assembly = cad.add_component_rassembly(
                 assembly,
                 part,
                 component_id="part_1",
-                placement=scad.identity_placement_rplacement(),
+                placement=cad.identity_placement_rplacement(),
             )
-            preview = scad.make_compound_from_assembly_rcompound(assembly)
-            preview = scad.apply_tag(preview, "scene.preview")
+            preview = cad.make_compound_from_assembly_rcompound(assembly)
+            preview = cad.apply_tag(preview, "scene.preview")
 
         assembly_node_id = assembly.get_metadata("graph")["node_id"]
         preview_node_id = preview.get_metadata("graph")["node_id"]
@@ -2208,14 +2208,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_semantic_plan_uses_variable_names_for_native_occurrences(self):
         with GraphSession(graph_id="semantic_plan") as session:
-            base_profile = scad.make_rectangle_rface(width=10.0, height=8.0)
-            base = scad.extrude_rsolid(base_profile, (0.0, 0.0, 1.0), 3.0)
-            hole = scad.make_cylinder_rsolid(
+            base_profile = cad.make_rectangle_rface(width=10.0, height=8.0)
+            base = cad.extrude_rsolid(base_profile, (0.0, 0.0, 1.0), 3.0)
+            hole = cad.make_cylinder_rsolid(
                 radius=1.0,
                 height=5.0,
                 bottom_face_center=(0.0, 0.0, -1.0),
             )
-            finished = scad.cut_rsolid(base, hole)
+            finished = cad.cut_rsolid(base, hole)
 
         result_node_id = finished.get_metadata("graph")["node_id"]
         plan = build_freecad_semantic_plan(
@@ -2241,10 +2241,10 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_semantic_plan_keeps_explicit_product_name_over_state_variable(self):
         with GraphSession(graph_id="semantic_product_name") as session:
-            body = scad.make_box_rsolid(2.0, 3.0, 1.0)
-            part_state = scad.make_part_rpart("bracket", body, name="Bracket")
-            material = scad.make_material_rmaterial("aluminum", name="Aluminum")
-            finished_part = scad.assign_material_rpart(part_state, material)
+            body = cad.make_box_rsolid(2.0, 3.0, 1.0)
+            part_state = cad.make_part_rpart("bracket", body, name="Bracket")
+            material = cad.make_material_rmaterial("aluminum", name="Aluminum")
+            finished_part = cad.assign_material_rpart(part_state, material)
 
         plan = build_freecad_semantic_plan(
             session.graph,
@@ -2260,14 +2260,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_fcstd_builds_native_occurrence_tree(self):
         with GraphSession(graph_id="native_occurrence_fcstd") as session:
-            base_profile = scad.make_rectangle_rface(width=10.0, height=8.0)
-            base = scad.extrude_rsolid(base_profile, (0.0, 0.0, 1.0), 3.0)
-            hole = scad.make_cylinder_rsolid(
+            base_profile = cad.make_rectangle_rface(width=10.0, height=8.0)
+            base = cad.extrude_rsolid(base_profile, (0.0, 0.0, 1.0), 3.0)
+            hole = cad.make_cylinder_rsolid(
                 radius=1.0,
                 height=5.0,
                 bottom_face_center=(0.0, 0.0, -1.0),
             )
-            finished = scad.cut_rsolid(base, hole)
+            finished = cad.cut_rsolid(base, hole)
 
         probe = """
 import json
@@ -2295,7 +2295,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         ],
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["root_label"], "finished Model")
         self.assertCountEqual(
@@ -2320,11 +2320,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_expands_shared_profile_per_consumer(self):
         with GraphSession(graph_id="shared_profile_occurrences") as session:
-            profile = scad.make_rectangle_rface(width=4.0, height=2.0)
-            outer = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 3.0)
-            inner_raw = scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 5.0)
-            inner = scad.translate_shape(inner_raw, (1.0, 0.5, -1.0))
-            finished = scad.cut_rsolid(outer, inner)
+            profile = cad.make_rectangle_rface(width=4.0, height=2.0)
+            outer = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 3.0)
+            inner_raw = cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 5.0)
+            inner = cad.translate_shape(inner_raw, (1.0, 0.5, -1.0))
+            finished = cad.cut_rsolid(outer, inner)
 
         probe = """
 import json
@@ -2343,7 +2343,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'root_children': [str(obj.Label) for obj in root.Group],
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertNotEqual(result["base_profile"], result["tool_profile"])
         self.assertEqual(result["profile_count"], 2)
@@ -2352,8 +2352,8 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_semantic_plan_skips_product_state_result_but_keeps_part_root(self):
         with GraphSession(graph_id="semantic_part_result") as session:
-            body = scad.make_box_rsolid(2.0, 3.0, 1.0)
-            part = scad.make_part_rpart("bracket", body, name="Bracket")
+            body = cad.make_box_rsolid(2.0, 3.0, 1.0)
+            part = cad.make_part_rpart("bracket", body, name="Bracket")
 
         plan = build_freecad_semantic_plan(
             session.graph,
@@ -2417,13 +2417,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             )
 
     def test_translate_model_json_emits_expression_formulas_for_ir(self):
-        r = scad.var("r", 5.0)
+        r = cad.var("r", 5.0)
         with GraphSession() as session:
-            face = scad.make_circle_rface((0.0, 0.0, 0.0), r)
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), r * 2)
+            face = cad.make_circle_rface((0.0, 0.0, 0.0), r)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), r * 2)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("CadFlowExpressions", script)
@@ -2439,13 +2439,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         )
 
     def test_translate_model_json_preserves_dimension_tolerances(self):
-        width = scad.var("width", 10.0, tolerance=(-0.1, 0.2))
+        width = cad.var("width", 10.0, tolerance=(-0.1, 0.2))
         with GraphSession() as session:
-            scad.make_box_rsolid(width, 2.0, 1.0)
+            cad.make_box_rsolid(width, 2.0, 1.0)
             session.require_tolerance(width * 2.0, (-0.2, 0.4), name="overall")
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("TOLERANCE_GRAPH =", script)
@@ -2455,12 +2455,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertIn("expr_sheet.set('F1', \"0.2\")", script)
 
     def test_translate_model_json_preserves_units_and_uses_canonical_values(self):
-        width = scad.var("width", 1.0, unit="in", tolerance=0.1, tolerance_unit="mm")
-        angle = scad.var("angle", math.pi / 2.0, unit="rad", tolerance=0.5)
+        width = cad.var("width", 1.0, unit="in", tolerance=0.1, tolerance_unit="mm")
+        angle = cad.var("angle", math.pi / 2.0, unit="rad", tolerance=0.5)
         with GraphSession() as session:
-            scad.make_box_rsolid(width, 2.0, 1.0)
-            scad.rotate_shape(
-                scad.make_box_rsolid(1.0, 1.0, 1.0),
+            cad.make_box_rsolid(width, 2.0, 1.0)
+            cad.rotate_shape(
+                cad.make_box_rsolid(1.0, 1.0, 1.0),
                 angle,
                 axis=(0.0, 0.0, 1.0),
                 origin=(0.0, 0.0, 0.0),
@@ -2468,7 +2468,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             session.require_tolerance(width, 0.004, tolerance_unit="in")
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn('expr_sheet.set("B1", "25.4")', script)
@@ -2482,14 +2482,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertIn("'target_dimension': {'angle': 0, 'length': 1}", script)
 
     def test_translate_model_json_disambiguates_same_name_variable_aliases(self):
-        first = scad.var("width", 10.0)
-        second = scad.var("width", 20.0)
+        first = cad.var("width", 10.0)
+        second = cad.var("width", 20.0)
         expression = first + second
         with GraphSession() as session:
-            scad.make_box_rsolid(expression, 2.0, 1.0)
+            cad.make_box_rsolid(expression, 2.0, 1.0)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
         suffix = hashlib.sha256(second.expr_id.encode("utf-8")).hexdigest()[:8]
         second_alias = f"var_width_{suffix}"
@@ -2500,13 +2500,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_uses_ascii_bounded_unique_aliases(self):
         variables = [
-            scad.var("宽度" + "x" * 80, float(index + 1)) for index in range(3)
+            cad.var("宽度" + "x" * 80, float(index + 1)) for index in range(3)
         ]
         with GraphSession() as session:
-            scad.make_box_rsolid(variables[0] + variables[1] + variables[2], 2.0, 1.0)
+            cad.make_box_rsolid(variables[0] + variables[1] + variables[2], 2.0, 1.0)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
         aliases = []
         for line in script.splitlines():
@@ -2521,13 +2521,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertTrue(all(len(alias) <= 64 for alias in aliases))
 
     def test_translate_model_json_uses_semantic_spreadsheet_aliases_and_formulas(self):
-        x = scad.var("hub_radius", 6.5, comment="Hub outer radius")
+        x = cad.var("hub_radius", 6.5, comment="Hub outer radius")
         expr = x + 2.0
         with GraphSession() as session:
-            face = scad.make_circle_rface((0.0, 0.0, 0.0), x)
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), expr)
+            face = cad.make_circle_rface((0.0, 0.0, 0.0), x)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), expr)
 
-        payload = json.loads(scad.export_model_json(session))
+        payload = json.loads(cad.export_model_json(session))
         probe = """
 import json
 import FreeCAD as App
@@ -2559,13 +2559,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertIn("const_", result[expr_row]["contents"])
 
     def test_translate_model_json_resolves_detail_feature_expressions(self):
-        radius = scad.var("fillet_r", 0.25)
+        radius = cad.var("fillet_r", 0.25)
         with GraphSession() as session:
-            box = scad.make_box_rsolid(4.0, 4.0, 4.0)
-            scad.fillet_rsolid(box, [box.get_edges(i) for i in range(2)], radius)
+            box = cad.make_box_rsolid(4.0, 4.0, 4.0)
+            cad.fillet_rsolid(box, [box.get_edges(i) for i in range(2)], radius)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Fillet", script)
@@ -2616,15 +2616,15 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertIn("_resolve_param_value", script)
 
     def test_translate_model_json_resolves_helix_and_arc_expressions(self):
-        pitch = scad.var("pitch", 1.0)
-        radius = scad.var("radius", 2.0)
-        angle = scad.var("angle", 1.57)
+        pitch = cad.var("pitch", 1.0)
+        radius = cad.var("radius", 2.0)
+        angle = cad.var("angle", 1.57)
         with GraphSession() as session:
-            scad.make_helix_rwire(pitch, 3.0, radius)
-            scad.make_angle_arc_rwire((0.0, 0.0, 0.0), radius, 0.0, angle)
+            cad.make_helix_rwire(pitch, 3.0, radius)
+            cad.make_angle_arc_rwire((0.0, 0.0, 0.0), radius, 0.0, angle)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Helix", script)
@@ -2634,14 +2634,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertIn("'Radius'", script)
 
     def test_translate_model_json_converts_trig_expressions_to_freecad_semantics(self):
-        theta = scad.var("theta", 0.5)
-        expr = scad.sin(theta) + scad.acos(theta)
+        theta = cad.var("theta", 0.5)
+        expr = cad.sin(theta) + cad.acos(theta)
         with GraphSession() as session:
-            face = scad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), expr)
+            face = cad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), expr)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("sin((<<CadFlowExpressions>>.", script)
@@ -2651,7 +2651,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_preserves_helix_center_and_direction(self):
         with GraphSession() as session:
-            scad.make_helix_rwire(
+            cad.make_helix_rwire(
                 1.0,
                 3.0,
                 2.0,
@@ -2660,7 +2660,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Helix", script)
@@ -2668,8 +2668,8 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_uses_freecad_revolve_signature(self):
         with GraphSession() as session:
-            profile = scad.make_circle_rface((2.0, 0.0, 0.0), 0.5)
-            scad.revolve_rsolid(
+            profile = cad.make_circle_rface((2.0, 0.0, 0.0), 0.5)
+            cad.revolve_rsolid(
                 profile,
                 axis=(0.0, 1.0, 0.0),
                 angle=180.0,
@@ -2677,7 +2677,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Revolution", script)
@@ -2687,14 +2687,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_wire_revolve_keeps_native_source_dependency_fcstd(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rwire(
+            profile = cad.make_rectangle_rwire(
                 1.0,
                 1.0,
                 center=(1.5, 0.0, 0.0),
                 normal=(0.0, 1.0, 0.0),
             )
-            scad.revolve_rsolid(profile)
-        payload = scad.export_model_json(session)
+            cad.revolve_rsolid(profile)
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
 
         self.assertNotIn("make_revolve_rsolid_profile", script)
@@ -2719,11 +2719,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_uses_single_graph_sweep_helper(self):
         with GraphSession() as session:
-            profile = scad.make_circle_rface((0.0, 0.0, 0.0), 0.5)
-            path = scad.make_helix_rwire(1.0, 3.0, 2.0)
-            scad.sweep_rsolid(profile, path, is_frenet=True)
+            profile = cad.make_circle_rface((0.0, 0.0, 0.0), 0.5)
+            path = cad.make_helix_rwire(1.0, 3.0, 2.0)
+            cad.sweep_rsolid(profile, path, is_frenet=True)
 
-        payload_obj = self._expression_payload(scad.export_model_json(session))
+        payload_obj = self._expression_payload(cad.export_model_json(session))
         payload_obj["expression_graph"]["nodes"] = [
             {"expr_id": "var_frenet", "kind": "var", "name": "frenet", "default": 1.0}
         ]
@@ -2741,19 +2741,19 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_emulates_twisted_sweep_with_solid_loft(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rface(
+            profile = cad.make_rectangle_rface(
                 width=2.0,
                 height=1.0,
                 center=(0.0, 0.0, 0.0),
             )
-            scad.twisted_sweep_rsolid(
+            cad.twisted_sweep_rsolid(
                 profile=profile,
                 distance=4.0,
                 twist_angle=45.0,
             )
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("_twisted_sweep_loft_shape", script)
@@ -2764,12 +2764,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_twisted_sweep_emulation_fcstd_valid(self):
         with GraphSession() as session:
-            profile = scad.make_rectangle_rface(
+            profile = cad.make_rectangle_rface(
                 width=2.0,
                 height=1.0,
                 center=(0.0, 0.0, 0.0),
             )
-            scad.twisted_sweep_rsolid(
+            cad.twisted_sweep_rsolid(
                 profile=profile,
                 distance=4.0,
                 twist_angle=45.0,
@@ -2795,7 +2795,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'note_payload': getattr(note, 'Payload', '') if note is not None else '',
     }, fh)
 """
-        result = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        result = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(result["count"], 1)
         self.assertEqual(result["support"], "emulated")
@@ -2807,18 +2807,18 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_materializes_ql_selected_face_profile_for_sweep(self):
         with GraphSession() as session:
-            base = scad.make_circle_rface((0.0, 0.0, 0.0), 0.25)
-            body = scad.extrude_rsolid(base, (0.0, 0.0, 1.0), 1.0)
+            base = cad.make_circle_rface((0.0, 0.0, 0.0), 0.25)
+            body = cad.extrude_rsolid(base, (0.0, 0.0, 1.0), 1.0)
             profile = (
-                scad.ql.faces()
-                .where(scad.ql.tag("face.extrusion.end"))
+                cad.ql.faces()
+                .where(cad.ql.tag("face.extrusion.end"))
                 .exactly(1)
                 .resolve(body)[0]
             )
-            path = scad.make_segment_rwire((0.0, 0.0, 1.0), (0.0, 0.0, 2.0))
-            scad.sweep_rsolid(profile, path)
+            path = cad.make_segment_rwire((0.0, 0.0, 1.0), (0.0, 0.0, 2.0))
+            cad.sweep_rsolid(profile, path)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         payload_obj = json.loads(payload)
         select_node = next(
             node
@@ -2853,18 +2853,18 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_ql_selected_face_profile_sweep_fcstd_valid(self):
         with GraphSession() as session:
-            base = scad.make_circle_rface((0.0, 0.0, 0.0), 0.25)
-            body = scad.extrude_rsolid(base, (0.0, 0.0, 1.0), 1.0)
+            base = cad.make_circle_rface((0.0, 0.0, 0.0), 0.25)
+            body = cad.extrude_rsolid(base, (0.0, 0.0, 1.0), 1.0)
             profile = (
-                scad.ql.faces()
-                .where(scad.ql.tag("face.extrusion.end"))
+                cad.ql.faces()
+                .where(cad.ql.tag("face.extrusion.end"))
                 .exactly(1)
                 .resolve(body)[0]
             )
-            path = scad.make_segment_rwire((0.0, 0.0, 1.0), (0.0, 0.0, 2.0))
-            scad.sweep_rsolid(profile, path)
+            path = cad.make_segment_rwire((0.0, 0.0, 1.0), (0.0, 0.0, 2.0))
+            cad.sweep_rsolid(profile, path)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -2901,15 +2901,15 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_bezier_surface_extrudes_with_history(self):
         with GraphSession() as session:
-            profile = scad.make_bezier_surface_rface(
+            profile = cad.make_bezier_surface_rface(
                 control_points=[
                     [(0.0, 0.0, 0.0), (0.0, 1.0, 0.0)],
                     [(1.0, 0.0, 0.0), (1.0, 1.0, 0.0)],
                 ]
             )
-            scad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
+            cad.extrude_rsolid(profile, (0.0, 0.0, 1.0), 2.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
         self.assertIn("Part::Extrusion", script)
         self.assertNotIn("Unsupported graph operation: make_extrude_rsolid", script)
@@ -3039,13 +3039,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
     def test_translate_model_json_mixed_curve_sketch_closes_in_fcstd(self):
         with GraphSession() as session:
             edges = [
-                scad.make_line_redge((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
-                scad.make_three_point_arc_redge(
+                cad.make_line_redge((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                cad.make_three_point_arc_redge(
                     (1.0, 0.0, 0.0),
                     (1.5, 0.5, 0.0),
                     (1.0, 1.0, 0.0),
                 ),
-                scad.make_spline_redge(
+                cad.make_spline_redge(
                     control_points=[
                         (1.0, 1.0, 0.0),
                         (0.6, 1.25, 0.0),
@@ -3053,13 +3053,13 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                         (0.0, 1.0, 0.0),
                     ]
                 ),
-                scad.make_line_redge((0.0, 1.0, 0.0), (0.0, 0.0, 0.0)),
+                cad.make_line_redge((0.0, 1.0, 0.0), (0.0, 0.0, 0.0)),
             ]
-            wire = scad.make_wire_from_edges_rwire(edges)
-            face = scad.make_face_from_wire_rface(wire)
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 2.0)
+            wire = cad.make_wire_from_edges_rwire(edges)
+            face = cad.make_face_from_wire_rface(wire)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 2.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -3094,12 +3094,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_2d_cut_face_extrudes_hole_fcstd_valid(self):
         with GraphSession() as session:
-            outer = scad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=5.0)
-            inner = scad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=2.0)
-            ring_face = scad.make_2d_cut_rface(outer, inner)
-            scad.extrude_rsolid(ring_face, (0.0, 0.0, 1.0), 3.0)
+            outer = cad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=5.0)
+            inner = cad.make_circle_rface(center=(0.0, 0.0, 0.0), radius=2.0)
+            ring_face = cad.make_2d_cut_rface(outer, inner)
+            cad.extrude_rsolid(ring_face, (0.0, 0.0, 1.0), 3.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -3130,12 +3130,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_multi_loop_face_extrudes_hole_fcstd_valid(self):
         with GraphSession() as session:
-            outer = scad.make_circle_rwire(center=(0.0, 0.0, 0.0), radius=5.0)
-            inner = scad.make_circle_rwire(center=(0.0, 0.0, 0.0), radius=2.0)
-            ring_face = scad.make_face_from_wires_rface(outer, [inner])
-            scad.extrude_rsolid(ring_face, (0.0, 0.0, 1.0), 3.0)
+            outer = cad.make_circle_rwire(center=(0.0, 0.0, 0.0), radius=5.0)
+            inner = cad.make_circle_rwire(center=(0.0, 0.0, 0.0), radius=2.0)
+            ring_face = cad.make_face_from_wires_rface(outer, [inner])
+            cad.extrude_rsolid(ring_face, (0.0, 0.0, 1.0), 3.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -3169,16 +3169,16 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
             "y_axis": (0.0, 1.0, 0.0),
         }
         with GraphSession(graph_id="freecad_native_sketch_bspline_cut") as session:
-            base = scad.make_box_rsolid(12.0, 10.0, 4.0)
-            sketch = scad.make_sketch_rsketch("bspline_cut_tool", plane=plane)
+            base = cad.make_box_rsolid(12.0, 10.0, 4.0)
+            sketch = cad.make_sketch_rsketch("bspline_cut_tool", plane=plane)
             for point_id, x_value, y_value in (
                 ("p0", -3.0, -1.0),
                 ("p1", 3.0, -1.0),
                 ("p2", 3.0, 1.0),
                 ("p3", -3.0, 1.0),
             ):
-                sketch = scad.add_point_rsketch(sketch, point_id, x_value, y_value)
-            sketch = scad.add_bspline_rsketch(
+                sketch = cad.add_point_rsketch(sketch, point_id, x_value, y_value)
+            sketch = cad.add_bspline_rsketch(
                 sketch,
                 "lower",
                 "p0",
@@ -3193,14 +3193,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 knots=(0.0, 1.0),
                 multiplicities=(4, 4),
             )
-            sketch = scad.add_line_rsketch(sketch, "right", "p1", "p2")
-            sketch = scad.add_line_rsketch(sketch, "top", "p2", "p3")
-            sketch = scad.add_line_rsketch(sketch, "left", "p3", "p0")
-            face = scad.make_face_from_sketch_rface(sketch, profile="lower")
-            tool = scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 6.0)
-            result_solid = scad.cut_rsolid(base, tool, skip_non_intersecting=False)
+            sketch = cad.add_line_rsketch(sketch, "right", "p1", "p2")
+            sketch = cad.add_line_rsketch(sketch, "top", "p2", "p3")
+            sketch = cad.add_line_rsketch(sketch, "left", "p3", "p0")
+            face = cad.make_face_from_sketch_rface(sketch, profile="lower")
+            tool = cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 6.0)
+            result_solid = cad.cut_rsolid(base, tool, skip_non_intersecting=False)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result_node_id = result_solid.get_metadata("graph")["node_id"]
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
 
@@ -3239,8 +3239,8 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_surface_dependent_boolean_uses_native_part_cut_in_fcstd(self):
         with GraphSession(graph_id="freecad_native_surface_cut") as session:
-            base = scad.make_box_rsolid(12.0, 10.0, 4.0)
-            lower = scad.make_interpolated_spline_redge(
+            base = cad.make_box_rsolid(12.0, 10.0, 4.0)
+            lower = cad.make_interpolated_spline_redge(
                 points=[
                     (-3.0, -1.0, -1.0),
                     (0.0, -1.5, -1.0),
@@ -3248,7 +3248,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 ],
                 tolerance=1.0e-6,
             )
-            upper = scad.make_interpolated_spline_redge(
+            upper = cad.make_interpolated_spline_redge(
                 points=[
                     (3.0, 1.0, -1.0),
                     (0.0, 1.5, -1.0),
@@ -3256,19 +3256,19 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
                 ],
                 tolerance=1.0e-6,
             )
-            wire = scad.make_wire_from_edges_rwire(
+            wire = cad.make_wire_from_edges_rwire(
                 edges=[
                     lower,
-                    scad.make_line_redge((3.0, -1.0, -1.0), (3.0, 1.0, -1.0)),
+                    cad.make_line_redge((3.0, -1.0, -1.0), (3.0, 1.0, -1.0)),
                     upper,
-                    scad.make_line_redge((-3.0, 1.0, -1.0), (-3.0, -1.0, -1.0)),
+                    cad.make_line_redge((-3.0, 1.0, -1.0), (-3.0, -1.0, -1.0)),
                 ]
             )
-            face = scad.make_face_from_wire_rface(wire)
-            tool = scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 6.0)
-            result_solid = scad.cut_rsolid(base, tool, skip_non_intersecting=False)
+            face = cad.make_face_from_wire_rface(wire)
+            tool = cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 6.0)
+            result_solid = cad.cut_rsolid(base, tool, skip_non_intersecting=False)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         result_node_id = result_solid.get_metadata("graph")["node_id"]
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
 
@@ -3310,37 +3310,37 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_surface_face_emitters_build_valid_fcstd(self):
         with GraphSession(graph_id="freecad_surface_faces") as session:
-            bezier = scad.make_bezier_surface_rface(
+            bezier = cad.make_bezier_surface_rface(
                 [[(0, 0, 0), (0, 2, 0)], [(2, 0, 0), (2, 2, 0.5)]]
             )
-            fitted = scad.fit_point_grid_rface(
+            fitted = cad.fit_point_grid_rface(
                 [[(4, 0, 0), (4, 2, 0)], [(6, 0, 0), (6, 2, 0.5)]],
                 degree_min=1,
                 degree_max=3,
             )
-            ruled = scad.make_ruled_surface_rface(
-                scad.make_line_redge((8, 0, 0), (10, 0, 0)),
-                scad.make_line_redge((8, 2, 1), (10, 2, 1)),
+            ruled = cad.make_ruled_surface_rface(
+                cad.make_line_redge((8, 0, 0), (10, 0, 0)),
+                cad.make_line_redge((8, 2, 1), (10, 2, 1)),
             )
-            gordon = scad.make_gordon_surface_rface(
+            gordon = cad.make_gordon_surface_rface(
                 [
-                    scad.make_line_redge((12, 0, 0), (14, 0, 0)),
-                    scad.make_line_redge((12, 2, 1), (14, 2, 1)),
+                    cad.make_line_redge((12, 0, 0), (14, 0, 0)),
+                    cad.make_line_redge((12, 2, 1), (14, 2, 1)),
                 ],
                 [
-                    scad.make_line_redge((12, 0, 0), (12, 2, 1)),
-                    scad.make_line_redge((14, 0, 0), (14, 2, 1)),
+                    cad.make_line_redge((12, 0, 0), (12, 2, 1)),
+                    cad.make_line_redge((14, 0, 0), (14, 2, 1)),
                 ],
             )
             patch_points = [(16, 0, 0), (18, 0, 0), (18, 2, 0), (16, 2, 0)]
             patch_edges = [
-                scad.make_line_redge(patch_points[index], patch_points[(index + 1) % 4])
+                cad.make_line_redge(patch_points[index], patch_points[(index + 1) % 4])
                 for index in range(4)
             ]
-            patch = scad.make_surface_patch_rface(
-                [scad.SurfaceBoundary(edge) for edge in patch_edges]
+            patch = cad.make_surface_patch_rface(
+                [cad.SurfaceBoundary(edge) for edge in patch_edges]
             )
-            scad.capture_result(value=[bezier, fitted, ruled, gordon, patch])
+            cad.capture_result(value=[bezier, fitted, ruled, gordon, patch])
 
         probe = """
 import json
@@ -3367,7 +3367,7 @@ for op in ops:
 with open(OUT_PATH, 'w', encoding='utf-8') as fh:
     json.dump(rows, fh)
 """
-        inspected = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        inspected = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(
             set(inspected),
@@ -3398,11 +3398,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_loft_free_boundaries_preserve_output_slots_fcstd(self):
         with GraphSession(graph_id="freecad_open_shell_boundaries") as session:
-            lower = scad.make_circle_rwire(center=(0, 0, 0), radius=2.0)
-            upper = scad.make_circle_rwire(center=(0, 0, 3), radius=1.0)
-            shell = scad.loft_rshell([lower, upper])
-            boundaries = scad.free_boundaries_rwirelist(shell)
-            scad.capture_result(value=[shell, *boundaries])
+            lower = cad.make_circle_rwire(center=(0, 0, 0), radius=2.0)
+            upper = cad.make_circle_rwire(center=(0, 0, 3), radius=1.0)
+            shell = cad.loft_rshell([lower, upper])
+            boundaries = cad.free_boundaries_rwirelist(shell)
+            cad.capture_result(value=[shell, *boundaries])
 
         boundary_node_id = next(
             node.node_id
@@ -3432,7 +3432,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'support': [str(obj.CadFlowTranslationSupport) for obj in boundaries],
     }}, fh)
 """
-        inspected = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        inspected = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(inspected["shell_type"], "Shell")
         self.assertTrue(inspected["shell_valid"])
@@ -3446,12 +3446,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_fill_holes_and_zero_boundaries_preserve_limitation_fcstd(self):
         with GraphSession(graph_id="freecad_closed_shell_boundaries") as session:
-            lower = scad.make_circle_rwire(center=(0, 0, 0), radius=1.0)
-            upper = scad.make_circle_rwire(center=(0, 0, 2), radius=1.0)
-            open_shell = scad.loft_rshell([lower, upper])
-            filled = scad.fill_holes_rshell(open_shell)
-            boundaries = scad.free_boundaries_rwirelist(filled)
-            scad.capture_result(value=[filled, *boundaries])
+            lower = cad.make_circle_rwire(center=(0, 0, 0), radius=1.0)
+            upper = cad.make_circle_rwire(center=(0, 0, 2), radius=1.0)
+            open_shell = cad.loft_rshell([lower, upper])
+            filled = cad.fill_holes_rshell(open_shell)
+            boundaries = cad.free_boundaries_rwirelist(filled)
+            cad.capture_result(value=[filled, *boundaries])
 
         boundary_node_id = next(
             node.node_id
@@ -3481,7 +3481,7 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         'free_limitation': limitations.get({boundary_node_id!r}),
     }}, fh)
 """
-        inspected = self._inspect_fcstd_json(scad.export_model_json(session), probe)
+        inspected = self._inspect_fcstd_json(cad.export_model_json(session), probe)
 
         self.assertEqual(inspected["shape_type"], "Shell")
         self.assertTrue(inspected["valid"])
@@ -3496,14 +3496,14 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_multi_tool_cut_affects_fcstd_result(self):
         with GraphSession() as session:
-            body = scad.make_cylinder_rsolid(10.0, 4.0)
-            hole = scad.make_cylinder_rsolid(12.0, 0.75)
-            hole = scad.translate_shape(hole, (2.0, 0.0, -1.0))
-            hole_b = scad.rotate_shape(hole, 120.0, axis=(0.0, 0.0, 1.0))
-            hole_c = scad.rotate_shape(hole, 240.0, axis=(0.0, 0.0, 1.0))
-            scad.cut_rsolid(body, hole, hole_b, hole_c)
+            body = cad.make_cylinder_rsolid(10.0, 4.0)
+            hole = cad.make_cylinder_rsolid(12.0, 0.75)
+            hole = cad.translate_shape(hole, (2.0, 0.0, -1.0))
+            hole_b = cad.rotate_shape(hole, 120.0, axis=(0.0, 0.0, 1.0))
+            hole_c = cad.rotate_shape(hole, 240.0, axis=(0.0, 0.0, 1.0))
+            cad.cut_rsolid(body, hole, hole_b, hole_c)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -3546,33 +3546,33 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_applies_rotated_link_operands_in_boolean_fcstd(self):
         with GraphSession() as session:
-            hub = scad.make_cylinder_rsolid(
+            hub = cad.make_cylinder_rsolid(
                 radius=1.0,
                 height=1.0,
                 bottom_face_center=(0.0, 0.0, 0.0),
                 axis=(0.0, 0.0, 1.0),
             )
-            arm = scad.make_box_rsolid(
+            arm = cad.make_box_rsolid(
                 width=4.0,
                 height=0.4,
                 depth=1.0,
                 bottom_face_center=(2.0, 0.0, 0.0),
             )
-            arm_b = scad.rotate_shape(
+            arm_b = cad.rotate_shape(
                 shape=arm,
                 angle=120.0,
                 axis=(0.0, 0.0, 1.0),
                 origin=(0.0, 0.0, 5.0),
             )
-            arm_c = scad.rotate_shape(
+            arm_c = cad.rotate_shape(
                 shape=arm,
                 angle=240.0,
                 axis=(0.0, 0.0, 1.0),
                 origin=(0.0, 0.0, 5.0),
             )
-            scad.union_rsolid([hub, arm, arm_b, arm_c], glue=False)
+            cad.union_rsolid([hub, arm, arm_b, arm_c], glue=False)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -3602,11 +3602,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_emits_native_loft_feature(self):
         with GraphSession() as session:
-            base = scad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
-            top = scad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 3.0))
-            scad.loft_rsolid([base, top], ruled=True)
+            base = cad.make_rectangle_rwire(2.0, 2.0, center=(0.0, 0.0, 0.0))
+            top = cad.make_rectangle_rwire(1.0, 1.0, center=(0.0, 0.0, 3.0))
+            cad.loft_rsolid([base, top], ruled=True)
 
-        payload_obj = self._expression_payload(scad.export_model_json(session))
+        payload_obj = self._expression_payload(cad.export_model_json(session))
         payload_obj["expression_graph"]["nodes"] = [
             {"expr_id": "var_ruled", "kind": "var", "name": "ruled", "default": 1.0}
         ]
@@ -3624,22 +3624,22 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_binds_feature_properties_to_freecad_expressions(self):
         with GraphSession() as session:
-            helix = scad.make_helix_rwire(1.0, 3.0, 2.0)
-            extrude_face = scad.make_rectangle_rface(width=2.0, height=1.0)
-            scad.extrude_rsolid(
+            helix = cad.make_helix_rwire(1.0, 3.0, 2.0)
+            extrude_face = cad.make_rectangle_rface(width=2.0, height=1.0)
+            cad.extrude_rsolid(
                 profile=extrude_face,
                 direction=(0.0, 0.0, 1.0),
                 distance=2.0,
             )
-            rev_wire = scad.make_rectangle_rwire(1.0, 2.0, center=(2.0, 0.0, 0.0))
-            rev_face = scad.make_face_from_wire_rface(rev_wire)
-            scad.revolve_rsolid(rev_face, axis=(0.0, 0.0, 1.0), angle=180.0)
-            sweep_face = scad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
-            scad.sweep_rsolid(sweep_face, helix, is_frenet=True)
-            box = scad.make_box_rsolid(2.0, 2.0, 2.0)
-            scad.shell_rsolid(box, [box.get_faces(0)], 0.25)
+            rev_wire = cad.make_rectangle_rwire(1.0, 2.0, center=(2.0, 0.0, 0.0))
+            rev_face = cad.make_face_from_wire_rface(rev_wire)
+            cad.revolve_rsolid(rev_face, axis=(0.0, 0.0, 1.0), angle=180.0)
+            sweep_face = cad.make_circle_rface((0.0, 0.0, 0.0), 1.0)
+            cad.sweep_rsolid(sweep_face, helix, is_frenet=True)
+            box = cad.make_box_rsolid(2.0, 2.0, 2.0)
+            cad.shell_rsolid(box, [box.get_faces(0)], 0.25)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
         payload_obj = self._expression_payload(payload)
         payload_obj["expression_graph"]["nodes"] = [
             {"expr_id": "var_pitch", "kind": "var", "name": "pitch", "default": 1.0},
@@ -3726,16 +3726,16 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_binds_transform_and_detail_expressions(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(2.0, 2.0, 2.0)
-            scad.translate_shape(box, (1.0, 2.0, 3.0))
-            scad.rotate_shape(box, 30.0, axis=(0.0, 0.0, 1.0), origin=(1.0, 0.0, 0.0))
-            scad.mirror_shape(
+            box = cad.make_box_rsolid(2.0, 2.0, 2.0)
+            cad.translate_shape(box, (1.0, 2.0, 3.0))
+            cad.rotate_shape(box, 30.0, axis=(0.0, 0.0, 1.0), origin=(1.0, 0.0, 0.0))
+            cad.mirror_shape(
                 box, plane_origin=(0.0, 0.0, 0.0), plane_normal=(0.0, 0.0, 1.0)
             )
-            scad.fillet_rsolid(box, [box.get_edges(0)], 0.2)
-            scad.chamfer_rsolid(box, [box.get_edges(0)], 0.3)
+            cad.fillet_rsolid(box, [box.get_edges(0)], 0.2)
+            cad.chamfer_rsolid(box, [box.get_edges(0)], 0.3)
 
-        payload_obj = self._expression_payload(scad.export_model_json(session))
+        payload_obj = self._expression_payload(cad.export_model_json(session))
         payload_obj["expression_graph"]["nodes"] = [
             {"expr_id": "var_tx", "kind": "var", "name": "tx", "default": 1.0},
             {"expr_id": "var_ty", "kind": "var", "name": "ty", "default": 2.0},
@@ -4521,33 +4521,33 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         )
 
     def _functional_rectangle_sketch_model_json(self) -> str:
-        width = scad.var("fcstd_sketch_width", 2.0)
-        height = scad.var("fcstd_sketch_height", 1.0)
-        thickness = scad.var("fcstd_sketch_thickness", 0.5)
+        width = cad.var("fcstd_sketch_width", 2.0)
+        height = cad.var("fcstd_sketch_height", 1.0)
+        thickness = cad.var("fcstd_sketch_thickness", 0.5)
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch("fcstd_rect")
-            sketch = scad.add_point_rsketch(sketch, "p0", 0.0, 0.0)
-            sketch = scad.add_point_rsketch(sketch, "p1", width, 0.0)
-            sketch = scad.add_point_rsketch(sketch, "p2", width, height)
-            sketch = scad.add_point_rsketch(sketch, "p3", 0.0, height)
-            sketch = scad.add_line_rsketch(sketch, "bottom", "p0", "p1")
-            sketch = scad.add_line_rsketch(sketch, "right", "p1", "p2")
-            sketch = scad.add_line_rsketch(sketch, "top", "p2", "p3")
-            sketch = scad.add_line_rsketch(sketch, "left", "p3", "p0")
-            sketch = scad.constrain_fix_rsketch(sketch, "p0")
-            sketch = scad.constrain_horizontal_rsketch(sketch, "bottom")
-            sketch = scad.constrain_vertical_rsketch(sketch, "right")
-            sketch = scad.constrain_parallel_rsketch(sketch, "bottom", "top")
-            sketch = scad.constrain_parallel_rsketch(sketch, "left", "right")
-            sketch = scad.constrain_perpendicular_rsketch(sketch, "bottom", "right")
-            sketch = scad.constrain_distance_rsketch(sketch, "p0", "p1", width)
-            sketch = scad.constrain_distance_rsketch(sketch, "p0", "p3", height)
-            face = scad.make_face_from_sketch_rface(
+            sketch = cad.make_sketch_rsketch("fcstd_rect")
+            sketch = cad.add_point_rsketch(sketch, "p0", 0.0, 0.0)
+            sketch = cad.add_point_rsketch(sketch, "p1", width, 0.0)
+            sketch = cad.add_point_rsketch(sketch, "p2", width, height)
+            sketch = cad.add_point_rsketch(sketch, "p3", 0.0, height)
+            sketch = cad.add_line_rsketch(sketch, "bottom", "p0", "p1")
+            sketch = cad.add_line_rsketch(sketch, "right", "p1", "p2")
+            sketch = cad.add_line_rsketch(sketch, "top", "p2", "p3")
+            sketch = cad.add_line_rsketch(sketch, "left", "p3", "p0")
+            sketch = cad.constrain_fix_rsketch(sketch, "p0")
+            sketch = cad.constrain_horizontal_rsketch(sketch, "bottom")
+            sketch = cad.constrain_vertical_rsketch(sketch, "right")
+            sketch = cad.constrain_parallel_rsketch(sketch, "bottom", "top")
+            sketch = cad.constrain_parallel_rsketch(sketch, "left", "right")
+            sketch = cad.constrain_perpendicular_rsketch(sketch, "bottom", "right")
+            sketch = cad.constrain_distance_rsketch(sketch, "p0", "p1", width)
+            sketch = cad.constrain_distance_rsketch(sketch, "p0", "p3", height)
+            face = cad.make_face_from_sketch_rface(
                 sketch,
                 require_fully_constrained=True,
             )
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), thickness)
-        return scad.export_model_json(session)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), thickness)
+        return cad.export_model_json(session)
 
     def test_translate_model_json_supports_functional_sketch_promotion_script(self):
         payload = self._functional_rectangle_sketch_model_json()
@@ -4637,25 +4637,25 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         segment_count = 60
         radius = 5.0
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch("large_fcstd_profile")
+            sketch = cad.make_sketch_rsketch("large_fcstd_profile")
             for idx in range(segment_count):
                 angle = 2.0 * math.pi * idx / segment_count
-                sketch = scad.add_point_rsketch(
+                sketch = cad.add_point_rsketch(
                     sketch,
                     f"p{idx}",
                     radius * math.cos(angle),
                     radius * math.sin(angle),
                 )
             for idx in range(segment_count):
-                sketch = scad.add_line_rsketch(
+                sketch = cad.add_line_rsketch(
                     sketch,
                     f"l{idx}",
                     f"p{idx}",
                     f"p{(idx + 1) % segment_count}",
                 )
-            face = scad.make_face_from_sketch_rface(sketch)
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 0.5)
-        payload = scad.export_model_json(session)
+            face = cad.make_face_from_sketch_rface(sketch)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 0.5)
+        payload = cad.export_model_json(session)
 
         script = freecad_translator.translate_model_json_to_freecad_script(payload)
         self.assertNotIn("Large sketch (>50 entities)", script)
@@ -4689,20 +4689,20 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self.assertEqual(result["solid_count"], 1)
 
     def test_translate_model_json_functional_circle_sketch_promotion_fcstd_valid(self):
-        radius = scad.var("fcstd_circle_radius", 1.5)
-        thickness = scad.var("fcstd_circle_thickness", 0.5)
+        radius = cad.var("fcstd_circle_radius", 1.5)
+        thickness = cad.var("fcstd_circle_thickness", 0.5)
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch("fcstd_circle")
-            sketch = scad.add_point_rsketch(sketch, "center", 0.0, 0.0)
-            sketch = scad.add_circle_rsketch(sketch, "outer", "center", radius)
-            sketch = scad.constrain_fix_rsketch(sketch, "center")
-            sketch = scad.constrain_radius_rsketch(sketch, "outer", radius)
-            face = scad.make_face_from_sketch_rface(
+            sketch = cad.make_sketch_rsketch("fcstd_circle")
+            sketch = cad.add_point_rsketch(sketch, "center", 0.0, 0.0)
+            sketch = cad.add_circle_rsketch(sketch, "outer", "center", radius)
+            sketch = cad.constrain_fix_rsketch(sketch, "center")
+            sketch = cad.constrain_radius_rsketch(sketch, "outer", radius)
+            face = cad.make_face_from_sketch_rface(
                 sketch,
                 require_fully_constrained=True,
             )
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), thickness)
-        payload = scad.export_model_json(session)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), thickness)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -4749,97 +4749,97 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_complex_guided_sketch_constraints_fcstd_valid(self):
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch("fcstd_guided_diamond")
-            sketch = scad.add_point_rsketch(sketch, "center", 10.0, 8.0)
-            sketch = scad.add_point_rsketch(sketch, "left", 3.0, 8.0)
-            sketch = scad.add_point_rsketch(sketch, "top", 10.0, 12.0)
-            sketch = scad.add_point_rsketch(sketch, "right", 17.0, 8.0)
-            sketch = scad.add_point_rsketch(sketch, "bottom", 10.0, 4.0)
-            sketch = scad.add_point_rsketch(sketch, "guide_upper_start", 3.0, 13.0)
-            sketch = scad.add_point_rsketch(sketch, "guide_upper_end", 10.0, 17.0)
-            sketch = scad.add_point_rsketch(sketch, "guide_lower_start", 17.0, 3.0)
-            sketch = scad.add_point_rsketch(sketch, "guide_lower_end", 10.0, -1.0)
-            sketch = scad.add_line_rsketch(sketch, "bottom_left", "left", "bottom")
-            sketch = scad.add_line_rsketch(sketch, "right_bottom", "bottom", "right")
-            sketch = scad.add_line_rsketch(sketch, "top_right", "right", "top")
-            sketch = scad.add_line_rsketch(sketch, "left_top", "top", "left")
-            sketch = scad.add_line_rsketch(
+            sketch = cad.make_sketch_rsketch("fcstd_guided_diamond")
+            sketch = cad.add_point_rsketch(sketch, "center", 10.0, 8.0)
+            sketch = cad.add_point_rsketch(sketch, "left", 3.0, 8.0)
+            sketch = cad.add_point_rsketch(sketch, "top", 10.0, 12.0)
+            sketch = cad.add_point_rsketch(sketch, "right", 17.0, 8.0)
+            sketch = cad.add_point_rsketch(sketch, "bottom", 10.0, 4.0)
+            sketch = cad.add_point_rsketch(sketch, "guide_upper_start", 3.0, 13.0)
+            sketch = cad.add_point_rsketch(sketch, "guide_upper_end", 10.0, 17.0)
+            sketch = cad.add_point_rsketch(sketch, "guide_lower_start", 17.0, 3.0)
+            sketch = cad.add_point_rsketch(sketch, "guide_lower_end", 10.0, -1.0)
+            sketch = cad.add_line_rsketch(sketch, "bottom_left", "left", "bottom")
+            sketch = cad.add_line_rsketch(sketch, "right_bottom", "bottom", "right")
+            sketch = cad.add_line_rsketch(sketch, "top_right", "right", "top")
+            sketch = cad.add_line_rsketch(sketch, "left_top", "top", "left")
+            sketch = cad.add_line_rsketch(
                 sketch,
                 "guide_upper",
                 "guide_upper_start",
                 "guide_upper_end",
                 construction=True,
             )
-            sketch = scad.add_line_rsketch(
+            sketch = cad.add_line_rsketch(
                 sketch,
                 "guide_lower",
                 "guide_lower_start",
                 "guide_lower_end",
                 construction=True,
             )
-            sketch = scad.constrain_fix_rsketch(sketch, "center")
-            sketch = scad.constrain_distance_x_rsketch(sketch, "left", "center", 7.0)
-            sketch = scad.constrain_distance_y_rsketch(sketch, "left", "center", 0.0)
-            sketch = scad.constrain_distance_x_rsketch(sketch, "center", "right", 7.0)
-            sketch = scad.constrain_distance_y_rsketch(sketch, "center", "right", 0.0)
-            sketch = scad.constrain_distance_x_rsketch(sketch, "center", "top", 0.0)
-            sketch = scad.constrain_distance_y_rsketch(sketch, "center", "top", 4.0)
-            sketch = scad.constrain_distance_x_rsketch(sketch, "bottom", "center", 0.0)
-            sketch = scad.constrain_distance_y_rsketch(sketch, "bottom", "center", 4.0)
-            sketch = scad.constrain_parallel_rsketch(sketch, "bottom_left", "top_right")
-            sketch = scad.constrain_parallel_rsketch(sketch, "right_bottom", "left_top")
-            sketch = scad.constrain_equal_length_rsketch(
+            sketch = cad.constrain_fix_rsketch(sketch, "center")
+            sketch = cad.constrain_distance_x_rsketch(sketch, "left", "center", 7.0)
+            sketch = cad.constrain_distance_y_rsketch(sketch, "left", "center", 0.0)
+            sketch = cad.constrain_distance_x_rsketch(sketch, "center", "right", 7.0)
+            sketch = cad.constrain_distance_y_rsketch(sketch, "center", "right", 0.0)
+            sketch = cad.constrain_distance_x_rsketch(sketch, "center", "top", 0.0)
+            sketch = cad.constrain_distance_y_rsketch(sketch, "center", "top", 4.0)
+            sketch = cad.constrain_distance_x_rsketch(sketch, "bottom", "center", 0.0)
+            sketch = cad.constrain_distance_y_rsketch(sketch, "bottom", "center", 4.0)
+            sketch = cad.constrain_parallel_rsketch(sketch, "bottom_left", "top_right")
+            sketch = cad.constrain_parallel_rsketch(sketch, "right_bottom", "left_top")
+            sketch = cad.constrain_equal_length_rsketch(
                 sketch, "bottom_left", "right_bottom"
             )
-            sketch = scad.constrain_equal_length_rsketch(
+            sketch = cad.constrain_equal_length_rsketch(
                 sketch, "right_bottom", "top_right"
             )
-            sketch = scad.constrain_equal_length_rsketch(
+            sketch = cad.constrain_equal_length_rsketch(
                 sketch, "top_right", "left_top"
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "left", "guide_upper_start", 0.0
             )
-            sketch = scad.constrain_distance_y_rsketch(
+            sketch = cad.constrain_distance_y_rsketch(
                 sketch, "left", "guide_upper_start", 5.0
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "top", "guide_upper_end", 0.0
             )
-            sketch = scad.constrain_distance_y_rsketch(
+            sketch = cad.constrain_distance_y_rsketch(
                 sketch, "top", "guide_upper_end", 5.0
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "guide_lower_start", "right", 0.0
             )
-            sketch = scad.constrain_distance_y_rsketch(
+            sketch = cad.constrain_distance_y_rsketch(
                 sketch, "guide_lower_start", "right", 5.0
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "guide_lower_end", "bottom", 0.0
             )
-            sketch = scad.constrain_distance_y_rsketch(
+            sketch = cad.constrain_distance_y_rsketch(
                 sketch, "guide_lower_end", "bottom", 5.0
             )
-            sketch = scad.constrain_parallel_rsketch(
+            sketch = cad.constrain_parallel_rsketch(
                 sketch, "guide_upper", "guide_lower"
             )
-            sketch = scad.constrain_parallel_rsketch(
+            sketch = cad.constrain_parallel_rsketch(
                 sketch, "guide_upper", "right_bottom"
             )
-            sketch = scad.constrain_parallel_rsketch(sketch, "guide_lower", "left_top")
-            sketch = scad.constrain_equal_length_rsketch(
+            sketch = cad.constrain_parallel_rsketch(sketch, "guide_lower", "left_top")
+            sketch = cad.constrain_equal_length_rsketch(
                 sketch, "guide_upper", "right_bottom"
             )
-            sketch = scad.constrain_equal_length_rsketch(
+            sketch = cad.constrain_equal_length_rsketch(
                 sketch, "guide_lower", "left_top"
             )
-            face = scad.make_face_from_sketch_rface(
+            face = cad.make_face_from_sketch_rface(
                 sketch,
                 require_fully_constrained=True,
             )
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 1.0)
-        payload = scad.export_model_json(session)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 1.0)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -4889,56 +4889,56 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_curve_guided_sketch_constraints_fcstd_valid(self):
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch("fcstd_curve_guided")
-            sketch = scad.add_point_rsketch(sketch, "center", 32.0, 42.0)
-            sketch = scad.add_point_rsketch(sketch, "rim", 36.0, 42.0)
-            sketch = scad.add_point_rsketch(sketch, "clearance_center", 32.0, 42.0)
-            sketch = scad.add_point_rsketch(sketch, "upper_left", 23.0, 46.0)
-            sketch = scad.add_point_rsketch(sketch, "upper_right", 41.0, 46.0)
-            sketch = scad.add_point_rsketch(sketch, "lower_left", 23.0, 38.0)
-            sketch = scad.add_point_rsketch(sketch, "lower_right", 41.0, 38.0)
-            sketch = scad.add_circle_rsketch(sketch, "relief", "center", 4.0)
-            sketch = scad.add_circle_rsketch(
+            sketch = cad.make_sketch_rsketch("fcstd_curve_guided")
+            sketch = cad.add_point_rsketch(sketch, "center", 32.0, 42.0)
+            sketch = cad.add_point_rsketch(sketch, "rim", 36.0, 42.0)
+            sketch = cad.add_point_rsketch(sketch, "clearance_center", 32.0, 42.0)
+            sketch = cad.add_point_rsketch(sketch, "upper_left", 23.0, 46.0)
+            sketch = cad.add_point_rsketch(sketch, "upper_right", 41.0, 46.0)
+            sketch = cad.add_point_rsketch(sketch, "lower_left", 23.0, 38.0)
+            sketch = cad.add_point_rsketch(sketch, "lower_right", 41.0, 38.0)
+            sketch = cad.add_circle_rsketch(sketch, "relief", "center", 4.0)
+            sketch = cad.add_circle_rsketch(
                 sketch, "clearance", "clearance_center", 4.0, construction=True
             )
-            sketch = scad.add_line_rsketch(
+            sketch = cad.add_line_rsketch(
                 sketch, "radius_probe", "center", "rim", construction=True
             )
-            sketch = scad.add_line_rsketch(
+            sketch = cad.add_line_rsketch(
                 sketch, "upper_rail", "upper_left", "upper_right", construction=True
             )
-            sketch = scad.add_line_rsketch(
+            sketch = cad.add_line_rsketch(
                 sketch, "lower_rail", "lower_left", "lower_right", construction=True
             )
-            sketch = scad.constrain_fix_rsketch(sketch, "center")
-            sketch = scad.constrain_radius_rsketch(sketch, "relief", 4.0)
-            sketch = scad.constrain_point_on_rsketch(sketch, "rim", "relief")
-            sketch = scad.constrain_horizontal_rsketch(sketch, "radius_probe")
-            sketch = scad.constrain_length_rsketch(sketch, "radius_probe", 4.0)
-            sketch = scad.constrain_concentric_rsketch(sketch, "relief", "clearance")
-            sketch = scad.constrain_equal_radius_rsketch(sketch, "relief", "clearance")
-            sketch = scad.constrain_horizontal_rsketch(sketch, "upper_rail")
-            sketch = scad.constrain_horizontal_rsketch(sketch, "lower_rail")
-            sketch = scad.constrain_tangent_rsketch(sketch, "upper_rail", "relief")
-            sketch = scad.constrain_tangent_rsketch(sketch, "lower_rail", "relief")
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_fix_rsketch(sketch, "center")
+            sketch = cad.constrain_radius_rsketch(sketch, "relief", 4.0)
+            sketch = cad.constrain_point_on_rsketch(sketch, "rim", "relief")
+            sketch = cad.constrain_horizontal_rsketch(sketch, "radius_probe")
+            sketch = cad.constrain_length_rsketch(sketch, "radius_probe", 4.0)
+            sketch = cad.constrain_concentric_rsketch(sketch, "relief", "clearance")
+            sketch = cad.constrain_equal_radius_rsketch(sketch, "relief", "clearance")
+            sketch = cad.constrain_horizontal_rsketch(sketch, "upper_rail")
+            sketch = cad.constrain_horizontal_rsketch(sketch, "lower_rail")
+            sketch = cad.constrain_tangent_rsketch(sketch, "upper_rail", "relief")
+            sketch = cad.constrain_tangent_rsketch(sketch, "lower_rail", "relief")
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "center", "upper_left", -9.0
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "center", "upper_right", 9.0
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "center", "lower_left", -9.0
             )
-            sketch = scad.constrain_distance_x_rsketch(
+            sketch = cad.constrain_distance_x_rsketch(
                 sketch, "center", "lower_right", 9.0
             )
-            face = scad.make_face_from_sketch_rface(
+            face = cad.make_face_from_sketch_rface(
                 sketch,
                 require_fully_constrained=True,
             )
-            scad.extrude_rsolid(face, (0.0, 0.0, 1.0), 1.0)
-        payload = scad.export_model_json(session)
+            cad.extrude_rsolid(face, (0.0, 0.0, 1.0), 1.0)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -4987,26 +4987,26 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self,
     ):
         with GraphSession() as session:
-            sketch = scad.make_sketch_rsketch("fcstd_midpoint_record")
-            sketch = scad.add_point_rsketch(sketch, "p0", 0.0, 0.0)
-            sketch = scad.add_point_rsketch(sketch, "p1", 2.0, 0.0)
-            sketch = scad.add_point_rsketch(sketch, "p2", 2.0, 1.0)
-            sketch = scad.add_point_rsketch(sketch, "p3", 0.0, 1.0)
-            sketch = scad.add_point_rsketch(sketch, "mid", 1.0, 0.0)
-            sketch = scad.add_line_rsketch(sketch, "bottom", "p0", "p1")
-            sketch = scad.add_line_rsketch(sketch, "right", "p1", "p2")
-            sketch = scad.add_line_rsketch(sketch, "top", "p2", "p3")
-            sketch = scad.add_line_rsketch(sketch, "left", "p3", "p0")
-            sketch = scad.constrain_fix_rsketch(sketch, "p0")
-            sketch = scad.constrain_horizontal_rsketch(sketch, "bottom")
-            sketch = scad.constrain_vertical_rsketch(sketch, "right")
-            sketch = scad.constrain_parallel_rsketch(sketch, "bottom", "top")
-            sketch = scad.constrain_parallel_rsketch(sketch, "left", "right")
-            sketch = scad.constrain_distance_rsketch(sketch, "p0", "p1", 2.0)
-            sketch = scad.constrain_distance_rsketch(sketch, "p0", "p3", 1.0)
-            sketch = scad.constrain_midpoint_rsketch(sketch, "mid", "bottom")
-            scad.make_face_from_sketch_rface(sketch)
-        payload = scad.export_model_json(session)
+            sketch = cad.make_sketch_rsketch("fcstd_midpoint_record")
+            sketch = cad.add_point_rsketch(sketch, "p0", 0.0, 0.0)
+            sketch = cad.add_point_rsketch(sketch, "p1", 2.0, 0.0)
+            sketch = cad.add_point_rsketch(sketch, "p2", 2.0, 1.0)
+            sketch = cad.add_point_rsketch(sketch, "p3", 0.0, 1.0)
+            sketch = cad.add_point_rsketch(sketch, "mid", 1.0, 0.0)
+            sketch = cad.add_line_rsketch(sketch, "bottom", "p0", "p1")
+            sketch = cad.add_line_rsketch(sketch, "right", "p1", "p2")
+            sketch = cad.add_line_rsketch(sketch, "top", "p2", "p3")
+            sketch = cad.add_line_rsketch(sketch, "left", "p3", "p0")
+            sketch = cad.constrain_fix_rsketch(sketch, "p0")
+            sketch = cad.constrain_horizontal_rsketch(sketch, "bottom")
+            sketch = cad.constrain_vertical_rsketch(sketch, "right")
+            sketch = cad.constrain_parallel_rsketch(sketch, "bottom", "top")
+            sketch = cad.constrain_parallel_rsketch(sketch, "left", "right")
+            sketch = cad.constrain_distance_rsketch(sketch, "p0", "p1", 2.0)
+            sketch = cad.constrain_distance_rsketch(sketch, "p0", "p3", 1.0)
+            sketch = cad.constrain_midpoint_rsketch(sketch, "mid", "bottom")
+            cad.make_face_from_sketch_rface(sketch)
+        payload = cad.export_model_json(session)
         probe = """
 import json
 import FreeCAD as App
@@ -5328,12 +5328,12 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self,
     ):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(2.0, 2.0, 2.0)
-            scad.chamfer_rsolid(box, [box.get_edges(0)], 0.2)
-            scad.shell_rsolid(box, [box.get_faces(0)], 0.1)
+            box = cad.make_box_rsolid(2.0, 2.0, 2.0)
+            cad.chamfer_rsolid(box, [box.get_edges(0)], 0.2)
+            cad.shell_rsolid(box, [box.get_faces(0)], 0.1)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("Part::Chamfer", script)
@@ -5345,10 +5345,10 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
         self,
     ):
         with GraphSession() as session:
-            scad.make_box_rsolid(1.0, 1.0, 1.0)
+            cad.make_box_rsolid(1.0, 1.0, 1.0)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertNotIn("= _make_native_assembly(", script)
@@ -5358,11 +5358,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_preserves_pattern_multi_output_structure(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(1.0, 1.0, 1.0)
-            scad.linear_pattern_rsolidlist(box, (1.0, 0.0, 0.0), 3, 2.0)
+            box = cad.make_box_rsolid(1.0, 1.0, 1.0)
+            cad.linear_pattern_rsolidlist(box, (1.0, 0.0, 0.0), 3, 2.0)
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("GRAPH_OUTPUTS", script)
@@ -5372,11 +5372,11 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_hides_non_leaf_graph_objects(self):
         with GraphSession() as session:
-            box = scad.make_box_rsolid(2.0, 3.0, 4.0)
-            scad.translate_shape(box, (1.0, 2.0, 3.0))
+            box = cad.make_box_rsolid(2.0, 3.0, 4.0)
+            cad.translate_shape(box, (1.0, 2.0, 3.0))
 
         script = freecad_translator.translate_model_json_to_freecad_script(
-            scad.export_model_json(session)
+            cad.export_model_json(session)
         )
 
         self.assertIn("_apply_result_visibility(RESULT_NODE_IDS)", script)
@@ -5423,9 +5423,9 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_to_fcstd_invokes_freecadcmd(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(1.0, 1.0, 1.0)
+            cad.make_box_rsolid(1.0, 1.0, 1.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
 
         with (
             mock.patch(
@@ -5450,24 +5450,24 @@ with open(OUT_PATH, 'w', encoding='utf-8') as fh:
 
     def test_translate_model_json_to_fcstd_requires_freecadcmd(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(1.0, 1.0, 1.0)
+            cad.make_box_rsolid(1.0, 1.0, 1.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
 
         with (
             mock.patch("shutil.which", return_value=None),
             mock.patch("os.path.exists", return_value=False),
         ):
-            with self.assertRaises(scad.CadFlowError):
+            with self.assertRaises(cad.CadFlowError):
                 freecad_translator.translate_model_json_to_fcstd(
                     payload, "/tmp/out.FCStd"
                 )
 
     def test_translate_model_json_to_fcstd_discovers_macos_bundle_freecadcmd(self):
         with GraphSession() as session:
-            scad.make_box_rsolid(1.0, 1.0, 1.0)
+            cad.make_box_rsolid(1.0, 1.0, 1.0)
 
-        payload = scad.export_model_json(session)
+        payload = cad.export_model_json(session)
 
         def fake_exists(path: str) -> bool:
             return path in {

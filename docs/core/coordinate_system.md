@@ -23,8 +23,8 @@ CoordinateSystem(
 ## Example
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-cs = scad.CoordinateSystem(origin=(10, 0, 0))
+cs = cad.CoordinateSystem(origin=(10, 0, 0))
 print(cs.transform_point((1, 2, 3)))
 ```

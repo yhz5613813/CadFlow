@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 from typing import Any, Iterable
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql
 
 
@@ -199,7 +199,7 @@ class CadFlowFusionAdapter:
             raise ValueError("Fusion profile loop is not closed")
         return ordered
 
-    @scad.requires_session
+    @cad.requires_session
     def _make_loop_wire(self, sketch_id: str, loop: dict[str, Any]) -> Any:
         profile_curves = loop["profile_curves"]
         unsupported = sorted(
@@ -212,9 +212,9 @@ class CadFlowFusionAdapter:
             )
         segments = self._ordered_line_segments(sketch_id, profile_curves)
         edges = [
-            scad.make_line_redge(start=start, end=end) for start, end in segments
+            cad.make_line_redge(start=start, end=end) for start, end in segments
         ]
-        return scad.make_wire_from_edges_rwire(edges=edges)
+        return cad.make_wire_from_edges_rwire(edges=edges)
 
     def create_profile(self, *, sketch_id: str, profile_id: str) -> dict[str, Any]:
         sketch = self.design.entity(sketch_id)
@@ -234,7 +234,7 @@ class CadFlowFusionAdapter:
         outer_wire = self._make_loop_wire(sketch_id, outer_loops[0])
         inner_wires = [self._make_loop_wire(sketch_id, loop) for loop in inner_loops]
         normal = self.design.sketch_normal(sketch_id)
-        face = scad.make_face_from_wires_rface(
+        face = cad.make_face_from_wires_rface(
             outer_wire=outer_wire,
             inner_wires=inner_wires,
             normal=normal,
@@ -277,7 +277,7 @@ class CadFlowFusionAdapter:
         direction = normal if distance > 0 else _scale(normal, -1.0)
         length_cm = abs(distance)
         length_kernel = length_cm * CM_TO_KERNEL_LENGTH
-        solid = scad.extrude_rsolid(
+        solid = cad.extrude_rsolid(
             profile=profile,
             direction=direction,
             distance=length_kernel,
@@ -287,7 +287,7 @@ class CadFlowFusionAdapter:
         adapter: dict[str, Any] | None = None
         if extent_type == "SymmetricFeatureExtentType":
             offset = _scale(direction, -0.5 * length_kernel)
-            solid = scad.translate_shape(shape=solid, vector=offset)
+            solid = cad.translate_shape(shape=solid, vector=offset)
             backend_calls.append("translate_shape")
             adapter = {
                 "lowering": "symmetric = one-sided total-length extrusion + half-length negative translation",
@@ -323,13 +323,13 @@ class CadFlowFusionAdapter:
             self.current = features[0]
             if len(features) > 1:
                 for feature in features[1:]:
-                    self.current = scad.union_rsolid(self.current, feature)
+                    self.current = cad.union_rsolid(self.current, feature)
             backend_call = "set_current_body"
         elif operation == "JoinFeatureOperation":
             if self.current is None:
                 raise RuntimeError("Join requires an existing current body")
             for feature in features:
-                self.current = scad.union_rsolid(
+                self.current = cad.union_rsolid(
                     self.current,
                     feature,
                     clean=True,
@@ -340,7 +340,7 @@ class CadFlowFusionAdapter:
             if self.current is None:
                 raise RuntimeError("Cut requires an existing current body")
             for feature in features:
-                self.current = scad.cut_rsolid(
+                self.current = cad.cut_rsolid(
                     self.current,
                     feature,
                     skip_non_intersecting=False,

@@ -119,14 +119,21 @@ double volume(const core::Session& session, ShapeId id) {
         return core::kPi * shape.c
             * (shape.a * shape.a + shape.a * shape.b + shape.b * shape.b) / 3.0;
     case Shape::Kind::Wire:
+    case Shape::Kind::BSpline:
     case Shape::Kind::Face:
     case Shape::Kind::Surface:
     case Shape::Kind::Revolve:
     case Shape::Kind::Loft:
     case Shape::Kind::Sweep:
+    case Shape::Kind::TwistedSweep:
+    case Shape::Kind::RuledSurface:
+    case Shape::Kind::FillingSurface:
+    case Shape::Kind::GordonSurface:
     case Shape::Kind::Fillet:
     case Shape::Kind::Chamfer:
     case Shape::Kind::Shell:
+    case Shape::Kind::Sewing:
+    case Shape::Kind::Solid:
     case Shape::Kind::Imported:
         return 0.0;
     case Shape::Kind::Extrude: {
@@ -172,11 +179,18 @@ double area(const core::Session& session, ShapeId id) {
             * (shape.a * shape.a + shape.b * shape.b + (shape.a + shape.b) * slant);
     }
     case Shape::Kind::Wire:
+    case Shape::Kind::BSpline:
     case Shape::Kind::Extrude:
     case Shape::Kind::Revolve:
     case Shape::Kind::Loft:
     case Shape::Kind::Sweep:
+    case Shape::Kind::TwistedSweep:
+    case Shape::Kind::RuledSurface:
+    case Shape::Kind::FillingSurface:
+    case Shape::Kind::GordonSurface:
     case Shape::Kind::Imported:
+    case Shape::Kind::Sewing:
+    case Shape::Kind::Solid:
         return 0.0;
     case Shape::Kind::Fillet:
     case Shape::Kind::Chamfer:
@@ -328,8 +342,12 @@ Box3 bounding_box(const core::Session& session, ShapeId id) {
         return Box3 {{-radius, -radius, 0.0}, {radius, radius, shape.c}};
     }
     case Shape::Kind::Wire:
+    case Shape::Kind::BSpline:
         return points_box(shape.points);
     case Shape::Kind::Surface:
+    case Shape::Kind::RuledSurface:
+    case Shape::Kind::FillingSurface:
+    case Shape::Kind::GordonSurface:
         return points_box(shape.points);
     case Shape::Kind::Face:
     case Shape::Kind::Revolve:
@@ -357,7 +375,8 @@ Box3 bounding_box(const core::Session& session, ShapeId id) {
         }
         return output;
     }
-    case Shape::Kind::Sweep: {
+    case Shape::Kind::Sweep:
+    case Shape::Kind::TwistedSweep: {
         Box3 output = bounding_box(session, shape.left);
         const Box3 path = bounding_box(session, shape.right);
         const double radius[3] = {
@@ -407,6 +426,8 @@ Box3 bounding_box(const core::Session& session, ShapeId id) {
     case Shape::Kind::Fillet:
     case Shape::Kind::Chamfer:
     case Shape::Kind::Shell:
+    case Shape::Kind::Sewing:
+    case Shape::Kind::Solid:
         return bounding_box(session, shape.left);
     case Shape::Kind::Imported:
         throw std::runtime_error("STEP import requires the OCCT backend");
@@ -468,13 +489,20 @@ const char* kind(const Shape& shape) {
     case Shape::Kind::Wire: return "wire";
     case Shape::Kind::Face: return "face";
     case Shape::Kind::Surface: return "surface";
+    case Shape::Kind::BSpline: return "bspline";
     case Shape::Kind::Extrude: return "extrude";
     case Shape::Kind::Revolve: return "revolve";
     case Shape::Kind::Loft: return "loft";
     case Shape::Kind::Sweep: return "sweep";
+    case Shape::Kind::TwistedSweep: return "twisted_sweep";
+    case Shape::Kind::RuledSurface: return "ruled_surface";
+    case Shape::Kind::FillingSurface: return "filling_surface";
+    case Shape::Kind::GordonSurface: return "gordon_surface";
     case Shape::Kind::Fillet: return "fillet";
     case Shape::Kind::Chamfer: return "chamfer";
     case Shape::Kind::Shell: return "shell";
+    case Shape::Kind::Sewing: return "sewing";
+    case Shape::Kind::Solid: return "solid";
     case Shape::Kind::Cut: return "cut";
     case Shape::Kind::Union: return "union";
     case Shape::Kind::Intersect: return "intersect";

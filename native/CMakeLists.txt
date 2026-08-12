@@ -4,8 +4,10 @@ project(cadflow_core LANGUAGES CXX)
 add_library(cadflow_core SHARED
   src/c_api.cpp
   src/core/session.cpp
+  src/flexible/shell_mesh.cpp
   src/io/exchange.cpp
   src/kernel/construction.cpp
+  src/kernel/advanced.cpp
   src/kernel/edge_features.cpp
   src/kernel/features.cpp
   src/kernel/operations.cpp

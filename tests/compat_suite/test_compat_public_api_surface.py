@@ -13,31 +13,31 @@ import unittest
 
 class TestPublicApiSurface(unittest.TestCase):
     def test_internal_modules_not_in___all__(self):
-        import cadflow as scad
+        import cadflow as cad
 
-        self.assertNotIn("tracking", scad.__all__)
-        self.assertNotIn("autotag", scad.__all__)
-        self.assertIn("topology", scad.__all__)
-        self.assertNotIn("graph", scad.__all__)
-        self.assertNotIn("serializer", scad.__all__)
+        self.assertNotIn("tracking", cad.__all__)
+        self.assertNotIn("autotag", cad.__all__)
+        self.assertIn("topology", cad.__all__)
+        self.assertNotIn("graph", cad.__all__)
+        self.assertNotIn("serializer", cad.__all__)
 
     def test_only_necessary_new_top_level_apis_are_present(self):
         code = """
 import json
-import cadflow as scad
+import cadflow as cad
 print(json.dumps({
-  'has_tracking': hasattr(scad, 'tracking'),
-  'has_autotag': hasattr(scad, 'autotag'),
-  'has_topology': hasattr(scad, 'topology'),
-  'has_graph_module': hasattr(scad, 'graph'),
-  'has_serializer_module': hasattr(scad, 'serializer'),
-  'has_graph_session': hasattr(scad, 'GraphSession'),
-  'has_export_graph_json': hasattr(scad, 'export_graph_json'),
-  'has_import_graph_json': hasattr(scad, 'import_graph_json'),
-  'has_replay_graph': hasattr(scad, 'replay_graph'),
-  'has_apply_tag': hasattr(scad, 'apply_tag'),
-  'has_list_tags': hasattr(scad, 'list_tags'),
-  'has_set_tag': hasattr(scad, 'set_tag'),
+  'has_tracking': hasattr(cad, 'tracking'),
+  'has_autotag': hasattr(cad, 'autotag'),
+  'has_topology': hasattr(cad, 'topology'),
+  'has_graph_module': hasattr(cad, 'graph'),
+  'has_serializer_module': hasattr(cad, 'serializer'),
+  'has_graph_session': hasattr(cad, 'GraphSession'),
+  'has_export_graph_json': hasattr(cad, 'export_graph_json'),
+  'has_import_graph_json': hasattr(cad, 'import_graph_json'),
+  'has_replay_graph': hasattr(cad, 'replay_graph'),
+  'has_apply_tag': hasattr(cad, 'apply_tag'),
+  'has_list_tags': hasattr(cad, 'list_tags'),
+  'has_set_tag': hasattr(cad, 'set_tag'),
 }))
 """
         proc = subprocess.run(
@@ -62,7 +62,7 @@ print(json.dumps({
         self.assertFalse(payload["has_set_tag"])
 
     def test_canonical_tagging_exports(self):
-        import cadflow as scad
+        import cadflow as cad
         from cadflow import operations, tagging
 
         expected = {
@@ -89,12 +89,12 @@ print(json.dumps({
 
         for name, implementation in expected.items():
             with self.subTest(name=name):
-                self.assertIn(name, scad.__all__)
-                self.assertIs(getattr(scad, name), implementation)
+                self.assertIn(name, cad.__all__)
+                self.assertIs(getattr(cad, name), implementation)
 
     def test_tracking_policy_is_public(self):
-        import cadflow as scad
+        import cadflow as cad
         from cadflow.tracking import TrackingPolicy
 
-        self.assertIn("TrackingPolicy", scad.__all__)
-        self.assertIs(scad.TrackingPolicy, TrackingPolicy)
+        self.assertIn("TrackingPolicy", cad.__all__)
+        self.assertIs(cad.TrackingPolicy, TrackingPolicy)

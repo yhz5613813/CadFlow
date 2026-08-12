@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import cadflow as scad
+import cadflow as cad
 
 try:
     from .common import (
@@ -102,8 +102,8 @@ except ImportError:  # Support direct execution from this example directory.
     )
 
 
-@scad.requires_session
-def make_motor_shell_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_motor_shell_rpart(*, material: cad.Material) -> cad.Part:
     """Create the stator sleeve, front attachment land, and rear columns."""
 
     sleeve = make_annulus_rsolid(
@@ -125,7 +125,7 @@ def make_motor_shell_rpart(*, material: scad.Material) -> scad.Part:
     columns = []
     for index, _angle, center in radial_centers(count=4, radius=REAR_COLUMN_PCD / 2.0):
         columns.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=REAR_COLUMN_RADIUS,
                 height=REAR_SPIDER_BOTTOM_Z - MOTOR_SHELL_BOTTOM_Z,
                 bottom_face_center=(center[0], center[1], MOTOR_SHELL_BOTTOM_Z),
@@ -134,8 +134,8 @@ def make_motor_shell_rpart(*, material: scad.Material) -> scad.Part:
                 result_tag=f"feature.housing.motor.shell.rear.column{index + 1}",
             )
         )
-    shell = scad.union_rsolid(sleeve, front_land, columns, glue=False)
-    shell = scad.cut_rsolid(
+    shell = cad.union_rsolid(sleeve, front_land, columns, glue=False)
+    shell = cad.cut_rsolid(
         shell,
         make_axial_hole_cutters_rsolids(
             count=6,
@@ -182,8 +182,8 @@ def make_motor_shell_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_reducer_housing_rpart(*, material: cad.Material) -> cad.Part:
     """Create the reducer sleeve and front motor-bearing bulkhead."""
 
     sleeve = make_annulus_rsolid(
@@ -218,14 +218,14 @@ def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="housing.reducer.output.mount.land",
         tags=("role.output_cap_mount_land",),
     )
-    housing = scad.union_rsolid(
+    housing = cad.union_rsolid(
         sleeve,
         bulkhead,
         interstage_divider,
         output_mount_land,
         glue=False,
     )
-    housing = scad.cut_rsolid(
+    housing = cad.cut_rsolid(
         housing,
         make_axial_hole_cutters_rsolids(
             count=6,
@@ -279,8 +279,8 @@ def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def make_rear_bearing_spider_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_rear_bearing_spider_rpart(*, material: cad.Material) -> cad.Part:
     """Create a four-arm removable rear motor-bearing support."""
 
     bottom_z = REAR_SPIDER_BOTTOM_Z
@@ -294,7 +294,7 @@ def make_rear_bearing_spider_rpart(*, material: scad.Material) -> scad.Part:
     )
     solids = [hub]
     for index, angle, center in radial_centers(count=4, radius=REAR_COLUMN_PCD / 2.0):
-        arm = scad.make_box_rsolid(
+        arm = cad.make_box_rsolid(
             width=12.0,
             height=3.0,
             depth=5.0,
@@ -303,7 +303,7 @@ def make_rear_bearing_spider_rpart(*, material: scad.Material) -> scad.Part:
             result_tag=f"feature.housing.rear.spider.arm{index + 1}",
         )
         solids.append(
-            scad.rotate_shape(
+            cad.rotate_shape(
                 shape=arm,
                 angle=angle,
                 axis=(0.0, 0.0, 1.0),
@@ -311,7 +311,7 @@ def make_rear_bearing_spider_rpart(*, material: scad.Material) -> scad.Part:
             )
         )
         solids.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=REAR_SPIDER_BOSS_RADIUS,
                 height=5.0,
                 bottom_face_center=(center[0], center[1], bottom_z),
@@ -320,8 +320,8 @@ def make_rear_bearing_spider_rpart(*, material: scad.Material) -> scad.Part:
                 result_tag=f"feature.housing.rear.spider.boss{index + 1}",
             )
         )
-    spider = scad.union_rsolid(solids, glue=False)
-    spider = scad.cut_rsolid(
+    spider = cad.union_rsolid(solids, glue=False)
+    spider = cad.cut_rsolid(
         spider,
         make_axial_hole_cutters_rsolids(
             count=4,
@@ -350,11 +350,11 @@ def make_rear_bearing_spider_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_rear_electronics_cover_rpart(*, material: cad.Material) -> cad.Part:
     """Create the rear cover with PCB standoffs and terminal apertures."""
 
-    cover = scad.make_cylinder_rsolid(
+    cover = cad.make_cylinder_rsolid(
         radius=PACKAGE_RADIUS,
         height=REAR_COVER_THICKNESS,
         bottom_face_center=(0.0, 0.0, REAR_COVER_BOTTOM_Z),
@@ -369,7 +369,7 @@ def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
         angle_offset=45.0,
     ):
         standoffs.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=2.4,
                 height=PCB_BOTTOM_Z - REAR_COVER_BOTTOM_Z - REAR_COVER_THICKNESS + 0.1,
                 bottom_face_center=(center[0], center[1], REAR_COVER_BOTTOM_Z + REAR_COVER_THICKNESS - 0.1),
@@ -378,8 +378,8 @@ def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
                 result_tag=f"feature.housing.rear.cover.pcb.standoff{index + 1}",
             )
         )
-    cover = scad.union_rsolid(cover, standoffs, glue=False)
-    phase_aperture = scad.make_box_rsolid(
+    cover = cad.union_rsolid(cover, standoffs, glue=False)
+    phase_aperture = cad.make_box_rsolid(
         width=9.2,
         height=7.2,
         depth=REAR_COVER_THICKNESS + 2.0,
@@ -387,7 +387,7 @@ def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="housing.rear.cover.phase.aperture",
         result_tag="tool.housing.rear.cover.phase.aperture",
     )
-    power_aperture = scad.make_box_rsolid(
+    power_aperture = cad.make_box_rsolid(
         width=9.2,
         height=7.2,
         depth=REAR_COVER_THICKNESS + 2.0,
@@ -395,7 +395,7 @@ def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="housing.rear.cover.power.can.aperture",
         result_tag="tool.housing.rear.cover.power.can.aperture",
     )
-    center_service = scad.make_cylinder_rsolid(
+    center_service = cad.make_cylinder_rsolid(
         radius=3.2,
         height=REAR_COVER_THICKNESS + 2.0,
         bottom_face_center=(0.0, 0.0, REAR_COVER_BOTTOM_Z - 1.0),
@@ -403,7 +403,7 @@ def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="housing.rear.cover.center.service",
         result_tag="tool.housing.rear.cover.center.service",
     )
-    cover = scad.cut_rsolid(
+    cover = cad.cut_rsolid(
         cover,
         phase_aperture,
         power_aperture,
@@ -446,8 +446,8 @@ def make_rear_electronics_cover_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def make_output_bearing_cap_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_output_bearing_cap_rpart(*, material: cad.Material) -> cad.Part:
     """Create the removable paired-bearing cartridge and front cap."""
 
     bearing_clearance_radius = 12.05
@@ -483,8 +483,8 @@ def make_output_bearing_cap_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="housing.output.cap.labyrinth.lip",
         tags=("role.output_labyrinth_lip",),
     )
-    cap = scad.union_rsolid(rear_flange, cartridge, bearing_retainer, outer_lip, glue=False)
-    cap = scad.cut_rsolid(
+    cap = cad.union_rsolid(rear_flange, cartridge, bearing_retainer, outer_lip, glue=False)
+    cap = cad.cut_rsolid(
         cap,
         make_axial_hole_cutters_rsolids(
             count=6,

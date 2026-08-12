@@ -2,7 +2,7 @@
 
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql as Q
 from cadflow.topology import TopoDelta
 from cadflow.tracking import tracked_cut, tracked_union, tracked_extrude
@@ -18,8 +18,8 @@ def proven_event(op: str, event: str):
 
 class TestAutoTagCut(unittest.TestCase):
     def setUp(self):
-        self.body = scad.make_box_rsolid(10, 10, 10)
-        self.tool = scad.make_cylinder_rsolid(
+        self.body = cad.make_box_rsolid(10, 10, 10)
+        self.tool = cad.make_cylinder_rsolid(
             2.0, 15.0, bottom_face_center=(3, 3, -2.5)
         )
 
@@ -62,7 +62,7 @@ class TestAutoTagCut(unittest.TestCase):
             self.assertFalse(
                 any(
                     tag.startswith(("op.", "origin."))
-                    for tag in scad.list_tags(face)
+                    for tag in cad.list_tags(face)
                 )
             )
 
@@ -79,7 +79,7 @@ class TestAutoTagCut(unittest.TestCase):
         self.assertTrue(has_tool)
 
     def test_unmatched_faces_remain_partial_and_unknown(self):
-        solid = scad.make_box_rsolid(1.0, 1.0, 1.0)
+        solid = cad.make_box_rsolid(1.0, 1.0, 1.0)
         tagged = apply_tracking_tags_to_delta(solid, TopoDelta(), op="cut")
 
         for face in tagged.get_faces():
@@ -94,8 +94,8 @@ class TestAutoTagCut(unittest.TestCase):
 
 class TestAutoTagUnion(unittest.TestCase):
     def setUp(self):
-        self.body = scad.make_box_rsolid(10, 10, 10)
-        self.tool = scad.make_cylinder_rsolid(4.0, 10.0, bottom_face_center=(3, 3, 0))
+        self.body = cad.make_box_rsolid(10, 10, 10)
+        self.tool = cad.make_cylinder_rsolid(4.0, 10.0, bottom_face_center=(3, 3, 0))
 
     def test_union_faces_have_typed_operation_evidence(self):
         result = tracked_union(self.body, self.tool, glue=False)
@@ -127,7 +127,7 @@ class TestAutoTagUnion(unittest.TestCase):
 
 class TestAutoTagExtrude(unittest.TestCase):
     def setUp(self):
-        self.profile = scad.make_rectangle_rface(5.0, 3.0)
+        self.profile = cad.make_rectangle_rface(5.0, 3.0)
 
     def test_extrude_roles_are_kernel_proven_without_geometry_guesses(self):
         result = tracked_extrude(self.profile, (0, 0, 1), 10.0)
@@ -149,10 +149,10 @@ class TestAutoTagExtrude(unittest.TestCase):
 
 class TestAutoTagPreservesExisting(unittest.TestCase):
     def test_user_semantics_are_available_only_through_proven_lineage(self):
-        body = scad.make_box_rsolid(10, 10, 10)
+        body = cad.make_box_rsolid(10, 10, 10)
         for face in body.get_faces():
-            scad.apply_tag(face, "role.source_face")
-        tool = scad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
+            cad.apply_tag(face, "role.source_face")
+        tool = cad.make_cylinder_rsolid(2.0, 15.0, bottom_face_center=(3, 3, -2.5))
         result = tracked_cut(body, tool)
         tagged_solid = apply_tracking_tags_to_delta(
             result.solid,
@@ -171,13 +171,13 @@ class TestAutoTagPreservesExisting(unittest.TestCase):
         self.assertTrue(body_descendants)
         self.assertTrue(
             any(
-                "role.source_face" in scad.list_tags(face, scope="lineage")
+                "role.source_face" in cad.list_tags(face, scope="lineage")
                 for face in body_descendants
             )
         )
         self.assertTrue(
             all(
-                "role.source_face" not in scad.list_tags(face, scope="effective")
+                "role.source_face" not in cad.list_tags(face, scope="effective")
                 for face in body_descendants
             )
         )

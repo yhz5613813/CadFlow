@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.inspect import brep
 
 from brep_adapter import heal_same_domain_rsolid
@@ -142,7 +142,7 @@ def main() -> None:
 
     runtime_holder: dict[str, CadFlowFusionAdapter] = {}
 
-    @scad.model(graph_id=f"fusion_reconstruction_{SAMPLE_ID}")
+    @cad.model(graph_id=f"fusion_reconstruction_{SAMPLE_ID}")
     def build_from_agent_tools() -> Any:
         runtime = CadFlowFusionAdapter(design)
         runtime_holder["runtime"] = runtime
@@ -194,7 +194,7 @@ def main() -> None:
                 invoke=runtime.inspect_current,
             )
         body = runtime.require_current()
-        scad.capture_result(value=body)
+        cad.capture_result(value=body)
         return body
 
     model_result = build_from_agent_tools()
@@ -302,8 +302,8 @@ def main() -> None:
     )
 
 
-def _export_and_replay(model_result: scad.ModelResult) -> dict[str, Any]:
-    scad.export_step(shapes=model_result.value, filename=str(CANDIDATE_RAW_STEP))
+def _export_and_replay(model_result: cad.ModelResult) -> dict[str, Any]:
+    cad.export_step(shapes=model_result.value, filename=str(CANDIDATE_RAW_STEP))
     MODEL_JSON.write_text(model_result.model_json, encoding="utf-8")
     replayed = model_result.replay(strict=True)
     replay_volume = sum(shape.get_volume() for shape in replayed) / 1000.0
@@ -325,7 +325,7 @@ def _heal_and_export(
     linear_tolerance_mm: float,
 ) -> dict[str, Any]:
     input_path = Path(input_step).resolve()
-    input_solid = scad.Solid(
+    input_solid = cad.Solid(
         brep.load_step_rshape(
             input_path,
             require_single_root=True,

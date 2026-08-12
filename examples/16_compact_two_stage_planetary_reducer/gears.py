@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql
 
 from common import (
@@ -28,15 +28,15 @@ from dimensions import (
 )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_stage_ring_gear_rpart(
     *,
     stage: StageSpec,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create one fixed internal herringbone ring gear part for a stage."""
 
-    ring = scad.std.gear.make_herringbone_ring_gear_rsolid(
+    ring = cad.std.gear.make_herringbone_ring_gear_rsolid(
         n_teeth=stage.ring_teeth,
         module=MODULE,
         pressure_angle=PRESSURE_ANGLE,
@@ -47,8 +47,8 @@ def make_stage_ring_gear_rpart(
         addendum_factor=ADDENDUM_FACTOR,
         clearance_factor=CLEARANCE_FACTOR,
     )
-    ring = scad.apply_tag(shape=ring, tag=f"solid.reducer.{stage.stage_id}.ring.gear")
-    support = scad.make_cylinder_rsolid(
+    ring = cad.apply_tag(shape=ring, tag=f"solid.reducer.{stage.stage_id}.ring.gear")
+    support = cad.make_cylinder_rsolid(
         radius=HOUSING_INNER_RADIUS,
         height=stage.gear_height,
         bottom_face_center=(0.0, 0.0, 0.0),
@@ -56,7 +56,7 @@ def make_stage_ring_gear_rpart(
         tag_prefix=f"reducer.{stage.stage_id}.ring.support.outer",
         result_tag=f"solid.reducer.{stage.stage_id}.ring.support.outer",
     )
-    support_bore = scad.make_cylinder_rsolid(
+    support_bore = cad.make_cylinder_rsolid(
         radius=stage.ring_outer_radius - FIXED_RING_HOUSING_SUPPORT_OVERLAP,
         height=stage.gear_height + 2.0,
         bottom_face_center=(0.0, 0.0, -1.0),
@@ -64,17 +64,17 @@ def make_stage_ring_gear_rpart(
         tag_prefix=f"reducer.{stage.stage_id}.ring.support.bore",
         result_tag=f"solid.reducer.{stage.stage_id}.ring.support.bore.cutter",
     )
-    support = scad.cut_rsolid(
+    support = cad.cut_rsolid(
         support,
         support_bore,
         skip_non_intersecting=False,
-        tracking_policy=scad.TrackingPolicy.GRAPH,
+        tracking_policy=cad.TrackingPolicy.GRAPH,
     )
-    support = scad.apply_tag(shape=support, tag=f"role.{stage.stage_id}.fixed_ring_housing_support")
-    ring = scad.union_rsolid(
+    support = cad.apply_tag(shape=support, tag=f"role.{stage.stage_id}.fixed_ring_housing_support")
+    ring = cad.union_rsolid(
         [ring, support],
         glue=False,
-        tracking_policy=scad.TrackingPolicy.GRAPH,
+        tracking_policy=cad.TrackingPolicy.GRAPH,
     )
     ring = _apply_tags(
         ring,
@@ -102,16 +102,16 @@ def make_stage_ring_gear_rpart(
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_stage_sun_gear_rpart(
     *,
     stage: StageSpec,
     bore_radius: float,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create one bored external herringbone sun gear part for a stage."""
 
-    sun = scad.std.gear.make_herringbone_gear_rsolid(
+    sun = cad.std.gear.make_herringbone_gear_rsolid(
         n_teeth=stage.sun_teeth,
         module=MODULE,
         pressure_angle=PRESSURE_ANGLE,
@@ -121,7 +121,7 @@ def make_stage_sun_gear_rpart(
         clearance_factor=CLEARANCE_FACTOR,
         backlash=BACKLASH,
     )
-    sun = scad.apply_tag(shape=sun, tag=f"solid.reducer.{stage.stage_id}.sun.gear")
+    sun = cad.apply_tag(shape=sun, tag=f"solid.reducer.{stage.stage_id}.sun.gear")
     sun = _cut_bore_rsolid(
         label=f"{stage.stage_id}_sun_bore",
         solid=sun,
@@ -153,16 +153,16 @@ def make_stage_sun_gear_rpart(
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_stage_planet_gear_rpart(
     *,
     stage: StageSpec,
     bearing: BearingSpec,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create a reusable bored herringbone planet gear part for a stage."""
 
-    planet = scad.std.gear.make_herringbone_gear_rsolid(
+    planet = cad.std.gear.make_herringbone_gear_rsolid(
         n_teeth=stage.planet_teeth,
         module=MODULE,
         pressure_angle=PRESSURE_ANGLE,
@@ -172,7 +172,7 @@ def make_stage_planet_gear_rpart(
         clearance_factor=CLEARANCE_FACTOR,
         backlash=BACKLASH,
     )
-    planet = scad.apply_tag(shape=planet, tag=f"solid.reducer.{stage.stage_id}.planet.gear")
+    planet = cad.apply_tag(shape=planet, tag=f"solid.reducer.{stage.stage_id}.planet.gear")
     bore_radius = bearing.outer_diameter / 2.0 + 0.06
     planet = _cut_bore_rsolid(
         label=f"{stage.stage_id}_planet_bearing_seat",
@@ -211,12 +211,12 @@ def make_stage_planet_gear_rpart(
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_planet_component_rplacement(
     *,
     stage: StageSpec,
     planet_index: int,
-) -> scad.Placement:
+) -> cad.Placement:
     """Return the placed and phased component placement for one planet gear."""
 
     carrier_angle = 360.0 * planet_index / 3.0
@@ -234,15 +234,15 @@ def make_planet_component_rplacement(
     return make_z_rotation_rplacement(origin=center, angle_degrees=planet_spin)
 
 
-@scad.requires_session
+@cad.requires_session
 def _cut_bore_rsolid(
     *,
     label: str,
-    solid: scad.Solid,
+    solid: cad.Solid,
     bore_radius: float,
     tag_prefix: str,
-) -> scad.Solid:
-    cutter = scad.make_cylinder_rsolid(
+) -> cad.Solid:
+    cutter = cad.make_cylinder_rsolid(
         radius=bore_radius,
         height=GEAR_HEIGHT + 2.0,
         bottom_face_center=(0.0, 0.0, -1.0),
@@ -250,21 +250,21 @@ def _cut_bore_rsolid(
         tag_prefix=tag_prefix,
         result_tag=f"solid.{tag_prefix}.cutter",
     )
-    bored = scad.cut_rsolid(
+    bored = cad.cut_rsolid(
         solid,
         cutter,
         skip_non_intersecting=False,
-        tracking_policy=scad.TrackingPolicy.GRAPH,
+        tracking_policy=cad.TrackingPolicy.GRAPH,
     )
-    bored = scad.apply_tag(shape=bored, tag=f"solid.cut.{label}")
+    bored = cad.apply_tag(shape=bored, tag=f"solid.cut.{label}")
     print(f"{label}: bore_radius={bore_radius:.3f} volume={bored.get_volume():.3f}")
     return bored
 
 
-def _ground_gear(*, label: str, solid: scad.Solid) -> None:
+def _ground_gear(*, label: str, solid: cad.Solid) -> None:
     faces = ql.select(items=solid.get_faces()).all()
     edges = ql.select(items=solid.get_edges()).all()
     print(
         f"gear_{label}: faces={len(faces)} edges={len(edges)} "
-        f"volume={solid.get_volume():.3f} tags={','.join(scad.list_tags(shape=solid))}"
+        f"volume={solid.get_volume():.3f} tags={','.join(cad.list_tags(shape=solid))}"
     )

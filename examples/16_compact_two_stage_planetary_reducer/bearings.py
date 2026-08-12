@@ -4,22 +4,22 @@ from __future__ import annotations
 
 import math
 
-import cadflow as scad
+import cadflow as cad
 
 from common import make_z_rotation_rplacement
 from dimensions import BearingSpec, PLANET_COUNT, StageSpec
 
 
-@scad.requires_session
+@cad.requires_session
 def make_radial_ball_bearing_rassembly(
     *,
     bearing_id: str,
     spec: BearingSpec,
     tag_prefix: str,
-) -> scad.Assembly:
+) -> cad.Assembly:
     """Create a standard radial ball bearing assembly for reducer placement."""
 
-    bearing = scad.std.bearing.make_ball_bearing_rassembly(
+    bearing = cad.std.bearing.make_ball_bearing_rassembly(
         bore_diameter=spec.bore_diameter,
         outer_diameter=spec.outer_diameter,
         bearing_width=spec.width,
@@ -32,11 +32,11 @@ def make_radial_ball_bearing_rassembly(
     )
     meta = bearing.get_metadata("std.bearing.ball_bearing")
     outer_ring = bearing.get_component("outer_ring").item.body
-    outer_ring = scad.apply_tag(shape=outer_ring, tag=f"solid.{tag_prefix}.outer.ring")
+    outer_ring = cad.apply_tag(shape=outer_ring, tag=f"solid.{tag_prefix}.outer.ring")
     inner_ring = bearing.get_component("inner_ring").item.body
-    inner_ring = scad.apply_tag(shape=inner_ring, tag=f"solid.{tag_prefix}.inner.ring")
+    inner_ring = cad.apply_tag(shape=inner_ring, tag=f"solid.{tag_prefix}.inner.ring")
     rolling_element = bearing.get_component(meta["ball_component_ids"][0]).item.body
-    scad.apply_tag(shape=rolling_element, tag=f"solid.{tag_prefix}.rolling.element")
+    cad.apply_tag(shape=rolling_element, tag=f"solid.{tag_prefix}.rolling.element")
     print(
         f"bearing_{bearing_id}: components={len(bearing.component_ids())} balls={meta['ball_count']} "
         f"od={spec.outer_diameter:.2f} bore={spec.bore_diameter:.2f} width={spec.width:.2f}"
@@ -48,15 +48,15 @@ def make_radial_ball_bearing_rassembly(
     return bearing
 
 
-@scad.requires_session
-def make_coaxial_bearing_rplacement(*, z: float) -> scad.Placement:
+@cad.requires_session
+def make_coaxial_bearing_rplacement(*, z: float) -> cad.Placement:
     """Return a coaxial bearing placement at the requested axial center."""
 
     return make_z_rotation_rplacement(origin=(0.0, 0.0, z), angle_degrees=0.0)
 
 
-@scad.requires_session
-def make_planet_bearing_rplacements(*, stage: StageSpec) -> list[scad.Placement]:
+@cad.requires_session
+def make_planet_bearing_rplacements(*, stage: StageSpec) -> list[cad.Placement]:
     """Return placed bearing placements centered in all planets of one stage."""
 
     placements = []

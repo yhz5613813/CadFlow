@@ -250,8 +250,6 @@ def _ignore_common_noise(_: str, names: list[str]) -> list[str]:
             continue
         if name in {
             "architecture",
-            "rearchitecture_2_0.md",
-            "rearchitecture_2_0_requirements.md",
             "operation_graph_json_spec.md",
         }:
             ignored.append(name)
@@ -546,7 +544,7 @@ class SkillPackager:
             ## Standard Parts Library
             - CadFlow includes a standard library for parameterized mechanical parts.
             - When the user needs a standard part and does not require complex custom geometry changes, use a standard-library function first.
-            - Current package-level standard-library surfaces include `scad.std.gear` for involute gears, internal ring gears, racks, and cycloidal discs, plus `scad.std.bearing` for ball bearing assemblies.
+            - Current package-level standard-library surfaces include `cad.std.gear` for involute gears, internal ring gears, racks, and cycloidal discs, plus `cad.std.bearing` for ball bearing assemblies.
             - Read `references/docs/stdlib/README.md` to discover standard-library functions.
             - Read `references/docs/stdlib/<function_name>.md` before calling a standard-library function.
             - Standard-library functions return normal CadFlow shapes or product assemblies that can be transformed, tagged, assembled, exported, and used with graph/model JSON workflows.
@@ -594,19 +592,19 @@ class SkillPackager:
             ## Example SDK usage
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
             from cadflow import ModelResult, capture_result, model, requires_session
             ```
 
             Typical replayable usage in a Python script:
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
 
-            @scad.model(graph_id="box")
+            @cad.model(graph_id="box")
             def build_box():
-                shape = scad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
-                scad.capture_result(value=shape)
+                shape = cad.make_box_rsolid(width=10.0, height=20.0, depth=30.0)
+                cad.capture_result(value=shape)
                 return shape
 
             result = build_box()
@@ -654,7 +652,7 @@ class SkillPackager:
             "## Main SDK surfaces",
             "",
             "- Geometry and modeling operations in `docs/api/`.",
-            "- Standard parts library in `docs/stdlib/`, including `scad.std.gear` gear, ring gear, rack, and cycloidal disc factories plus `scad.std.bearing` bearing assembly factories.",
+            "- Standard parts library in `docs/stdlib/`, including `cad.std.gear` gear, ring gear, rack, and cycloidal disc factories plus `cad.std.bearing` bearing assembly factories.",
             "- Core shape/type semantics in `docs/core/`.",
             "- Graph/model serialization and replay APIs.",
             "- Expression, parameter, and semantic reference types.",
@@ -685,22 +683,22 @@ class SkillPackager:
             ## Standard Parts Surface
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
 
-            gear = scad.std.gear.make_spur_gear_rsolid(
+            gear = cad.std.gear.make_spur_gear_rsolid(
                 n_teeth=24,
                 module=1.5,
                 gear_height=8.0,
             )
-            ring = scad.std.gear.make_spur_ring_gear_rsolid(
+            ring = cad.std.gear.make_spur_ring_gear_rsolid(
                 n_teeth=72,
                 module=1.5,
                 gear_height=8.0,
                 rim_thickness=4.0,
                 backlash=0.08 * 1.5,
             )
-            rack = scad.std.gear.make_spur_rack_rsolid(module=1.5, n_teeth=18)
-            bearing = scad.std.bearing.make_ball_bearing_rassembly(
+            rack = cad.std.gear.make_spur_rack_rsolid(module=1.5, n_teeth=18)
+            bearing = cad.std.bearing.make_ball_bearing_rassembly(
                 8.0,
                 22.0,
                 7.0,
@@ -713,13 +711,13 @@ class SkillPackager:
             ## Tagging Surface
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
 
-            body = scad.make_box_rsolid(width=10.0, height=20.0, depth=3.0)
-            scad.apply_tag(shape=body, tag="role.mounting_plate")
+            body = cad.make_box_rsolid(width=10.0, height=20.0, depth=3.0)
+            cad.apply_tag(shape=body, tag="role.mounting_plate")
             body.auto_tag_faces("box")
 
-            top_faces = [face for face in body.get_faces() if "face.top" in scad.list_tags(shape=face)]
+            top_faces = [face for face in body.get_faces() if "face.top" in cad.list_tags(shape=face)]
             print(len(top_faces))
             ```
 
@@ -737,12 +735,12 @@ class SkillPackager:
             ## Typical replayable surface
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
 
-            @scad.model(graph_id="demo")
+            @cad.model(graph_id="demo")
             def build_model():
                 result = ...
-                scad.capture_result(value=result)
+                cad.capture_result(value=result)
                 return result
 
             model = build_model()
@@ -766,7 +764,7 @@ class SkillPackager:
             - Use the standard parts library first when a requested standard component is available and does not need complex custom geometry changes.
             - Start from profiles and reference geometry, then create solids with features such as extrude, revolve, loft, and sweep.
             - Use booleans and detail features after the base form is clear: cut openings, union intended merged bodies, then apply fillets, chamfers, or shell operations.
-            - Use `@scad.model` for a top-level replayable entry point. It owns one `GraphSession` and returns a `ModelResult`; use `@scad.requires_session` for child builders.
+            - Use `@cad.model` for a top-level replayable entry point. It owns one `GraphSession` and returns a `ModelResult`; use `@cad.requires_session` for child builders.
             - Use QL for grounding and selection. Query the facts you need, such as face normals, centers, areas, edge lengths, curve types, and tags.
             - Use indexed child-geometry getters such as `get_edges(index)` and `get_faces(index)` when an indexed topology pick is intentional.
             - Use semantic tags for design intent and anchors. Keep numeric measurements and geometry facts in metadata or model JSON payloads.
@@ -776,12 +774,12 @@ class SkillPackager:
             ## 1) Capture a replayable modeling flow
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
 
-            @scad.model(graph_id="bracket")
+            @cad.model(graph_id="bracket")
             def build_bracket():
-                body = scad.make_box_rsolid(width=20.0, height=10.0, depth=3.0)
-                scad.capture_result(value=body)
+                body = cad.make_box_rsolid(width=20.0, height=10.0, depth=3.0)
+                cad.capture_result(value=body)
                 return body
 
             result = build_bracket()
@@ -792,7 +790,7 @@ class SkillPackager:
             ## 2) Import and use in Python
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
             ```
 
             ## 3) Keep replay payloads as the interchange boundary
@@ -804,15 +802,15 @@ class SkillPackager:
             ## 4) Use standard parts when they fit
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
 
-            gear = scad.std.gear.make_spur_gear_rsolid(
+            gear = cad.std.gear.make_spur_gear_rsolid(
                 n_teeth=24,
                 module=1.5,
                 gear_height=8.0,
             )
-            rack = scad.std.gear.make_spur_rack_rsolid(module=1.5, n_teeth=18)
-            bearing = scad.std.bearing.make_ball_bearing_rassembly(
+            rack = cad.std.gear.make_spur_rack_rsolid(module=1.5, n_teeth=18)
+            bearing = cad.std.bearing.make_ball_bearing_rassembly(
                 bore_diameter=8.0,
                 outer_diameter=22.0,
                 bearing_width=7.0,
@@ -827,13 +825,13 @@ class SkillPackager:
             ## 5) QL-grounded feature workflow
 
             ```python
-            import cadflow as scad
+            import cadflow as cad
             from cadflow import ql
 
-            @scad.model(graph_id="swept_profile")
+            @cad.model(graph_id="swept_profile")
             def build_model():
-                profile = scad.make_circle_rface(center=(0, 0, 0), radius=1.0)
-                body = scad.extrude_rsolid(
+                profile = cad.make_circle_rface(center=(0, 0, 0), radius=1.0)
+                body = cad.extrude_rsolid(
                     profile=profile,
                     direction=(0, 0, 1),
                     distance=4.0,
@@ -847,9 +845,9 @@ class SkillPackager:
                     .resolve(body)[0]
                 )
                 print("end face center", end_face.get_center())
-                path = scad.make_segment_rwire(start=(0, 0, 4), end=(0, 0, 8))
-                swept = scad.sweep_rsolid(profile=end_face, path=path)
-                scad.capture_result(value=swept)
+                path = cad.make_segment_rwire(start=(0, 0, 4), end=(0, 0, 8))
+                swept = cad.sweep_rsolid(profile=end_face, path=path)
+                cad.capture_result(value=swept)
                 return swept
 
             result = build_model()

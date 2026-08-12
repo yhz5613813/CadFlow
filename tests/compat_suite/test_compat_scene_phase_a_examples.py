@@ -46,7 +46,7 @@ import json
 from pathlib import Path
 import sys
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.product import Assembly
 
 path = Path(sys.argv[1]).resolve()
@@ -105,11 +105,11 @@ if path.name == "10_part_assembly.py":
                 for index, face in enumerate(faces)
                 if not any(
                     tag.startswith(prefix)
-                    for tag in scad.list_tags(face, scope="local")
+                    for tag in cad.list_tags(face, scope="local")
                 )
             ],
             "connector_face_count": len(
-                scad.select_faces_by_tag(
+                cad.select_faces_by_tag(
                     part.body,
                     connector_face_tag,
                     scope="local",

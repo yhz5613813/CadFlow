@@ -23,12 +23,12 @@ Use the public surface operations rather than constructing `Shell` from an OCP o
 - [`fill_holes_rshell`](../api/fill_holes_rshell.md) fills every free boundary loop.
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-lower = scad.make_circle_rwire((0, 0, 0), 2.0)
-upper = scad.make_circle_rwire((0, 0, 5), 1.0)
+lower = cad.make_circle_rwire((0, 0, 0), 2.0)
+upper = cad.make_circle_rwire((0, 0, 5), 1.0)
 
-open_shell = scad.loft_rshell(
+open_shell = cad.loft_rshell(
     [lower, upper],
     start_wire_tag="anchor.inlet",
     end_wire_tag="anchor.outlet",
@@ -36,9 +36,9 @@ open_shell = scad.loft_rshell(
 )
 assert not open_shell.is_closed()
 assert len(open_shell.get_wires()) == 2
-assert len(scad.ql.wires().where(scad.ql.tag("anchor.inlet")).resolve(open_shell)) == 1
+assert len(cad.ql.wires().where(cad.ql.tag("anchor.inlet")).resolve(open_shell)) == 1
 
-closed_shell = scad.fill_holes_rshell(open_shell)
+closed_shell = cad.fill_holes_rshell(open_shell)
 assert closed_shell.is_closed()
 ```
 

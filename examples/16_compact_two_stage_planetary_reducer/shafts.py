@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-import cadflow as scad
+import cadflow as cad
 
 from common import _apply_tags, add_placement_axis_connector_rpart, make_axis_part_rpart
 from dimensions import INPUT_BEARING_Z, INPUT_FLANGE_TOP_Z, INPUT_SHAFT_RADIUS, STAGE_1
 
 
-@scad.requires_session
-def make_input_shaft_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_input_shaft_rpart(*, material: cad.Material) -> cad.Part:
     """Create the input shaft linking the input flange and stage 1 sun."""
 
     height = STAGE_1.top_z - INPUT_FLANGE_TOP_Z
-    shaft = scad.make_cylinder_rsolid(
+    shaft = cad.make_cylinder_rsolid(
         radius=INPUT_SHAFT_RADIUS,
         height=height,
         bottom_face_center=(0.0, 0.0, INPUT_FLANGE_TOP_Z),

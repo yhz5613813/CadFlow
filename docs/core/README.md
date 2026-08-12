@@ -40,11 +40,6 @@ A closed 3D body with volume, faces, edges, tags, and metadata.
 #### [Compound](compound.md)
 A collection wrapper for multiple geometry objects.
 
-### Product semantics roadmap
-
-#### [Part and Assembly Development Plan](part_assembly_development_plan.md)
-Planned single-body `Part`, material assignment, component placement, and `Assembly` semantics layered above the current topology/geometry and operation graph model.
-
 ## Relationship Diagram
 
 ```text
@@ -66,25 +61,25 @@ SimpleWorkplane  ← local modeling context
 - **Shape-first API**: users work with `Vertex`, `Edge`, `Wire`, `Face`, `Shell`, and `Solid`, not graph nodes.
 - **Functional modeling style**: public operations return new geometry values, e.g. `make_box_rsolid(...)`, `cut_rsolid(...)`, `fillet_rsolid(...)`.
 - **OCP-native runtime**: geometry construction, topology traversal, properties, booleans, transforms, and export use OCP/OpenCascade helpers.
-- **Replayable graph workflows**: `@scad.model` owns one `GraphSession` and returns a `ModelResult`; `@scad.requires_session` composes child builders, and `scad.capture_result()` selects canonical output nodes for replay and export.
+- **Replayable graph workflows**: `@cad.model` owns one `GraphSession` and returns a `ModelResult`; `@cad.requires_session` composes child builders, and `cad.capture_result()` selects canonical output nodes for replay and export.
 - **Tags and metadata**: tags are useful for lightweight semantics; structured numeric facts should be stored in metadata such as `metadata["geo"]`.
 - **Indexed topology access**: use plural methods such as `get_edges()` and `get_faces()` for enumeration, and pass an index to the same getter, such as `get_edges(index)` or `get_faces(index)`, for intentional indexed picks that should become graph selection nodes.
 
 ## Basic Usage
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-with scad.SimpleWorkplane(origin=(0, 0, 0)):
-    box = scad.make_box_rsolid(width=5, height=3, depth=2)
+with cad.SimpleWorkplane(origin=(0, 0, 0)):
+    box = cad.make_box_rsolid(width=5, height=3, depth=2)
 
-scad.apply_tag(shape=box, tag="role.bracket")
+cad.apply_tag(shape=box, tag="role.bracket")
 box.set_metadata("material", "6061-T6")
 box.auto_tag_faces("box")
 
 top_faces = [
     face for face in box.get_faces()
-    if "face.top" in scad.list_tags(shape=face)
+    if "face.top" in cad.list_tags(shape=face)
 ]
 print(len(top_faces))
 ```
@@ -92,16 +87,16 @@ print(len(top_faces))
 ## Replayable Model JSON
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-@scad.model(graph_id="drilled_block")
+@cad.model(graph_id="drilled_block")
 def build_model():
-    body = scad.make_box_rsolid(width=10, height=10, depth=4)
-    hole = scad.make_cylinder_rsolid(
+    body = cad.make_box_rsolid(width=10, height=10, depth=4)
+    hole = cad.make_cylinder_rsolid(
         radius=1.5, height=8, bottom_face_center=(0, 0, -2)
     )
-    part = scad.cut_rsolid(body, hole)
-    scad.capture_result(value=part)
+    part = cad.cut_rsolid(body, hole)
+    cad.capture_result(value=part)
     return part
 
 result = build_model()
@@ -112,6 +107,7 @@ print(len(rebuilt))
 ## More Resources
 
 - [API Reference Documentation](../api/)
+- [Static Flexible Material Modeling](../flexible-modeling.md)
 - [Examples](../../examples/)
 - [User Guide](../../README.md)
 - [JSON Operation Graph Spec](operation_graph_json_spec.md)

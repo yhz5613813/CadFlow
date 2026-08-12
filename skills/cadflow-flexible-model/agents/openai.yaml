@@ -1,0 +1,4 @@
+interface:
+  display_name: "CadFlow Flexible Modeling"
+  short_description: "Build static flexible panels and shells"
+  default_prompt: "Use $cadflow-flexible-model to build and validate a static flexible-material mesh from a design description, then export and render it."

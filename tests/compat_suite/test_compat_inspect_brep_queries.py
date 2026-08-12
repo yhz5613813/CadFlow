@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 import pytest
-import cadflow as scad
+import cadflow as cad
 from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut
 from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder
 from OCP.gp import gp_Ax2, gp_Dir, gp_Pnt
@@ -250,7 +250,7 @@ def test_face_boundaries_compact_mode_preserves_order_without_samples():
 
 
 def test_compact_boundaries_return_selected_exact_curve_definitions():
-    spline = scad.make_spline_redge(
+    spline = cad.make_spline_redge(
         control_points=[
             (0.0, 0.0, 0.0),
             (1.0, 1.0, 0.0),
@@ -261,11 +261,11 @@ def test_compact_boundaries_return_selected_exact_curve_definitions():
     )
     edges = [
         spline,
-        scad.make_line_redge((3.0, 0.0, 0.0), (3.0, -1.0, 0.0)),
-        scad.make_line_redge((3.0, -1.0, 0.0), (0.0, -1.0, 0.0)),
-        scad.make_line_redge((0.0, -1.0, 0.0), (0.0, 0.0, 0.0)),
+        cad.make_line_redge((3.0, 0.0, 0.0), (3.0, -1.0, 0.0)),
+        cad.make_line_redge((3.0, -1.0, 0.0), (0.0, -1.0, 0.0)),
+        cad.make_line_redge((0.0, -1.0, 0.0), (0.0, 0.0, 0.0)),
     ]
-    face = scad.make_face_from_wire_rface(scad.make_wire_from_edges_rwire(edges))
+    face = cad.make_face_from_wire_rface(cad.make_wire_from_edges_rwire(edges))
     model = index_shape_rbrepmodel(face.wrapped)
     spline_id = next(
         f"edge:{index}"

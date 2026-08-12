@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import cadflow as scad
+import cadflow as cad
 
 try:
     from .common import (
@@ -76,49 +76,49 @@ except ImportError:  # Support direct execution from this example directory.
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_bldc_stator_rassembly(
     *,
-    steel_material: scad.Material,
-    copper_material: scad.Material,
-) -> scad.Assembly:
+    steel_material: cad.Material,
+    copper_material: cad.Material,
+) -> cad.Assembly:
     """Build a laminated 12-slot stator and twelve fixed winding packs."""
 
     core = _make_stator_core_rpart(material=steel_material)
     winding = _make_winding_pack_rpart(material=copper_material)
-    stator = scad.make_assembly_rassembly(
+    stator = cad.make_assembly_rassembly(
         assembly_id="bldc_12_slot_stator",
         name="12-slot laminated stator with discrete copper slot packs",
     )
-    stator = scad.add_component_rassembly(
+    stator = cad.add_component_rassembly(
         assembly=stator,
         item=core,
         component_id="stator_core",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
         name="Laminated stator core",
     )
-    stator = scad.ground_component_rassembly(assembly=stator, component_id="stator_core")
+    stator = cad.ground_component_rassembly(assembly=stator, component_id="stator_core")
     for index, angle, _center in radial_centers(
         count=MOTOR_SLOT_COUNT,
         radius=0.0,
         angle_offset=0.0,
     ):
         component_id = f"winding_{index + 1:02d}"
-        stator = scad.add_component_rassembly(
+        stator = cad.add_component_rassembly(
             assembly=stator,
             item=winding,
             component_id=component_id,
             placement=make_z_rotation_rplacement(origin=(0.0, 0.0, 0.0), angle_degrees=angle),
             name=f"Slot winding pack {index + 1}",
         )
-        stator = scad.add_fixed_constraint_rassembly(
+        stator = cad.add_fixed_constraint_rassembly(
             assembly=stator,
             constraint_id=f"{component_id}_potted_to_core",
             connector_a=connector_ref(component_id="stator_core", connector_id=component_id),
             connector_b=connector_ref(component_id=component_id, connector_id="mount_axis"),
             name=f"Winding {index + 1} varnish and potting retention",
         )
-    stator = scad.forward_connector_rassembly(
+    stator = cad.forward_connector_rassembly(
         assembly=stator,
         connector_id="shell_axis",
         source_component_id="stator_core",
@@ -126,43 +126,43 @@ def make_bldc_stator_rassembly(
         name="Stator press-fit axis",
         offset=None,
     )
-    stator = scad.solve_assembly_constraints_rassembly(assembly=stator, strict=True)
+    stator = cad.solve_assembly_constraints_rassembly(assembly=stator, strict=True)
     ground_constraint_report(label="stator", assembly=stator)
     return stator
 
 
-@scad.requires_session
+@cad.requires_session
 def make_bldc_rotor_rassembly(
     *,
-    steel_material: scad.Material,
-    magnet_material: scad.Material,
-) -> scad.Assembly:
+    steel_material: cad.Material,
+    magnet_material: cad.Material,
+) -> cad.Assembly:
     """Build the rotor, bonded magnets, shaft, and integrated stage-1 sun."""
 
     core = _make_rotor_shaft_sun_rpart(material=steel_material)
     magnet = _make_rotor_magnet_rpart(material=magnet_material)
-    rotor = scad.make_assembly_rassembly(
+    rotor = cad.make_assembly_rassembly(
         assembly_id="direct_coupled_bldc_rotor",
         name="14-pole BLDC rotor with integrated stage-1 sun shaft",
     )
-    rotor = scad.add_component_rassembly(
+    rotor = cad.add_component_rassembly(
         assembly=rotor,
         item=core,
         component_id="rotor_core_shaft_sun",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
         name="Rotor back iron, shaft, and stage-1 sun",
     )
-    rotor = scad.ground_component_rassembly(assembly=rotor, component_id="rotor_core_shaft_sun")
+    rotor = cad.ground_component_rassembly(assembly=rotor, component_id="rotor_core_shaft_sun")
     for index, angle, _center in radial_centers(count=MOTOR_POLE_COUNT, radius=0.0):
         component_id = f"magnet_{index + 1:02d}"
-        rotor = scad.add_component_rassembly(
+        rotor = cad.add_component_rassembly(
             assembly=rotor,
             item=magnet,
             component_id=component_id,
             placement=make_z_rotation_rplacement(origin=(0.0, 0.0, 0.0), angle_degrees=angle),
             name=f"Bonded rotor magnet {index + 1}",
         )
-        rotor = scad.add_fixed_constraint_rassembly(
+        rotor = cad.add_fixed_constraint_rassembly(
             assembly=rotor,
             constraint_id=f"{component_id}_bonded_to_rotor",
             connector_a=connector_ref(component_id="rotor_core_shaft_sun", connector_id=component_id),
@@ -175,7 +175,7 @@ def make_bldc_rotor_rassembly(
         "front_bearing_axis",
         "stage1_sun_axis",
     ):
-        rotor = scad.forward_connector_rassembly(
+        rotor = cad.forward_connector_rassembly(
             assembly=rotor,
             connector_id=connector_id,
             source_component_id="rotor_core_shaft_sun",
@@ -183,7 +183,7 @@ def make_bldc_rotor_rassembly(
             name=connector_id.replace("_", " "),
             offset=None,
         )
-    rotor = scad.solve_assembly_constraints_rassembly(assembly=rotor, strict=True)
+    rotor = cad.solve_assembly_constraints_rassembly(assembly=rotor, strict=True)
     ground_constraint_report(label="rotor", assembly=rotor)
     print(
         f"rotor_direct_coupling: shaft_d={MOTOR_SHAFT_RADIUS * 2.0:.1f} "
@@ -192,8 +192,8 @@ def make_bldc_rotor_rassembly(
     return rotor
 
 
-@scad.requires_session
-def _make_stator_core_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def _make_stator_core_rpart(*, material: cad.Material) -> cad.Part:
     yoke = make_annulus_rsolid(
         outer_radius=MOTOR_STATOR_OUTER_RADIUS,
         inner_radius=MOTOR_STATOR_YOKE_INNER_RADIUS,
@@ -206,7 +206,7 @@ def _make_stator_core_rpart(*, material: scad.Material) -> scad.Part:
     tooth_center_radius = MOTOR_STATOR_TOOTH_INNER_RADIUS + tooth_length / 2.0
     teeth = []
     for index, angle, _center in radial_centers(count=MOTOR_SLOT_COUNT, radius=0.0):
-        tooth = scad.make_box_rsolid(
+        tooth = cad.make_box_rsolid(
             width=tooth_length,
             height=MOTOR_STATOR_TOOTH_WIDTH,
             depth=MOTOR_STATOR_TOP_Z - MOTOR_STATOR_BOTTOM_Z,
@@ -215,14 +215,14 @@ def _make_stator_core_rpart(*, material: scad.Material) -> scad.Part:
             result_tag=f"feature.motor.stator.tooth{index + 1}",
         )
         teeth.append(
-            scad.rotate_shape(
+            cad.rotate_shape(
                 shape=tooth,
                 angle=angle,
                 axis=(0.0, 0.0, 1.0),
                 origin=(0.0, 0.0, 0.0),
             )
         )
-    core = scad.union_rsolid(yoke, teeth, glue=False)
+    core = cad.union_rsolid(yoke, teeth, glue=False)
     core = apply_tags(
         shape=core,
         tags=("role.stator_core", "role.stator_thermal_path", "group.bldc_motor"),
@@ -247,12 +247,12 @@ def _make_stator_core_rpart(*, material: scad.Material) -> scad.Part:
         angle_offset=0.0,
     ):
         rotation = make_z_rotation_rplacement(origin=(0.0, 0.0, 0.0), angle_degrees=angle)
-        connector = scad.make_placement_connector_rconnector(
+        connector = cad.make_placement_connector_rconnector(
             connector_id=f"winding_{index + 1:02d}",
             placement=rotation,
             name=f"Slot winding {index + 1} retention datum",
         )
-        part = scad.add_connector_rpart(part=part, connector=connector)
+        part = cad.add_connector_rpart(part=part, connector=connector)
     print(
         f"stator_core_geometry: slots={MOTOR_SLOT_COUNT} active_length="
         f"{MOTOR_STATOR_TOP_Z - MOTOR_STATOR_BOTTOM_Z:.1f} radial_fit_clearance="
@@ -261,11 +261,11 @@ def _make_stator_core_rpart(*, material: scad.Material) -> scad.Part:
     return part
 
 
-@scad.requires_session
-def _make_winding_pack_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def _make_winding_pack_rpart(*, material: cad.Material) -> cad.Part:
     side_depth = MOTOR_STATOR_TOP_Z - MOTOR_STATOR_BOTTOM_Z + 0.4
     side_bottom_z = MOTOR_STATOR_BOTTOM_Z - 0.2
-    side_positive = scad.make_box_rsolid(
+    side_positive = cad.make_box_rsolid(
         width=4.2,
         height=1.2,
         depth=side_depth,
@@ -273,7 +273,7 @@ def _make_winding_pack_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="motor.winding.side.positive",
         result_tag="feature.motor.winding.side.positive",
     )
-    side_negative = scad.make_box_rsolid(
+    side_negative = cad.make_box_rsolid(
         width=4.2,
         height=1.2,
         depth=side_depth,
@@ -281,7 +281,7 @@ def _make_winding_pack_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="motor.winding.side.negative",
         result_tag="feature.motor.winding.side.negative",
     )
-    rear_end_turn = scad.make_box_rsolid(
+    rear_end_turn = cad.make_box_rsolid(
         width=4.2,
         height=5.4,
         depth=0.9,
@@ -289,7 +289,7 @@ def _make_winding_pack_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="motor.winding.rear.end.turn",
         result_tag="feature.motor.winding.rear.end.turn",
     )
-    front_end_turn = scad.make_box_rsolid(
+    front_end_turn = cad.make_box_rsolid(
         width=4.2,
         height=5.4,
         depth=0.9,
@@ -297,7 +297,7 @@ def _make_winding_pack_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="motor.winding.front.end.turn",
         result_tag="feature.motor.winding.front.end.turn",
     )
-    winding = scad.union_rsolid(
+    winding = cad.union_rsolid(
         side_positive,
         side_negative,
         rear_end_turn,
@@ -317,10 +317,10 @@ def _make_winding_pack_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def _make_rotor_shaft_sun_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def _make_rotor_shaft_sun_rpart(*, material: cad.Material) -> cad.Part:
     shaft_bottom_z = REAR_BEARING_CENTER_Z - 3.0
-    shaft = scad.make_cylinder_rsolid(
+    shaft = cad.make_cylinder_rsolid(
         radius=MOTOR_SHAFT_RADIUS,
         height=STAGE_1.top_z - shaft_bottom_z,
         bottom_face_center=(0.0, 0.0, shaft_bottom_z),
@@ -328,7 +328,7 @@ def _make_rotor_shaft_sun_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="motor.rotor.drive.shaft",
         result_tag="feature.motor.rotor.drive.shaft",
     )
-    back_iron = scad.make_cylinder_rsolid(
+    back_iron = cad.make_cylinder_rsolid(
         radius=MOTOR_ROTOR_BACKIRON_RADIUS,
         height=MOTOR_ROTOR_TOP_Z - MOTOR_ROTOR_BOTTOM_Z,
         bottom_face_center=(0.0, 0.0, MOTOR_ROTOR_BOTTOM_Z),
@@ -336,7 +336,7 @@ def _make_rotor_shaft_sun_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="motor.rotor.back.iron",
         result_tag="feature.motor.rotor.back.iron",
     )
-    sun = scad.std.gear.make_herringbone_gear_rsolid(
+    sun = cad.std.gear.make_herringbone_gear_rsolid(
         n_teeth=STAGE_1.sun_teeth,
         module=STAGE_1.module,
         pressure_angle=PRESSURE_ANGLE,
@@ -346,12 +346,12 @@ def _make_rotor_shaft_sun_rpart(*, material: scad.Material) -> scad.Part:
         clearance_factor=CLEARANCE_FACTOR,
         backlash=BACKLASH,
     )
-    sun = scad.apply_tag(
+    sun = cad.apply_tag(
         shape=sun,
         tag="solid.stdlib.stage1.integral.herringbone.sun.gear",
     )
-    sun = scad.translate_shape(shape=sun, vector=(0.0, 0.0, STAGE_1.bottom_z))
-    rotor = scad.union_rsolid(shaft, back_iron, sun, glue=False)
+    sun = cad.translate_shape(shape=sun, vector=(0.0, 0.0, STAGE_1.bottom_z))
+    rotor = cad.union_rsolid(shaft, back_iron, sun, glue=False)
     rotor = apply_tags(
         shape=rotor,
         tags=("role.rotor_back_iron", "role.direct_drive_shaft", "role.stage1.sun_gear", "group.bldc_motor"),
@@ -369,21 +369,21 @@ def _make_rotor_shaft_sun_rpart(*, material: scad.Material) -> scad.Part:
         ),
     )
     for index, angle, _center in radial_centers(count=MOTOR_POLE_COUNT, radius=0.0):
-        connector = scad.make_placement_connector_rconnector(
+        connector = cad.make_placement_connector_rconnector(
             connector_id=f"magnet_{index + 1:02d}",
             placement=make_z_rotation_rplacement(origin=(0.0, 0.0, 0.0), angle_degrees=angle),
             name=f"Magnet {index + 1} bond datum",
         )
-        part = scad.add_connector_rpart(part=part, connector=connector)
+        part = cad.add_connector_rpart(part=part, connector=connector)
     return part
 
 
-@scad.requires_session
-def _make_rotor_magnet_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def _make_rotor_magnet_rpart(*, material: cad.Material) -> cad.Part:
     half_width = MOTOR_MAGNET_TANGENTIAL_WIDTH / 2.0
     outer_x = (MOTOR_MAGNET_OUTER_RADIUS**2 - half_width**2) ** 0.5
     radial_depth = outer_x - MOTOR_ROTOR_BACKIRON_RADIUS + 0.05
-    magnet = scad.make_box_rsolid(
+    magnet = cad.make_box_rsolid(
         width=radial_depth,
         height=MOTOR_MAGNET_TANGENTIAL_WIDTH,
         depth=MOTOR_ROTOR_TOP_Z - MOTOR_ROTOR_BOTTOM_Z,

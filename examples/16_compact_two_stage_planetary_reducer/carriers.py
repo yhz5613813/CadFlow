@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-import cadflow as scad
+import cadflow as cad
 
 from common import _apply_tags, add_placement_axis_connector_rpart, make_axis_part_rpart
 from dimensions import (
@@ -35,12 +35,12 @@ from dimensions import (
 )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_stage_carrier_rpart(
     *,
     stage: StageSpec,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create one carrier with three planet pins and any coaxial drive shaft."""
 
     if stage.stage_id == "stage1":
@@ -145,7 +145,7 @@ def make_stage_carrier_rpart(
     return part
 
 
-@scad.requires_session
+@cad.requires_session
 def _make_carrier_solid_rsolid(
     *,
     stage: StageSpec,
@@ -160,8 +160,8 @@ def _make_carrier_solid_rsolid(
     central_shaft_radius: float,
     central_shaft_top_z: float,
     tag_prefix: str,
-) -> scad.Solid:
-    hub = scad.make_cylinder_rsolid(
+) -> cad.Solid:
+    hub = cad.make_cylinder_rsolid(
         radius=hub_radius,
         height=plate_thickness,
         bottom_face_center=(0.0, 0.0, plate_bottom_z),
@@ -173,7 +173,7 @@ def _make_carrier_solid_rsolid(
 
     shaft_bottom_z = plate_bottom_z - 0.05
     solids.append(
-        scad.make_cylinder_rsolid(
+        cad.make_cylinder_rsolid(
             radius=central_shaft_radius,
             height=central_shaft_top_z - shaft_bottom_z,
             bottom_face_center=(0.0, 0.0, shaft_bottom_z),
@@ -199,7 +199,7 @@ def _make_carrier_solid_rsolid(
         carrier_angle = 360.0 * index / PLANET_COUNT
         center_xy = _planet_center(stage=stage, planet_index=index)
 
-        arm = scad.make_box_rsolid(
+        arm = cad.make_box_rsolid(
             width=arm_length,
             height=arm_width,
             depth=plate_thickness,
@@ -208,7 +208,7 @@ def _make_carrier_solid_rsolid(
             result_tag=f"solid.{tag_prefix}.arm.i{index + 1}",
         )
         if abs(carrier_angle) > 1.0e-9:
-            arm = scad.rotate_shape(
+            arm = cad.rotate_shape(
                 shape=arm,
                 angle=carrier_angle,
                 axis=(0.0, 0.0, 1.0),
@@ -216,7 +216,7 @@ def _make_carrier_solid_rsolid(
             )
         solids.append(arm)
         solids.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=pad_radius,
                 height=plate_thickness,
                 bottom_face_center=(center_xy[0], center_xy[1], plate_bottom_z),
@@ -226,7 +226,7 @@ def _make_carrier_solid_rsolid(
             )
         )
         solids.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=pin_radius,
                 height=pin_height,
                 bottom_face_center=(center_xy[0], center_xy[1], pin_bottom_z),
@@ -236,7 +236,7 @@ def _make_carrier_solid_rsolid(
             )
         )
         solids.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=pin_land_radius,
                 height=pin_land_height,
                 bottom_face_center=(center_xy[0], center_xy[1], pin_bottom_z),
@@ -246,7 +246,7 @@ def _make_carrier_solid_rsolid(
             )
         )
 
-    carrier = scad.union_rsolid(solids, glue=False)
+    carrier = cad.union_rsolid(solids, glue=False)
     carrier = _apply_tags(
         carrier,
         tags=(f"role.{stage.stage_id}.planet_carrier", "group.two_stage_reducer"),

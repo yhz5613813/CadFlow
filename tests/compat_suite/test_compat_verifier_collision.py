@@ -1,37 +1,37 @@
-import cadflow as scad
+import cadflow as cad
 
 
 def _two_box_assembly(offset):
-    box = scad.make_box_rsolid(width=1.0, height=1.0, depth=1.0)
-    part = scad.make_part_rpart(part_id="box_part", body=box)
-    assembly = scad.make_assembly_rassembly(assembly_id="collision_demo")
-    assembly = scad.add_component_rassembly(
+    box = cad.make_box_rsolid(width=1.0, height=1.0, depth=1.0)
+    part = cad.make_part_rpart(part_id="box_part", body=box)
+    assembly = cad.make_assembly_rassembly(assembly_id="collision_demo")
+    assembly = cad.add_component_rassembly(
         assembly=assembly,
         item=part,
         component_id="box_a",
-        placement=scad.identity_placement_rplacement(),
+        placement=cad.identity_placement_rplacement(),
     )
-    assembly = scad.add_component_rassembly(
+    assembly = cad.add_component_rassembly(
         assembly=assembly,
         item=part,
         component_id="box_b",
-        placement=scad.make_placement_rplacement(origin=offset),
+        placement=cad.make_placement_rplacement(origin=offset),
     )
     return assembly
 
 
 def test_verifier_namespace_is_public():
-    assert hasattr(scad, "verifier")
-    assert "verifier" in scad.__all__
-    assert hasattr(scad.verifier, "check_collision_rcollisionreport")
+    assert hasattr(cad, "verifier")
+    assert "verifier" in cad.__all__
+    assert hasattr(cad.verifier, "check_collision_rcollisionreport")
 
 
 def test_collision_report_passes_for_separated_meshes():
     assembly = _two_box_assembly(offset=(2.0, 0.0, 0.0))
 
-    report = scad.verifier.check_collision_rcollisionreport(
+    report = cad.verifier.check_collision_rcollisionreport(
         assembly=assembly,
-        config=scad.verifier.CollisionCheckConfig(max_allowed_penetration=0.01),
+        config=cad.verifier.CollisionCheckConfig(max_allowed_penetration=0.01),
     )
 
     assert report.completed
@@ -44,9 +44,9 @@ def test_collision_report_passes_for_separated_meshes():
 def test_collision_report_fails_for_over_tolerance_contact_penetration():
     assembly = _two_box_assembly(offset=(0.5, 0.0, 0.0))
 
-    report = scad.verifier.check_collision_rcollisionreport(
+    report = cad.verifier.check_collision_rcollisionreport(
         assembly=assembly,
-        config=scad.verifier.CollisionCheckConfig(max_allowed_penetration=0.01),
+        config=cad.verifier.CollisionCheckConfig(max_allowed_penetration=0.01),
     )
 
     assert report.completed
@@ -64,9 +64,9 @@ def test_collision_report_fails_for_over_tolerance_contact_penetration():
 def test_collision_report_respects_allowed_penetration_tolerance():
     assembly = _two_box_assembly(offset=(0.5, 0.0, 0.0))
 
-    report = scad.verifier.check_collision_rcollisionreport(
+    report = cad.verifier.check_collision_rcollisionreport(
         assembly=assembly,
-        config=scad.verifier.CollisionCheckConfig(max_allowed_penetration=2.0),
+        config=cad.verifier.CollisionCheckConfig(max_allowed_penetration=2.0),
     )
 
     assert report.completed
@@ -78,12 +78,12 @@ def test_collision_report_respects_allowed_penetration_tolerance():
 def test_collision_scope_can_exclude_pair():
     assembly = _two_box_assembly(offset=(0.5, 0.0, 0.0))
 
-    report = scad.verifier.check_collision_rcollisionreport(
+    report = cad.verifier.check_collision_rcollisionreport(
         assembly=assembly,
-        config=scad.verifier.CollisionCheckConfig(
+        config=cad.verifier.CollisionCheckConfig(
             max_allowed_penetration=0.01,
-            scope=scad.verifier.CollisionScope(
-                exclude_pairs=(scad.verifier.ComponentPair("box_a", "box_b"),),
+            scope=cad.verifier.CollisionScope(
+                exclude_pairs=(cad.verifier.ComponentPair("box_a", "box_b"),),
             ),
         ),
     )

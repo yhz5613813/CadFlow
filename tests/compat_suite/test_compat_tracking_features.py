@@ -3,7 +3,7 @@
 import unittest
 import numpy as np
 
-import cadflow as scad
+import cadflow as cad
 from cadflow.topology import TopoKind, TopoEvent, TopoRef, TopoDelta
 from cadflow.tracking import (
     tracked_translate,
@@ -17,7 +17,7 @@ from cadflow.tracking import (
 
 class TestTrackedTranslate(unittest.TestCase):
     def setUp(self):
-        self.box = scad.make_box_rsolid(10, 10, 10)
+        self.box = cad.make_box_rsolid(10, 10, 10)
 
     def test_translate_returns_tracked_result(self):
         result = tracked_translate(self.box, (5, 0, 0))
@@ -43,12 +43,12 @@ class TestTrackedTranslate(unittest.TestCase):
 
     def test_translate_result_is_solid(self):
         result = tracked_translate(self.box, (5, 0, 0))
-        self.assertIsInstance(result.shape, scad.Solid)
+        self.assertIsInstance(result.shape, cad.Solid)
 
 
 class TestTrackedRotate(unittest.TestCase):
     def setUp(self):
-        self.box = scad.make_box_rsolid(10, 10, 10)
+        self.box = cad.make_box_rsolid(10, 10, 10)
 
     def test_rotate_returns_tracked_result(self):
         result = tracked_rotate(self.box, 45.0, (0, 0, 1))
@@ -74,7 +74,7 @@ class TestTrackedRotate(unittest.TestCase):
 
 class TestTrackedExtrude(unittest.TestCase):
     def setUp(self):
-        self.profile = scad.make_rectangle_rface(5.0, 3.0)
+        self.profile = cad.make_rectangle_rface(5.0, 3.0)
 
     def test_extrude_returns_tracked_result(self):
         result = tracked_extrude(self.profile, (0, 0, 1), 10.0)
@@ -104,7 +104,7 @@ class TestTrackedExtrude(unittest.TestCase):
 
 class TestTrackedFillet(unittest.TestCase):
     def setUp(self):
-        self.box = scad.make_box_rsolid(10, 10, 10)
+        self.box = cad.make_box_rsolid(10, 10, 10)
         # Select some edges for filleting
         self.edges = [self.box.get_edges(i) for i in range(4)]
 
@@ -127,7 +127,7 @@ class TestTrackedFillet(unittest.TestCase):
 
 class TestTrackedChamfer(unittest.TestCase):
     def setUp(self):
-        self.box = scad.make_box_rsolid(10, 10, 10)
+        self.box = cad.make_box_rsolid(10, 10, 10)
         self.edges = [self.box.get_edges(i) for i in range(4)]
 
     def test_chamfer_returns_tracked_result(self):

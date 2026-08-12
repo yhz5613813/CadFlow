@@ -28,6 +28,10 @@ The C++ `Session` owns every shape created through `cadflow.Model` or
 - queries: kind, volume, area, unique-edge length, center of mass, distance,
   bounding box, topology counts
 - exchange: tessellated mesh, STEP import/export, STL export
+- advanced kernel: exact rational/non-rational B-spline edges, twisted sweep,
+  ruled/filling/Gordon surface construction, sewing, shell-to-solid conversion,
+  BREP/STL import, subshape extraction, free-boundary extraction, face normal
+  and curvature queries
 - execution: multi-operation graph in one C ABI call
 
 ## Python By Design
@@ -46,14 +50,11 @@ would add ABI complexity without removing a geometry bottleneck.
 These paths still invoke OCCT through the private Python engine and remain
 candidates for the native session:
 
-- hole filling
-- helical and twisted sweeps
-- explicit control-point and rational B-spline curve builders
-- Gordon, ruled, and filling surfaces
-- sewing, free-boundary repair, and shell-to-solid conversion
-- detailed subshape extraction, local normals, and curvature queries
-- native BREP import and STL import
+- hole filling with the full legacy N-side constraint parameter set
+- exact Gordon curve-network interpolation matching the optional `ocp_gordon`
+  implementation byte-for-byte (native uses a deterministic OCCT surface fit)
 
-Each migrated path must retain the complete regression suite and add direct
-native equivalence, ownership, invalid-input, graph, fallback-build, and wheel
-installation coverage.
+The migrated paths have direct C ABI, Python facade, graph, ownership, invalid
+input, OCCT equivalence, and fallback-build coverage. The two items above remain
+explicitly tracked because their legacy APIs expose richer constraints than the
+small public native facade currently promises.

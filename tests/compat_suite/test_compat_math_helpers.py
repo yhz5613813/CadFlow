@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-import cadflow as scad
+import cadflow as cad
 import cadflow.math as scmath
 
 
@@ -35,7 +35,7 @@ def test_fit_semicircle_adaptively_inserts_simple_knots() -> None:
     sample_parameters = [i * math.pi / 20.0 for i in range(21)]
     samples = [(math.cos(t), math.sin(t), 0.0) for t in sample_parameters]
 
-    result = scad.fit_cubic_bspline_control_points(samples, tolerance=0.002)
+    result = cad.fit_cubic_bspline_control_points(samples, tolerance=0.002)
 
     assert result.converged
     assert 4 < result.control_count < len(samples)
@@ -141,24 +141,24 @@ def test_fit_validates_options(kwargs: dict[str, float], match: str) -> None:
 
 
 def test_math_helper_is_public_through_top_level_and_submodule() -> None:
-    assert scad.fit_cubic_bspline_control_points is scmath.fit_cubic_bspline_control_points
-    assert scad.BSplineFitResult is scmath.BSplineFitResult
-    assert scad.math is scmath
-    assert "math" in scad.__all__
-    assert "fit_cubic_bspline_control_points" in scad.__all__
+    assert cad.fit_cubic_bspline_control_points is scmath.fit_cubic_bspline_control_points
+    assert cad.BSplineFitResult is scmath.BSplineFitResult
+    assert cad.math is scmath
+    assert "math" in cad.__all__
+    assert "fit_cubic_bspline_control_points" in cad.__all__
 
 
 def test_fit_result_fields_feed_exact_spline_builder() -> None:
     samples = [(0.0, 0.0, 0.0), (1.0, 0.6, 0.0), (2.0, 0.0, 0.0)]
     fit = scmath.fit_cubic_bspline_control_points(samples, tolerance=0.01)
 
-    edge = scad.make_spline_redge(
+    edge = cad.make_spline_redge(
         control_points=fit.control_points,
         knots=fit.unique_knots,
         multiplicities=fit.multiplicities,
     )
 
-    assert isinstance(edge, scad.Edge)
+    assert isinstance(edge, cad.Edge)
     metadata = edge.get_metadata("geo")
     assert metadata["type"] == "bspline"
     assert metadata["degree"] == fit.degree
@@ -167,7 +167,7 @@ def test_fit_result_fields_feed_exact_spline_builder() -> None:
 
 
 def test_exact_spline_builder_accepts_full_repeated_knot_vector() -> None:
-    edge = scad.make_spline_redge(
+    edge = cad.make_spline_redge(
         control_points=[
             (0.0, 0.0, 0.0),
             (0.5, 1.0, 0.0),
@@ -184,7 +184,7 @@ def test_exact_spline_builder_accepts_full_repeated_knot_vector() -> None:
 
 def test_exact_spline_builder_validates_exact_payload() -> None:
     with pytest.raises(ValueError, match=r"sum\(multiplicities\)"):
-        scad.make_spline_redge(
+        cad.make_spline_redge(
             control_points=[
                 (0.0, 0.0, 0.0),
                 (0.5, 1.0, 0.0),
@@ -197,8 +197,8 @@ def test_exact_spline_builder_validates_exact_payload() -> None:
 
 
 def test_exact_spline_graph_payload_uses_control_parameters() -> None:
-    with scad.GraphSession() as session:
-        scad.make_spline_redge(
+    with cad.GraphSession() as session:
+        cad.make_spline_redge(
             control_points=[
                 (0.0, 0.0),
                 (0.5, 1.0),
@@ -207,7 +207,7 @@ def test_exact_spline_graph_payload_uses_control_parameters() -> None:
             ]
         )
 
-    payload = json.loads(scad.export_model_json(session))
+    payload = json.loads(cad.export_model_json(session))
     node = next(node for node in payload["graph"]["nodes"] if node["op"] == "make_spline_redge")
 
     assert "control_points" in node["params"]
@@ -215,6 +215,6 @@ def test_exact_spline_graph_payload_uses_control_parameters() -> None:
     assert node["params"]["degree"] == 3
     assert node["params"]["knots"] == [0.0, 1.0]
     assert node["params"]["multiplicities"] == [4, 4]
-    replayed = scad.replay_model_json(json.dumps(payload))
+    replayed = cad.replay_model_json(json.dumps(payload))
     assert len(replayed) == 1
-    assert isinstance(replayed[0], scad.Edge)
+    assert isinstance(replayed[0], cad.Edge)

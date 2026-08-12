@@ -59,6 +59,9 @@ class Shape:
     def export_step(self, path: str) -> None:
         self._session.export_step(self._handle, path)
 
+    def face_properties(self, *, u: float = 0.5, v: float = 0.5) -> dict[str, tuple[float, ...]]:
+        return self._session.face_properties(self._handle, u=u, v=v)
+
     def export_stl(self, path: str, *, binary: bool = True) -> None:
         self._session.export_stl(self._handle, path, binary=binary)
 
@@ -120,6 +123,12 @@ class Model:
 
     def import_step(self, path: str) -> Shape:
         return Shape(self.session, self.session.import_step(path))
+
+    def import_brep(self, path: str) -> Shape:
+        return Shape(self.session, self.session.import_brep(path))
+
+    def import_stl(self, path: str) -> Shape:
+        return Shape(self.session, self.session.import_stl(path))
 
     def polyline(
         self,
@@ -206,6 +215,11 @@ class Model:
                 degree_max=degree_max,
             ),
         )
+
+    def bspline(self, control_points, *, degree, knots, multiplicities, weights=None, periodic=False) -> Shape:
+        return Shape(self.session, self.session.bspline(
+            control_points, degree=degree, knots=knots,
+            multiplicities=multiplicities, weights=weights, periodic=periodic))
 
     def extrude(self, profile: Shape, x: float, y: float, z: float) -> Shape:
         self._same_model(profile)
@@ -313,6 +327,41 @@ class Model:
             ),
         )
 
+    def twisted_sweep(self, profile: Shape, distance: float, twist_degrees: float, *, origin=(0, 0, 0), axis=(0, 0, 1), guide_radius=1.0) -> Shape:
+        self._same_model(profile)
+        return Shape(self.session, self.session.twisted_sweep(
+            profile._handle, distance, twist_degrees,
+            origin=origin, axis=axis, guide_radius=guide_radius))
+
+    def ruled_surface(self, edge_a: Shape, edge_b: Shape) -> Shape:
+        self._same_model(edge_a, edge_b)
+        return Shape(self.session, self.session.ruled_surface(edge_a._handle, edge_b._handle))
+
+    def filling_surface(self, edges, *, tolerance: float = 1e-6) -> Shape:
+        self._same_model(*edges)
+        return Shape(self.session, self.session.filling_surface([edge._handle for edge in edges], tolerance=tolerance))
+
+    def gordon_surface(self, profiles, guides, *, tolerance: float = 1e-6) -> Shape:
+        self._same_model(*profiles, *guides)
+        return Shape(self.session, self.session.gordon_surface(
+            [value._handle for value in profiles], [value._handle for value in guides], tolerance=tolerance))
+
+    def sew(self, faces, *, tolerance: float = 1e-6) -> Shape:
+        self._same_model(*faces)
+        return Shape(self.session, self.session.sew([value._handle for value in faces], tolerance=tolerance))
+
+    def shell_to_solid(self, shell: Shape) -> Shape:
+        self._same_model(shell)
+        return Shape(self.session, self.session.shell_to_solid(shell._handle))
+
+    def subshapes(self, shape: Shape, shape_type: int) -> tuple[Shape, ...]:
+        self._same_model(shape)
+        return tuple(Shape(self.session, value) for value in self.session.subshapes(shape._handle, shape_type))
+
+    def free_boundaries(self, shape: Shape, *, tolerance: float = 1e-6) -> tuple[Shape, ...]:
+        self._same_model(shape)
+        return tuple(Shape(self.session, value) for value in self.session.free_boundaries(shape._handle, tolerance=tolerance))
+
     def cut(self, body: Shape, tool: Shape) -> Shape:
         self._same_model(body, tool)
         return Shape(self.session, self.session.cut(body._handle, tool._handle))
@@ -384,10 +433,13 @@ class Model:
             ],
             "native_operations": sorted(
                 operation for operation in (
-                    "box", "cylinder", "sphere", "cone", "polyline", "circle_profile",
-                    "arc", "interpolate", "helix", "face", "extrude", "revolve",
+                "box", "cylinder", "sphere", "cone", "polyline", "circle_profile",
+                    "arc", "interpolate", "helix", "face", "bspline", "extrude", "revolve",
                     "loft", "sweep", "fillet", "chamfer", "shell", "cut", "union",
-                    "intersect", "translate", "rotate", "mirror", "scale",
+                    "twisted_sweep", "ruled_surface", "filling_surface", "gordon_surface",
+                    "sew", "shell_to_solid", "intersect", "translate", "rotate", "mirror", "scale",
+                    "import_step", "import_brep", "import_stl", "subshapes", "free_boundaries",
+                    "face_properties",
                 ) if self.session is not None
             ),
             "selection": {"indices": True, "semantic": False},

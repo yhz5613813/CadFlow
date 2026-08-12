@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import cadflow as scad
+import cadflow as cad
 
 if __package__:
     from .common import make_z_rotation_rplacement
@@ -14,10 +14,10 @@ else:
     from gears import planet_center_xy
 
 
-@scad.requires_session
+@cad.requires_session
 def make_standard_planet_bearing_rassembly(
-    *, bearing_id: str, spec: BearingSpec, material: scad.Material
-) -> scad.Assembly:
+    *, bearing_id: str, spec: BearingSpec, material: cad.Material
+) -> cad.Assembly:
     """Create a fused standard-library planet ball-bearing assembly."""
 
     return make_main_bearing_rassembly(
@@ -27,13 +27,13 @@ def make_standard_planet_bearing_rassembly(
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_main_bearing_rassembly(
-    *, bearing_id: str, spec: BearingSpec, material: scad.Material
-) -> scad.Assembly:
+    *, bearing_id: str, spec: BearingSpec, material: cad.Material
+) -> cad.Assembly:
     """Create a standard-library bearing with fused rolling elements."""
 
-    bearing = scad.std.bearing.make_ball_bearing_rassembly(
+    bearing = cad.std.bearing.make_ball_bearing_rassembly(
         bore_diameter=spec.bore_diameter,
         outer_diameter=spec.outer_diameter,
         bearing_width=spec.width,
@@ -59,17 +59,17 @@ def make_main_bearing_rassembly(
     return bearing
 
 
-@scad.requires_session
-def make_coaxial_bearing_rplacement(*, center_z: float) -> scad.Placement:
+@cad.requires_session
+def make_coaxial_bearing_rplacement(*, center_z: float) -> cad.Placement:
     """Place a standard bearing center plane on the actuator Z axis."""
 
     return make_z_rotation_rplacement(origin=(0.0, 0.0, center_z), angle_degrees=0.0)
 
 
-@scad.requires_session
+@cad.requires_session
 def make_planet_bearing_rplacement(
     *, stage: StageSpec, index: int
-) -> scad.Placement:
+) -> cad.Placement:
     """Place a standard planet bearing at the gear midplane."""
 
     if index < 0 or index >= PLANET_COUNT:

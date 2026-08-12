@@ -10,7 +10,7 @@ def make_spur_gear_rsolid(n_teeth: int, module: float, pressure_angle: float = 2
 
 ## Import Surface
 
-- standard library: `import cadflow as scad` then `scad.std.gear.make_spur_gear_rsolid(...)`; direct submodule import: `from cadflow.std.gear import make_spur_gear_rsolid`
+- standard library: `import cadflow as cad` then `cad.std.gear.make_spur_gear_rsolid(...)`; direct submodule import: `from cadflow.std.gear import make_spur_gear_rsolid`
 
 ## Description
 

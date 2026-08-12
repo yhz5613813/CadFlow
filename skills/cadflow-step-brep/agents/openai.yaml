@@ -1,0 +1,4 @@
+interface:
+  display_name: "CadFlow STEP BREP"
+  short_description: "Inspect and reverse engineer STEP BREP"
+  default_prompt: "Use $cadflow-step-brep to inspect a STEP file, infer a public CadFlow reconstruction, and compare the candidate with measured evidence."

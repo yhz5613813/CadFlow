@@ -24,15 +24,15 @@ inverse-trigonometric results back to degrees.
 
 ```python
 import math
-import cadflow as scad
+import cadflow as cad
 
-width = scad.var("width", 1.0, unit="in")
-angle = scad.var("angle", math.pi / 2, unit="rad")
+width = cad.var("width", 1.0, unit="in")
+angle = cad.var("angle", math.pi / 2, unit="rad")
 
 assert width.default == 1.0
 assert width.evaluate() == 25.4
 assert angle.evaluate() == 90.0
-assert math.isclose(scad.sin(angle).evaluate(), 1.0)
+assert math.isclose(cad.sin(angle).evaluate(), 1.0)
 ```
 
 Bindings use the variable's declaration unit. `width.evaluate({"width": 2.0})`
@@ -41,7 +41,7 @@ therefore returns `50.8` millimeters for an inch-declared variable.
 ## Declaring Units And Tolerances
 
 ```python
-width = scad.var(
+width = cad.var(
     "width",
     1.0,
     unit="in",
@@ -79,9 +79,9 @@ Use constants such as `MM`, `INCH`, `DEGREE`, `RADIAN`, `LENGTH`, and `ANGLE`, o
 resolve strings:
 
 ```python
-assert scad.get_unit("inch") == scad.INCH
-assert scad.convert_value(1.0, "in", "mm") == 25.4
-assert math.isclose(scad.convert_value(180.0, "deg", "rad"), math.pi)
+assert cad.get_unit("inch") == cad.INCH
+assert cad.convert_value(1.0, "in", "mm") == 25.4
+assert math.isclose(cad.convert_value(180.0, "deg", "rad"), math.pi)
 ```
 
 Incompatible conversion raises `UnitValidationError`.
@@ -115,14 +115,14 @@ base requires a constant integer exponent, except `0.5` is accepted when all bas
 exponents are even.
 
 ```python
-width = scad.var("width", 30.0, unit="mm")
-height = scad.var("height", 40.0, unit="mm")
+width = cad.var("width", 30.0, unit="mm")
+height = cad.var("height", 40.0, unit="mm")
 
 area = width * height
-diagonal = scad.sqrt(width**2 + height**2)
+diagonal = cad.sqrt(width**2 + height**2)
 
-assert scad.infer_dimension(area) == scad.AREA
-assert scad.infer_dimension(diagonal) == scad.LENGTH
+assert cad.infer_dimension(area) == cad.AREA
+assert cad.infer_dimension(diagonal) == cad.LENGTH
 assert diagonal.evaluate() == 50.0
 ```
 
@@ -133,9 +133,9 @@ For addition and subtraction, a literal adopts the other operand's dimension as 
 contextual offset:
 
 ```python
-length = scad.var("length", 10.0, unit="mm")
-assert scad.infer_dimension(length * 2.0) == scad.LENGTH
-assert scad.infer_dimension(length + 2.0) == scad.LENGTH
+length = cad.var("length", 10.0, unit="mm")
+assert cad.infer_dimension(length * 2.0) == cad.LENGTH
+assert cad.infer_dimension(length + 2.0) == cad.LENGTH
 ```
 
 The literal is already expressed in the canonical result unit. `length + 2.0`
@@ -159,8 +159,8 @@ Pure numeric constant expressions infer `Dimensionless`.
 Custom linear-scale units use the same canonical system:
 
 ```python
-thou = scad.Unit("thou", scad.LENGTH, 0.0254)
-width = scad.var("width", 1000.0, unit=thou)
+thou = cad.Unit("thou", cad.LENGTH, 0.0254)
+width = cad.var("width", 1000.0, unit=thou)
 assert width.evaluate() == 25.4
 ```
 

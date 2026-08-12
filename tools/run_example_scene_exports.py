@@ -39,7 +39,7 @@ def _is_model_decorator(node: ast.expr) -> bool:
     return (
         isinstance(node, ast.Attribute)
         and isinstance(node.value, ast.Name)
-        and node.value.id == "scad"
+        and node.value.id == "cad"
         and node.attr == "model"
     ) or (isinstance(node, ast.Name) and node.id == "model")
 

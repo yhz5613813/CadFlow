@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-import cadflow as scad
+import cadflow as cad
 
 from common import (
     _apply_tags,
@@ -48,8 +48,8 @@ from dimensions import (
 )
 
 
-@scad.requires_session
-def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_reducer_housing_rpart(*, material: cad.Material) -> cad.Part:
     """Create the through-bolted housing sleeve with internal datum collars."""
 
     sleeve = make_annular_cylinder_rsolid(
@@ -103,8 +103,8 @@ def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
     # The housing now has real through-bolt sector pads.  The full-height pad is
     # cut after union, so each screw path clears both the visible pad and the
     # underlying housing body instead of stopping at a cosmetic front pocket.
-    housing = scad.union_rsolid([sleeve, front_flange, rear_flange, mount_pad, collars], glue=False)
-    housing = scad.cut_rsolid(
+    housing = cad.union_rsolid([sleeve, front_flange, rear_flange, mount_pad, collars], glue=False)
+    housing = cad.cut_rsolid(
         housing,
         [
             _make_mount_gap_cutters_rsolids(tag_prefix="reducer.housing.mount.gap"),
@@ -124,12 +124,12 @@ def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
         f"housing_envelope: diameter={HOUSING_OUTER_RADIUS * 2.0:.1f} "
         f"height={HOUSING_HEIGHT:.1f} datum_count={len(datum_zs)} faces={len(housing.get_faces())}"
     )
-    part = scad.make_part_rpart(
+    part = cad.make_part_rpart(
         part_id="reducer_housing",
         body=housing,
         name="Compact fixed reducer housing sleeve",
     )
-    part = scad.assign_material_rpart(part=part, material=material)
+    part = cad.assign_material_rpart(part=part, material=material)
     # The scalloped sector pads deliberately make the output face non-simple.
     # Housing axes are design datums, not manufactured face picks, so keep these
     # connectors topology-free for stable replay and FreeCAD translation.
@@ -160,7 +160,7 @@ def make_reducer_housing_rpart(*, material: scad.Material) -> scad.Part:
     return part
 
 
-@scad.requires_session
+@cad.requires_session
 def _make_end_flange_rsolid(
     *,
     label: str,
@@ -168,7 +168,7 @@ def _make_end_flange_rsolid(
     thickness: float,
     bottom_z: float,
     tag_prefix: str,
-) -> scad.Solid:
+) -> cad.Solid:
     """Build one sealed housing end cap.
 
     The end cap is only the annular plate around the rotating input/output
@@ -191,11 +191,11 @@ def _make_end_flange_rsolid(
     return flange
 
 
-@scad.requires_session
-def _make_mount_sector_pad_rsolid(*, tag_prefix: str) -> scad.Solid:
+@cad.requires_session
+def _make_mount_sector_pad_rsolid(*, tag_prefix: str) -> cad.Solid:
     """Build four graceful full-height sector pads before the global hole cut."""
 
-    outer = scad.make_cylinder_rsolid(
+    outer = cad.make_cylinder_rsolid(
         radius=HOUSING_MOUNT_PAD_OUTER_RADIUS,
         height=HOUSING_HEIGHT,
         bottom_face_center=(0.0, 0.0, HOUSING_BOTTOM_Z),
@@ -203,7 +203,7 @@ def _make_mount_sector_pad_rsolid(*, tag_prefix: str) -> scad.Solid:
         tag_prefix=f"{tag_prefix}.outer",
         result_tag=f"solid.{tag_prefix}.outer",
     )
-    inner = scad.make_cylinder_rsolid(
+    inner = cad.make_cylinder_rsolid(
         radius=HOUSING_MOUNT_PAD_INNER_RADIUS,
         height=HOUSING_HEIGHT + 2.0,
         bottom_face_center=(0.0, 0.0, HOUSING_BOTTOM_Z - 1.0),
@@ -211,7 +211,7 @@ def _make_mount_sector_pad_rsolid(*, tag_prefix: str) -> scad.Solid:
         tag_prefix=f"{tag_prefix}.inner",
         result_tag=f"solid.{tag_prefix}.inner.cutter",
     )
-    pad = scad.cut_rsolid(outer, inner, skip_non_intersecting=False)
+    pad = cad.cut_rsolid(outer, inner, skip_non_intersecting=False)
     pad = _apply_tags(
         pad,
         tags=("role.housing_sector_mount_pads", "role.case_to_link_interface"),
@@ -224,8 +224,8 @@ def _make_mount_sector_pad_rsolid(*, tag_prefix: str) -> scad.Solid:
     return pad
 
 
-@scad.requires_session
-def _make_mount_gap_cutters_rsolids(*, tag_prefix: str) -> list[scad.Solid]:
+@cad.requires_session
+def _make_mount_gap_cutters_rsolids(*, tag_prefix: str) -> list[cad.Solid]:
     """Build shallow radial gap cutters that divide the outer band into sectors."""
 
     cutters = []
@@ -238,7 +238,7 @@ def _make_mount_gap_cutters_rsolids(*, tag_prefix: str) -> list[scad.Solid]:
             + 45.0
             + 360.0 * index / HOUSING_MOUNT_SECTOR_COUNT
         )
-        gap = scad.make_box_rsolid(
+        gap = cad.make_box_rsolid(
             width=gap_radial_depth,
             height=HOUSING_MOUNT_SECTOR_GAP_WIDTH,
             depth=HOUSING_HEIGHT + 2.0,
@@ -247,7 +247,7 @@ def _make_mount_gap_cutters_rsolids(*, tag_prefix: str) -> list[scad.Solid]:
             result_tag=f"solid.{tag_prefix}.i{index + 1}.cutter",
         )
         cutters.append(
-            scad.rotate_shape(
+            cad.rotate_shape(
                 shape=gap,
                 angle=gap_angle,
                 axis=(0.0, 0.0, 1.0),
@@ -261,8 +261,8 @@ def _make_mount_gap_cutters_rsolids(*, tag_prefix: str) -> list[scad.Solid]:
     return cutters
 
 
-@scad.requires_session
-def _make_mount_hole_cutters_rsolids(*, tag_prefix: str) -> list[scad.Solid]:
+@cad.requires_session
+def _make_mount_hole_cutters_rsolids(*, tag_prefix: str) -> list[cad.Solid]:
     """Build one shared cutter set for the boss and housing body holes."""
 
     cutters = []
@@ -290,12 +290,12 @@ def _make_mount_hole_cutters_rsolids(*, tag_prefix: str) -> list[scad.Solid]:
     return cutters
 
 
-@scad.requires_session
+@cad.requires_session
 def _make_single_mount_hole_cutters_rsolids(
     *,
     angle: float,
     tag_prefix: str,
-) -> list[scad.Solid]:
+) -> list[cad.Solid]:
     """Build through and counterbore cutters for one housing screw."""
 
     x = HOUSING_MOUNT_HOLE_CIRCLE_RADIUS * math.cos(angle)
@@ -306,7 +306,7 @@ def _make_single_mount_hole_cutters_rsolids(
     # front view still looks like a screw hole, but a real screw would hit the
     # rear half of the case exactly as the review screenshot showed.
     cutters.append(
-        scad.make_cylinder_rsolid(
+        cad.make_cylinder_rsolid(
             radius=HOUSING_MOUNT_HOLE_DIAMETER / 2.0,
             height=HOUSING_HEIGHT + 2.0,
             bottom_face_center=(x, y, HOUSING_BOTTOM_Z - 1.0),
@@ -319,7 +319,7 @@ def _make_single_mount_hole_cutters_rsolids(
     # either side during integration or service.  This also gives enough head
     # diameter to visually read as an M3-class fastener interface.
     cutters.append(
-        scad.make_cylinder_rsolid(
+        cad.make_cylinder_rsolid(
             radius=HOUSING_MOUNT_COUNTERBORE_DIAMETER / 2.0,
             height=HOUSING_MOUNT_COUNTERBORE_DEPTH + 0.4,
             bottom_face_center=(
@@ -333,7 +333,7 @@ def _make_single_mount_hole_cutters_rsolids(
         )
     )
     cutters.append(
-        scad.make_cylinder_rsolid(
+        cad.make_cylinder_rsolid(
             radius=HOUSING_MOUNT_COUNTERBORE_DIAMETER / 2.0,
             height=HOUSING_MOUNT_COUNTERBORE_DEPTH + 0.4,
             bottom_face_center=(x, y, HOUSING_BOTTOM_Z - 0.2),

@@ -4,7 +4,7 @@ Run from the repository root with:
     uv run python examples/16_compact_two_stage_planetary_reducer/collision_probe.py
 
 This probe builds the solved reducer assembly without exporting STEP/FCStd, then
-checks the current pose with ``scad.verifier.check_collision_rcollisionreport``.
+checks the current pose with ``cad.verifier.check_collision_rcollisionreport``.
 The current verifier uses FCL-reported mesh contact penetration only; it does
 not handle complete containment cases.
 """
@@ -16,7 +16,7 @@ import io
 import sys
 import time
 
-import cadflow as scad
+import cadflow as cad
 
 if __package__:
     from .main import _build_compact_two_stage_planetary_reducer
@@ -27,7 +27,7 @@ else:
 sys.setrecursionlimit(30000)
 
 
-def _build_reducer_quietly() -> tuple[scad.Assembly, int, float]:
+def _build_reducer_quietly() -> tuple[cad.Assembly, int, float]:
     log_buffer = io.StringIO()
     start = time.perf_counter()
     with contextlib.redirect_stdout(log_buffer):
@@ -41,9 +41,9 @@ def main() -> None:
     assembly, log_lines, build_seconds = _build_reducer_quietly()
 
     start = time.perf_counter()
-    report = scad.verifier.check_collision_rcollisionreport(
+    report = cad.verifier.check_collision_rcollisionreport(
         assembly=assembly,
-        config=scad.verifier.CollisionCheckConfig(
+        config=cad.verifier.CollisionCheckConfig(
             max_allowed_penetration=0.02,
             max_contacts_per_pair=16,
         ),

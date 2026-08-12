@@ -8,7 +8,7 @@ from pathlib import Path
 import unittest
 
 
-import cadflow as scad
+import cadflow as cad
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "examples"
@@ -39,7 +39,7 @@ def _is_decorator(node: ast.expr, name: str) -> bool:
     return (
         isinstance(node, ast.Attribute)
         and isinstance(node.value, ast.Name)
-        and node.value.id == "scad"
+        and node.value.id == "cad"
         and node.attr == name
     ) or (isinstance(node, ast.Name) and node.id == name)
 
@@ -82,7 +82,7 @@ class TestExampleModelContract(unittest.TestCase):
                 if isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Attribute)
                 and isinstance(node.func.value, ast.Name)
-                and node.func.value.id == "scad"
+                and node.func.value.id == "cad"
                 and node.func.attr == "capture_result"
             ]
             self.assertEqual(len(capture_calls), 1, path)
@@ -129,8 +129,8 @@ class TestExampleModelContract(unittest.TestCase):
             from dimensions import BearingSpec
 
             bearing_spec = BearingSpec(3.0, 6.0, 3.0, 0.7, 8)
-            with scad.GraphSession():
-                material = scad.make_material_rmaterial(
+            with cad.GraphSession():
+                material = cad.make_material_rmaterial(
                     "bearing_contract_steel",
                     density=7.85e-6,
                     density_unit="kg/mm^3",
@@ -140,10 +140,10 @@ class TestExampleModelContract(unittest.TestCase):
                     spec=bearing_spec,
                     material=material,
                 )
-                solved = scad.solve_assembly_constraints_rassembly(
-                    scad.ground_component_rassembly(bearing, "outer_ring")
+                solved = cad.solve_assembly_constraints_rassembly(
+                    cad.ground_component_rassembly(bearing, "outer_ring")
                 )
-                report = scad.inspect_assembly_constraints_rconstraintreport(solved)
+                report = cad.inspect_assembly_constraints_rconstraintreport(solved)
         finally:
             sys.path.remove(str(example_dir))
 
@@ -155,7 +155,7 @@ class TestExampleModelContract(unittest.TestCase):
         self.assertTrue(outer_meta["rolling_elements_fused"])
         self.assertEqual(outer_meta["rolling_element_fuse_mode"], "outer_ring_union")
         self.assertGreater(outer.get_volume(), 0.0)
-        self.assertIn("role.rolling_elements_fused_into_outer_ring", scad.list_tags(outer))
+        self.assertIn("role.rolling_elements_fused_into_outer_ring", cad.list_tags(outer))
 
 
 if __name__ == "__main__":

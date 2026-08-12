@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-import cadflow as scad
+import cadflow as cad
 
 from common import _apply_tags, make_axis_part_rpart
 from dimensions import (
@@ -47,8 +47,8 @@ from dimensions import (
 )
 
 
-@scad.requires_session
-def make_input_flange_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_input_flange_rpart(*, material: cad.Material) -> cad.Part:
     """Create the reducer input flange part with six bolt holes."""
 
     flange = _make_n_hole_flange_solid_rsolid(
@@ -64,7 +64,7 @@ def make_input_flange_rpart(*, material: scad.Material) -> scad.Part:
         counterbore_depth=INPUT_FLANGE_HOLE_COUNTERBORE_DEPTH,
         tag_prefix="reducer.input.flange",
     )
-    flange = scad.translate_shape(
+    flange = cad.translate_shape(
         shape=flange,
         vector=(0.0, 0.0, INPUT_FLANGE_BOTTOM_Z),
     )
@@ -92,12 +92,12 @@ def make_input_flange_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def make_output_flange_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_output_flange_rpart(*, material: cad.Material) -> cad.Part:
     """Create the reducer output flange part with realistic mounting detail."""
 
     flange = _make_output_flange_solid_rsolid(tag_prefix="reducer.output.flange")
-    flange = scad.translate_shape(
+    flange = cad.translate_shape(
         shape=flange,
         vector=(0.0, 0.0, OUTPUT_FLANGE_BOTTOM_Z),
     )
@@ -126,8 +126,8 @@ def make_output_flange_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
-def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
+@cad.requires_session
+def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> cad.Solid:
     """Build the sealed actuator-style output flange.
 
     The earlier example used a small six-hole disk.  That was enough to prove
@@ -138,7 +138,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
     location, and separate center fasteners for retaining the output cap.
     """
 
-    base = scad.make_cylinder_rsolid(
+    base = cad.make_cylinder_rsolid(
         radius=OUTPUT_FLANGE_OUTER_DIAMETER / 2.0,
         height=OUTPUT_FLANGE_THICKNESS,
         bottom_face_center=(0.0, 0.0, 0.0),
@@ -146,7 +146,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
         tag_prefix=f"{tag_prefix}.base",
         result_tag=f"solid.{tag_prefix}.base",
     )
-    boss = scad.make_cylinder_rsolid(
+    boss = cad.make_cylinder_rsolid(
         radius=OUTPUT_FLANGE_BOSS_OUTER_DIAMETER / 2.0,
         height=OUTPUT_FLANGE_BOSS_HEIGHT + 0.05,
         bottom_face_center=(0.0, 0.0, OUTPUT_FLANGE_THICKNESS - 0.05),
@@ -155,7 +155,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
         result_tag=f"solid.{tag_prefix}.boss",
     )
 
-    register_outer = scad.make_cylinder_rsolid(
+    register_outer = cad.make_cylinder_rsolid(
         radius=OUTPUT_FLANGE_REGISTER_OUTER_DIAMETER / 2.0,
         height=OUTPUT_FLANGE_REGISTER_HEIGHT + 0.05,
         bottom_face_center=(0.0, 0.0, OUTPUT_FLANGE_THICKNESS - 0.05),
@@ -163,7 +163,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
         tag_prefix=f"{tag_prefix}.register.outer",
         result_tag=f"solid.{tag_prefix}.register.outer",
     )
-    register_inner = scad.make_cylinder_rsolid(
+    register_inner = cad.make_cylinder_rsolid(
         radius=OUTPUT_FLANGE_REGISTER_INNER_DIAMETER / 2.0,
         height=OUTPUT_FLANGE_REGISTER_HEIGHT + 0.55,
         bottom_face_center=(0.0, 0.0, OUTPUT_FLANGE_THICKNESS - 0.30),
@@ -171,16 +171,16 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
         tag_prefix=f"{tag_prefix}.register.inner",
         result_tag=f"solid.{tag_prefix}.register.inner.cutter",
     )
-    register = scad.cut_rsolid(register_outer, register_inner, skip_non_intersecting=False)
+    register = cad.cut_rsolid(register_outer, register_inner, skip_non_intersecting=False)
 
     # The register ring is intentionally shallow and segmented.  In real joint
     # modules this gives the mating link a positive anti-slip locating feature:
     # the link can have matching recesses, so torque is not carried only by screw
     # friction while the assembler is trying to align the output face.
-    flange = scad.union_rsolid([base, boss, register], glue=False)
+    flange = cad.union_rsolid([base, boss, register], glue=False)
 
     cutters = [
-        scad.make_cylinder_rsolid(
+        cad.make_cylinder_rsolid(
             radius=OUTPUT_FLANGE_INNER_DIAMETER / 2.0,
             height=OUTPUT_FLANGE_THICKNESS + OUTPUT_FLANGE_BOSS_HEIGHT + 2.0,
             bottom_face_center=(0.0, 0.0, -1.0),
@@ -198,7 +198,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
     ) / 2.0
     for index in range(OUTPUT_FLANGE_REGISTER_PAD_COUNT):
         gap_angle = 60.0 + 360.0 * index / OUTPUT_FLANGE_REGISTER_PAD_COUNT
-        gap = scad.make_box_rsolid(
+        gap = cad.make_box_rsolid(
             width=register_radial_width + 2.2,
             height=OUTPUT_FLANGE_REGISTER_GAP_WIDTH,
             depth=OUTPUT_FLANGE_REGISTER_HEIGHT + 0.6,
@@ -211,7 +211,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
             result_tag=f"solid.{tag_prefix}.register.gap.i{index + 1}.cutter",
         )
         cutters.append(
-            scad.rotate_shape(
+            cad.rotate_shape(
                 shape=gap,
                 angle=gap_angle,
                 axis=(0.0, 0.0, 1.0),
@@ -236,7 +236,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
         # the visible design cue from the reference actuator: the pad geometry is
         # a locating interface, and the screws clamp through that known land.
         cutters.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=OUTPUT_FLANGE_HOLE_DIAMETER / 2.0,
                 height=OUTPUT_FLANGE_THICKNESS + OUTPUT_FLANGE_REGISTER_HEIGHT + 1.0,
                 bottom_face_center=(x, y, -0.5),
@@ -246,7 +246,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
             )
         )
         cutters.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=OUTPUT_FLANGE_HOLE_COUNTERBORE_DIAMETER / 2.0,
                 height=OUTPUT_FLANGE_HOLE_COUNTERBORE_DEPTH + 0.3,
                 bottom_face_center=(
@@ -272,7 +272,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
         # separate from the larger link-mount holes mirrors real actuator stackups:
         # service screws retain the internal cap; larger screws attach the robot.
         cutters.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=OUTPUT_FLANGE_CENTER_FASTENER_DIAMETER / 2.0,
                 height=OUTPUT_FLANGE_THICKNESS + OUTPUT_FLANGE_BOSS_HEIGHT + 1.0,
                 bottom_face_center=(x, y, -0.5),
@@ -282,7 +282,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
             )
         )
         cutters.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=OUTPUT_FLANGE_CENTER_COUNTERBORE_DIAMETER / 2.0,
                 height=OUTPUT_FLANGE_CENTER_COUNTERBORE_DEPTH + 0.3,
                 bottom_face_center=(
@@ -298,7 +298,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
             )
         )
 
-    flange = scad.cut_rsolid(flange, cutters, skip_non_intersecting=False)
+    flange = cad.cut_rsolid(flange, cutters, skip_non_intersecting=False)
     flange = _apply_tags(
         flange,
         tags=("role.output_register_pads", "role.link_mount_interface"),
@@ -312,7 +312,7 @@ def _make_output_flange_solid_rsolid(*, tag_prefix: str) -> scad.Solid:
     return flange
 
 
-@scad.requires_session
+@cad.requires_session
 def _make_n_hole_flange_solid_rsolid(
     *,
     flange_outer_diameter: float,
@@ -326,10 +326,10 @@ def _make_n_hole_flange_solid_rsolid(
     counterbore_diameter: float | None = None,
     counterbore_depth: float = 0.0,
     tag_prefix: str,
-) -> scad.Solid:
+) -> cad.Solid:
     """Build a flange without edge-pick features so FreeCAD export is stable."""
 
-    outer = scad.make_cylinder_rsolid(
+    outer = cad.make_cylinder_rsolid(
         radius=flange_outer_diameter / 2.0,
         height=flange_thickness,
         bottom_face_center=(0.0, 0.0, 0.0),
@@ -337,7 +337,7 @@ def _make_n_hole_flange_solid_rsolid(
         tag_prefix=f"{tag_prefix}.base",
         result_tag=f"solid.{tag_prefix}.base",
     )
-    boss = scad.make_cylinder_rsolid(
+    boss = cad.make_cylinder_rsolid(
         radius=boss_outer_diameter / 2.0,
         height=boss_height + 0.05,
         bottom_face_center=(0.0, 0.0, flange_thickness - 0.05),
@@ -345,10 +345,10 @@ def _make_n_hole_flange_solid_rsolid(
         tag_prefix=f"{tag_prefix}.boss",
         result_tag=f"solid.{tag_prefix}.boss",
     )
-    flange = scad.union_rsolid([outer, boss], glue=False)
+    flange = cad.union_rsolid([outer, boss], glue=False)
 
     cutters = [
-        scad.make_cylinder_rsolid(
+        cad.make_cylinder_rsolid(
             radius=flange_inner_diameter / 2.0,
             height=flange_thickness + boss_height + 2.0,
             bottom_face_center=(0.0, 0.0, -1.0),
@@ -361,7 +361,7 @@ def _make_n_hole_flange_solid_rsolid(
     for index in range(hole_count):
         angle = 2.0 * math.pi * index / hole_count
         cutters.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=hole_diameter / 2.0,
                 height=flange_thickness + boss_height + 2.0,
                 bottom_face_center=(
@@ -379,7 +379,7 @@ def _make_n_hole_flange_solid_rsolid(
             # Otherwise the front end looks realistic while the motor/input side
             # remains a bare demo disk with no way to sit flush against a cover.
             cutters.append(
-                scad.make_cylinder_rsolid(
+                cad.make_cylinder_rsolid(
                     radius=counterbore_diameter / 2.0,
                     height=counterbore_depth + 0.3,
                     bottom_face_center=(
@@ -392,7 +392,7 @@ def _make_n_hole_flange_solid_rsolid(
                     result_tag=f"solid.{tag_prefix}.mount.counterbore.i{index + 1}.cutter",
                 )
             )
-    flange = scad.cut_rsolid(flange, cutters, skip_non_intersecting=False)
+    flange = cad.cut_rsolid(flange, cutters, skip_non_intersecting=False)
     print(
         f"flange_core: od={flange_outer_diameter:.1f} id={flange_inner_diameter:.1f} "
         f"holes={hole_count} hole_d={hole_diameter:.1f} faces={len(flange.get_faces())} "

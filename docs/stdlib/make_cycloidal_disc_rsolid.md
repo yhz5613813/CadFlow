@@ -10,7 +10,7 @@ def make_cycloidal_disc_rsolid(n_lobes: int, ring_pin_pitch_radius: float, rolle
 
 ## Import Surface
 
-- standard library: `import cadflow as scad` then `scad.std.gear.make_cycloidal_disc_rsolid(...)`; direct submodule import: `from cadflow.std.gear import make_cycloidal_disc_rsolid`
+- standard library: `import cadflow as cad` then `cad.std.gear.make_cycloidal_disc_rsolid(...)`; direct submodule import: `from cadflow.std.gear import make_cycloidal_disc_rsolid`
 
 ## Description
 

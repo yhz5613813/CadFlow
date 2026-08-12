@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 from typing import Any
 
-import cadflow as scad
+import cadflow as cad
 from OCP.BRepCheck import BRepCheck_Analyzer
 from OCP.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
 from cadflow.inspect import brep
@@ -14,10 +14,10 @@ from cadflow.inspect import brep
 
 def heal_same_domain_rsolid(
     *,
-    solid: scad.Solid,
+    solid: cad.Solid,
     linear_tolerance_mm: float,
     output_step: str | Path,
-) -> tuple[scad.Solid, dict[str, Any]]:
+) -> tuple[cad.Solid, dict[str, Any]]:
     """Unify nearly coplanar faces and export the healed solid.
 
     CadFlow's public ``union_rsolid(clean=True)`` enables same-domain cleanup,
@@ -36,13 +36,13 @@ def heal_same_domain_rsolid(
     unifier = ShapeUpgrade_UnifySameDomain(solid.wrapped, True, True, True)
     unifier.SetLinearTolerance(tolerance)
     unifier.Build()
-    healed_in_memory = scad.Solid(unifier.Shape())
+    healed_in_memory = cad.Solid(unifier.Shape())
     in_memory_valid = bool(BRepCheck_Analyzer(healed_in_memory.wrapped).IsValid())
 
     destination = Path(output_step).resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
-    scad.export_step(shapes=healed_in_memory, filename=str(destination))
-    healed = scad.Solid(
+    cad.export_step(shapes=healed_in_memory, filename=str(destination))
+    healed = cad.Solid(
         brep.load_step_rshape(
             destination,
             require_single_root=True,
@@ -72,7 +72,7 @@ def heal_same_domain_rsolid(
     }
 
 
-def _topology_summary(solid: scad.Solid) -> dict[str, Any]:
+def _topology_summary(solid: cad.Solid) -> dict[str, Any]:
     return {
         "valid": bool(BRepCheck_Analyzer(solid.wrapped).IsValid()),
         "volume_mm3": solid.get_volume(),

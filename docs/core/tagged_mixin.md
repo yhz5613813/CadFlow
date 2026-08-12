@@ -26,39 +26,39 @@ User code should not call member tag mutators. The public tag API is functional:
 ## Public Tag Usage
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-box = scad.make_box_rsolid(width=5, height=3, depth=2)
-scad.apply_tag(box, "role.bracket")
+box = cad.make_box_rsolid(width=5, height=3, depth=2)
+cad.apply_tag(box, "role.bracket")
 box.auto_tag_faces("box")
 
-print(scad.list_tags(box))
-top_faces = [face for face in box.get_faces() if "face.top" in scad.list_tags(face)]
+print(cad.list_tags(box))
+top_faces = [face for face in box.get_faces() if "face.top" in cad.list_tags(face)]
 print(len(top_faces))
 ```
 
 ## Explicit Propagation Example
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-body = scad.make_box_rsolid(width=10, height=10, depth=2)
-tagged = scad.apply_tag_rselection(
+body = cad.make_box_rsolid(width=10, height=10, depth=2)
+tagged = cad.apply_tag_rselection(
     scope=body,
     targets=[body],
     tag="role.mounting_plate",
-    topology_propagation=scad.TopologyPropagation.DOWNWARD,
+    topology_propagation=cad.TopologyPropagation.DOWNWARD,
 )
 
-face_hits = scad.select_faces_by_tag(
+face_hits = cad.select_faces_by_tag(
     solid=tagged,
     tag="role.mounting_plate",
-    scope=scad.TagScope.INHERITED,
+    scope=cad.TagScope.INHERITED,
 )
-edge_hits = scad.select_edges_by_tag(
+edge_hits = cad.select_edges_by_tag(
     shape=tagged,
     tag="role.mounting_plate",
-    scope=scad.TagScope.INHERITED,
+    scope=cad.TagScope.INHERITED,
 )
 
 print(len(face_hits), len(edge_hits))
@@ -84,10 +84,10 @@ or `generated` events and `body`/`tool` origins live in typed
 `set_metadata(key, value)` and `get_metadata(key, default=None)` remain shape member methods for structured data.
 
 ```python
-import cadflow as scad
+import cadflow as cad
 
-part = scad.make_box_rsolid(10, 8, 5)
-scad.apply_tag(part, "role.housing")
+part = cad.make_box_rsolid(10, 8, 5)
+cad.apply_tag(part, "role.housing")
 part.set_metadata("material", "6061-T6")
 part.set_metadata("part_number", "mp-001-a")
 
@@ -98,11 +98,11 @@ print(part.get_metadata("geo"))
 ## QL Queries
 
 ```python
-import cadflow as scad
+import cadflow as cad
 from cadflow import ql as Q
 
-body = scad.make_box_rsolid(10, 10, 2)
-scad.apply_tag(body, "role.mounting_plate")
+body = cad.make_box_rsolid(10, 10, 2)
+cad.apply_tag(body, "role.mounting_plate")
 body.auto_tag_faces("box")
 
 top_faces = Q.select(body.get_faces()).where(Q.tag("face.top")).all()

@@ -4,24 +4,24 @@ from __future__ import annotations
 
 import unittest
 
-import cadflow as scad
+import cadflow as cad
 
 
 class TestExpressionGraph(unittest.TestCase):
     def test_var_and_expr_roundtrip(self):
-        graph = scad.ExpressionGraph()
-        r = scad.var("r", 10.0)
+        graph = cad.ExpressionGraph()
+        r = cad.var("r", 10.0)
         expr = (r + 2) * 3
         graph.register(expr)
 
         payload = graph.to_dict()
-        rebuilt = scad.ExpressionGraph.from_dict(payload)
+        rebuilt = cad.ExpressionGraph.from_dict(payload)
 
         self.assertEqual(graph.node_count, rebuilt.node_count)
         self.assertGreaterEqual(rebuilt.node_count, 4)
 
     def test_expr_evaluates_with_defaults(self):
-        r = scad.var("r", 5.0)
+        r = cad.var("r", 5.0)
         expr = r * 2 + 1
         self.assertAlmostEqual(float(expr), 11.0)
 
@@ -32,7 +32,7 @@ class TestExpressionGraph(unittest.TestCase):
         params, param_exprs = canonicalize_params(
             {
                 "selected_edge_indices": [0, 1, 2],
-                "distance": scad.var("d", 2.0),
+                "distance": cad.var("d", 2.0),
             },
             graph,
         )

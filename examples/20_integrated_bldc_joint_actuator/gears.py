@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-import cadflow as scad
+import cadflow as cad
 
 try:
     from .common import (
@@ -110,15 +110,15 @@ except ImportError:  # Support direct execution from this example directory.
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_stage_ring_gear_rpart(
     *,
     stage: StageSpec,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create one herringbone ring insert with a full housing support rim."""
 
-    ring = scad.std.gear.make_herringbone_ring_gear_rsolid(
+    ring = cad.std.gear.make_herringbone_ring_gear_rsolid(
         n_teeth=stage.ring_teeth,
         module=stage.module,
         pressure_angle=PRESSURE_ANGLE,
@@ -129,11 +129,11 @@ def make_stage_ring_gear_rpart(
         addendum_factor=ADDENDUM_FACTOR,
         clearance_factor=CLEARANCE_FACTOR,
     )
-    ring = scad.apply_tag(
+    ring = cad.apply_tag(
         shape=ring,
         tag=f"solid.stdlib.{stage.stage_id}.fixed.herringbone.ring.gear",
     )
-    support = scad.make_cylinder_rsolid(
+    support = cad.make_cylinder_rsolid(
         radius=RING_INSERT_OUTER_RADIUS,
         height=GEAR_HEIGHT,
         bottom_face_center=(0.0, 0.0, 0.0),
@@ -141,7 +141,7 @@ def make_stage_ring_gear_rpart(
         tag_prefix=f"reducer.{stage.stage_id}.ring.support",
         result_tag=f"feature.reducer.{stage.stage_id}.ring.support",
     )
-    support_bore = scad.make_cylinder_rsolid(
+    support_bore = cad.make_cylinder_rsolid(
         radius=stage.ring_outer_radius - RING_SUPPORT_OVERLAP,
         height=GEAR_HEIGHT + 2.0,
         bottom_face_center=(0.0, 0.0, -1.0),
@@ -149,8 +149,8 @@ def make_stage_ring_gear_rpart(
         tag_prefix=f"reducer.{stage.stage_id}.ring.support.bore",
         result_tag=f"tool.reducer.{stage.stage_id}.ring.support.bore",
     )
-    support = scad.cut_rsolid(support, support_bore, skip_non_intersecting=False)
-    ring = scad.union_rsolid(ring, support, glue=False)
+    support = cad.cut_rsolid(support, support_bore, skip_non_intersecting=False)
+    ring = cad.union_rsolid(ring, support, glue=False)
     ring = apply_tags(
         shape=ring,
         tags=(f"role.{stage.stage_id}.fixed_ring_gear", "role.ring_gear_press_fit", "group.two_stage_reducer"),
@@ -168,15 +168,15 @@ def make_stage_ring_gear_rpart(
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_stage_planet_gear_rpart(
     *,
     stage: StageSpec,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create one reusable herringbone planet with a standard-bearing seat."""
 
-    planet = scad.std.gear.make_herringbone_gear_rsolid(
+    planet = cad.std.gear.make_herringbone_gear_rsolid(
         n_teeth=stage.planet_teeth,
         module=stage.module,
         pressure_angle=PRESSURE_ANGLE,
@@ -186,12 +186,12 @@ def make_stage_planet_gear_rpart(
         clearance_factor=CLEARANCE_FACTOR,
         backlash=BACKLASH,
     )
-    planet = scad.apply_tag(
+    planet = cad.apply_tag(
         shape=planet,
         tag=f"solid.stdlib.{stage.stage_id}.reusable.herringbone.planet.gear",
     )
     bearing_seat_radius = PLANET_BEARING.outer_diameter / 2.0 + 0.05
-    bearing_seat = scad.make_cylinder_rsolid(
+    bearing_seat = cad.make_cylinder_rsolid(
         radius=bearing_seat_radius,
         height=GEAR_HEIGHT + 2.0,
         bottom_face_center=(0.0, 0.0, -1.0),
@@ -199,7 +199,7 @@ def make_stage_planet_gear_rpart(
         tag_prefix=f"reducer.{stage.stage_id}.planet.bearing.seat",
         result_tag=f"tool.reducer.{stage.stage_id}.planet.bearing.seat",
     )
-    planet = scad.cut_rsolid(planet, bearing_seat, skip_non_intersecting=False)
+    planet = cad.cut_rsolid(planet, bearing_seat, skip_non_intersecting=False)
     planet = apply_tags(
         shape=planet,
         tags=(f"role.{stage.stage_id}.planet_gear", "role.planet_bearing_seat", "group.two_stage_reducer"),
@@ -221,8 +221,8 @@ def make_stage_planet_gear_rpart(
     )
 
 
-@scad.requires_session
-def make_stage1_carrier_sun_rpart(*, material: scad.Material) -> scad.Part:
+@cad.requires_session
+def make_stage1_carrier_sun_rpart(*, material: cad.Material) -> cad.Part:
     """Create the first carrier and integral second-stage sun/shaft."""
 
     carrier = _make_carrier_body_rsolid(
@@ -235,7 +235,7 @@ def make_stage1_carrier_sun_rpart(*, material: scad.Material) -> scad.Part:
         arm_width=STAGE1_ARM_WIDTH,
         pad_radius=STAGE1_PAD_RADIUS,
     )
-    shaft = scad.make_cylinder_rsolid(
+    shaft = cad.make_cylinder_rsolid(
         radius=INTERSTAGE_SHAFT_RADIUS,
         height=STAGE_2.top_z - STAGE1_CARRIER_BOTTOM_Z + 0.1,
         bottom_face_center=(0.0, 0.0, STAGE1_CARRIER_BOTTOM_Z - 0.05),
@@ -243,7 +243,7 @@ def make_stage1_carrier_sun_rpart(*, material: scad.Material) -> scad.Part:
         tag_prefix="reducer.stage1.carrier.interstage.shaft",
         result_tag="feature.reducer.stage1.carrier.interstage.shaft",
     )
-    stage2_sun = scad.std.gear.make_herringbone_gear_rsolid(
+    stage2_sun = cad.std.gear.make_herringbone_gear_rsolid(
         n_teeth=STAGE_2.sun_teeth,
         module=STAGE_2.module,
         pressure_angle=PRESSURE_ANGLE,
@@ -253,12 +253,12 @@ def make_stage1_carrier_sun_rpart(*, material: scad.Material) -> scad.Part:
         clearance_factor=CLEARANCE_FACTOR,
         backlash=BACKLASH,
     )
-    stage2_sun = scad.apply_tag(
+    stage2_sun = cad.apply_tag(
         shape=stage2_sun,
         tag="solid.stdlib.stage2.integral.herringbone.sun.gear",
     )
-    stage2_sun = scad.translate_shape(shape=stage2_sun, vector=(0.0, 0.0, STAGE_2.bottom_z))
-    carrier = scad.union_rsolid(carrier, shaft, stage2_sun, glue=False)
+    stage2_sun = cad.translate_shape(shape=stage2_sun, vector=(0.0, 0.0, STAGE_2.bottom_z))
+    carrier = cad.union_rsolid(carrier, shaft, stage2_sun, glue=False)
     carrier = apply_tags(
         shape=carrier,
         tags=("role.stage1.planet_carrier", "role.stage2.sun_gear", "role.integral_interstage_drive", "group.two_stage_reducer"),
@@ -293,12 +293,12 @@ def make_stage1_carrier_sun_rpart(*, material: scad.Material) -> scad.Part:
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def make_output_carrier_flange_rpart(
     *,
     stage: StageSpec,
-    material: scad.Material,
-) -> scad.Part:
+    material: cad.Material,
+) -> cad.Part:
     """Create the second carrier, 16 mm bearing land, and output flange."""
 
     carrier = _make_carrier_body_rsolid(
@@ -311,7 +311,7 @@ def make_output_carrier_flange_rpart(
         arm_width=STAGE2_ARM_WIDTH,
         pad_radius=STAGE2_PAD_RADIUS,
     )
-    shaft = scad.make_cylinder_rsolid(
+    shaft = cad.make_cylinder_rsolid(
         radius=OUTPUT_SHAFT_RADIUS,
         height=(
             OUTPUT_FLANGE_TOP_Z
@@ -324,7 +324,7 @@ def make_output_carrier_flange_rpart(
         tag_prefix="reducer.stage2.output.shaft",
         result_tag="feature.reducer.stage2.output.shaft",
     )
-    flange = scad.make_cylinder_rsolid(
+    flange = cad.make_cylinder_rsolid(
         radius=OUTPUT_FLANGE_RADIUS,
         height=OUTPUT_FLANGE_TOP_Z - OUTPUT_FLANGE_BOTTOM_Z,
         bottom_face_center=(0.0, 0.0, OUTPUT_FLANGE_BOTTOM_Z),
@@ -332,8 +332,8 @@ def make_output_carrier_flange_rpart(
         tag_prefix="reducer.stage2.output.flange",
         result_tag="feature.reducer.stage2.output.flange",
     )
-    output = scad.union_rsolid(carrier, shaft, flange, glue=False)
-    output = scad.cut_rsolid(
+    output = cad.union_rsolid(carrier, shaft, flange, glue=False)
+    output = cad.cut_rsolid(
         output,
         make_axial_hole_cutters_rsolids(
             count=OUTPUT_LINK_BOLT_COUNT,
@@ -380,8 +380,8 @@ def make_output_carrier_flange_rpart(
     )
 
 
-@scad.requires_session
-def make_planet_rplacement(*, stage: StageSpec, index: int) -> scad.Placement:
+@cad.requires_session
+def make_planet_rplacement(*, stage: StageSpec, index: int) -> cad.Placement:
     """Place and visually phase one planet at its pitch center."""
 
     center = planet_center_xy(stage=stage, index=index)
@@ -407,7 +407,7 @@ def planet_center_xy(*, stage: StageSpec, index: int) -> tuple[float, float]:
     )
 
 
-@scad.requires_session
+@cad.requires_session
 def _make_carrier_body_rsolid(
     *,
     stage: StageSpec,
@@ -418,8 +418,8 @@ def _make_carrier_body_rsolid(
     hub_radius: float,
     arm_width: float,
     pad_radius: float,
-) -> scad.Solid:
-    hub = scad.make_cylinder_rsolid(
+) -> cad.Solid:
+    hub = cad.make_cylinder_rsolid(
         radius=hub_radius,
         height=plate_thickness,
         bottom_face_center=(0.0, 0.0, plate_bottom_z),
@@ -436,7 +436,7 @@ def _make_carrier_body_rsolid(
     for index in range(PLANET_COUNT):
         angle = 360.0 * index / PLANET_COUNT
         center = planet_center_xy(stage=stage, index=index)
-        arm = scad.make_box_rsolid(
+        arm = cad.make_box_rsolid(
             width=arm_length,
             height=arm_width,
             depth=plate_thickness,
@@ -445,7 +445,7 @@ def _make_carrier_body_rsolid(
             result_tag=f"feature.reducer.{stage.stage_id}.carrier.arm{index + 1}",
         )
         solids.append(
-            scad.rotate_shape(
+            cad.rotate_shape(
                 shape=arm,
                 angle=angle,
                 axis=(0.0, 0.0, 1.0),
@@ -453,7 +453,7 @@ def _make_carrier_body_rsolid(
             )
         )
         solids.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=pad_radius,
                 height=plate_thickness,
                 bottom_face_center=(center[0], center[1], plate_bottom_z),
@@ -463,7 +463,7 @@ def _make_carrier_body_rsolid(
             )
         )
         solids.append(
-            scad.make_cylinder_rsolid(
+            cad.make_cylinder_rsolid(
                 radius=pin_radius,
                 height=pin_height,
                 bottom_face_center=(center[0], center[1], pin_bottom_z),
@@ -472,7 +472,7 @@ def _make_carrier_body_rsolid(
                 result_tag=f"feature.reducer.{stage.stage_id}.carrier.pin{index + 1}",
             )
         )
-    carrier = scad.union_rsolid(solids, glue=False)
+    carrier = cad.union_rsolid(solids, glue=False)
     print(
         f"{stage.stage_id}_carrier_body: arm_length={arm_length:.3f} "
         f"hub_embed={hub_radius - arm_inner_radius:.3f} pin_height={pin_height:.3f}"

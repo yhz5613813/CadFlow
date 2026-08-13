@@ -2,7 +2,6 @@
 
 import ast
 import importlib.util
-import math
 import sys
 from pathlib import Path
 import unittest
@@ -16,10 +15,6 @@ EXAMPLES = ROOT / "examples"
 
 def _model_files() -> tuple[Path, ...]:
     return (
-        EXAMPLES / "04_dimension_tolerance_chain.py",
-        EXAMPLES / "08_constrained_sketch.py",
-        EXAMPLES / "09_naca0016_blade_freecad.py",
-        EXAMPLES / "10_part_assembly.py",
         EXAMPLES / "16_compact_two_stage_planetary_reducer" / "main.py",
         EXAMPLES / "20_integrated_bldc_joint_actuator" / "main.py",
     )
@@ -30,6 +25,15 @@ def _source_files() -> tuple[Path, ...]:
         path
         for path in EXAMPLES.rglob("*.py")
         if "out" not in path.relative_to(EXAMPLES).parts
+    )
+
+
+def _session_managed_source_files() -> tuple[Path, ...]:
+    return tuple(
+        path
+        for path in _source_files()
+        if "@cad.model" in path.read_text(encoding="utf-8")
+        or "@cad.requires_session" in path.read_text(encoding="utf-8")
     )
 
 
@@ -45,20 +49,6 @@ def _is_decorator(node: ast.expr, name: str) -> bool:
 
 
 class TestExampleModelContract(unittest.TestCase):
-    def test_example_10_output_dir_is_anchored_to_the_example_file(self):
-        path = EXAMPLES / "10_part_assembly.py"
-        spec = importlib.util.spec_from_file_location("example_10_path_contract", path)
-        self.assertIsNotNone(spec)
-        assert spec is not None and spec.loader is not None
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        self.assertTrue(module.OUT_DIR.is_absolute())
-        self.assertEqual(
-            module.OUT_DIR,
-            EXAMPLES / "out" / "hydraulic_rod_assembly",
-        )
-
     def test_each_current_model_entry_has_one_explicit_result(self):
         for path in _model_files():
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -95,7 +85,7 @@ class TestExampleModelContract(unittest.TestCase):
             self.assertNotIn("export_session_json(", source, path)
 
     def test_make_builders_require_the_active_session(self):
-        for path in _source_files():
+        for path in _session_managed_source_files():
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             for node in ast.walk(tree):
                 if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):

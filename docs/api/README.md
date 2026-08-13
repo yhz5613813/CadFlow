@@ -96,14 +96,9 @@ This index includes generated docs for the public CadFlow API surface, including
 
 ## Translator Backends
 
-- [FreeCADScriptTranslator](FreeCADScriptTranslator.md) *(from translator/freecad_translator/translator.py)* `translator backend`
-- [FreeCADTranslator](FreeCADTranslator.md) *(from translator/freecad_translator/translator.py)* `translator backend`
 - [Fusion360Translator](Fusion360Translator.md) *(from translator/fusion360_translator/translator.py)* `translator backend`
 - [SolidWorksTranslator](SolidWorksTranslator.md) *(from translator/solidworks_translator/translator.py)* `translator backend`
-- [export_model_json_to_fcstd](export_model_json_to_fcstd.md) *(from translator/freecad_translator/api.py)* `translator backend`
 - [export_model_json_to_solidworks_step](export_model_json_to_solidworks_step.md) *(from translator/solidworks_translator/api.py)* `translator backend`
-- [translate_model_json_to_fcstd](translate_model_json_to_fcstd.md) *(from translator/freecad_translator/api.py)* `translator backend`
-- [translate_model_json_to_freecad_script](translate_model_json_to_freecad_script.md) *(from translator/freecad_translator/api.py)* `translator backend`
 - [translate_model_json_to_fusion360_script](translate_model_json_to_fusion360_script.md) *(from translator/fusion360_translator/api.py)* `translator backend`
 - [translate_model_json_to_solidworks_script](translate_model_json_to_solidworks_script.md) *(from translator/solidworks_translator/api.py)* `translator backend`
 

@@ -35,7 +35,7 @@ interface TestFactory {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const corpus = parseStrictJson(
-  readFileSync(resolve(here, "../../../test/fixtures/scene-contract/corpus.json")),
+  readFileSync(resolve(here, "../../../tests/compat_suite/fixtures/scene-contract/corpus.json")),
 ) as Corpus;
 
 const validCase = (cases: ValidationCase[]): Buffer => {

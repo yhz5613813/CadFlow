@@ -3,7 +3,7 @@
 Run from the repository root with:
     uv run python examples/16_compact_two_stage_planetary_reducer/collision_probe.py
 
-This probe builds the solved reducer assembly without exporting STEP/FCStd, then
+This probe builds the solved reducer assembly without exporting STEP, then
 checks the current pose with ``cad.verifier.check_collision_rcollisionreport``.
 The current verifier uses FCL-reported mesh contact penetration only; it does
 not handle complete containment cases.

@@ -91,7 +91,7 @@ Bearing rolling elements are decorative geometry fused into each outer-ring Part
 Each bearing subassembly therefore exposes only the outer ring and inner ring as
 solver bodies, with one revolute joint between them. This intentionally omits
 ball/cage contact kinematics while ensuring the visible balls follow the bearing
-through FreeCAD assembly simulation instead of becoming unconstrained bodies.
+through assembly simulation instead of becoming unconstrained bodies.
 
 ## Electronics Packaging
 

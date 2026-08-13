@@ -83,7 +83,7 @@ class TestGraphModelApi(unittest.TestCase):
             )
             self.assertFalse(
                 any(
-                    name.lower().endswith((".step", ".stl", ".fcstd"))
+                    name.lower().endswith((".step", ".stl"))
                     for name in archive.members
                 )
             )

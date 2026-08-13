@@ -63,9 +63,6 @@ def main() -> None:
     model_path = OUT_DIR / "compact_two_stage_planetary_reducer.model.json"
     session_path = OUT_DIR / "compact_two_stage_planetary_reducer.session.json"
     step_path = OUT_DIR / "compact_two_stage_planetary_reducer.step"
-    fcstd_path = OUT_DIR / "compact_two_stage_planetary_reducer.FCStd"
-    if fcstd_path.exists():
-        fcstd_path.unlink()
 
     result = _build_compact_two_stage_planetary_reducer()
     assembly, preview = result.value
@@ -76,18 +73,6 @@ def main() -> None:
     imported = cad.import_model_json(json_str=result.model_json)
     replayed = cad.replay_model_json(json_str=result.model_json)
     payload = json.loads(result.model_json)
-
-    fcstd_status = "not attempted"
-    try:
-        cad.translator.freecad_translator.translate_model_json_to_fcstd(
-            json_str=result.model_json,
-            output_path=str(fcstd_path.resolve()),
-            document_name="CompactTwoStagePlanetaryReducer",
-            freecad_cmd=None,
-        )
-        fcstd_status = f"{fcstd_path} ({fcstd_path.stat().st_size} bytes)"
-    except Exception as exc:  # pragma: no cover - depends on local FreeCAD install
-        fcstd_status = f"skipped ({exc.__class__.__name__}: {exc})"
 
     solids = preview.get_solids()
     print(f"envelope_diameter={HOUSING_OUTER_RADIUS * 2.0:.1f}")
@@ -105,7 +90,6 @@ def main() -> None:
     print(f"model={model_path}")
     print(f"session={session_path}")
     print(f"step={step_path}")
-    print(f"fcstd={fcstd_status}")
 
 
 if __name__ == "__main__":

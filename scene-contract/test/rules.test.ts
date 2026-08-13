@@ -7,7 +7,7 @@ import { issue, parseStrictJson, report, validateRuleRegistry } from "../src/ind
 
 const contractRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../../../src/cadflow/scene/contracts",
+  "../../../python/cadflow/_engine/exchange/scene/contracts",
 );
 
 function registry(): Record<string, unknown> {

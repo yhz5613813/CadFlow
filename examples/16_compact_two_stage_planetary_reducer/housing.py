@@ -132,7 +132,7 @@ def make_reducer_housing_rpart(*, material: cad.Material) -> cad.Part:
     part = cad.assign_material_rpart(part=part, material=material)
     # The scalloped sector pads deliberately make the output face non-simple.
     # Housing axes are design datums, not manufactured face picks, so keep these
-    # connectors topology-free for stable replay and FreeCAD translation.
+    # Keep connectors topology-free for stable replay and CAD translation.
     for connector_id, z in (
         ("input_axis", STAGE_1.top_z),
         ("stage1_axis", STAGE_1.top_z),

@@ -30,7 +30,7 @@ interface Corpus {
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const corpusPath = resolve(here, "../../../test/fixtures/scene-contract/corpus.json");
+const corpusPath = resolve(here, "../../../tests/compat_suite/fixtures/scene-contract/corpus.json");
 const corpus = parseStrictJson(readFileSync(corpusPath)) as Corpus;
 const decode = (value: string): Buffer => Buffer.from(value, "base64");
 

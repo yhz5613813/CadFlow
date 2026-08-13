@@ -41,7 +41,7 @@ Create an involute spur gear (straight teeth, helix angle = 0).
 ### addendum_factor
 
 - **Type**: `float, default 1.0`
-- **Description**: Tooth addendum as a multiple of module, matching FreeCAD's tooth height factor default.
+- **Description**: Tooth addendum as a multiple of module.
 
 ### clearance_factor
 

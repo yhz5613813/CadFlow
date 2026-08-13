@@ -327,7 +327,7 @@ def _make_n_hole_flange_solid_rsolid(
     counterbore_depth: float = 0.0,
     tag_prefix: str,
 ) -> cad.Solid:
-    """Build a flange without edge-pick features so FreeCAD export is stable."""
+    """Build a flange without edge-pick features so graph replay is stable."""
 
     outer = cad.make_cylinder_rsolid(
         radius=flange_outer_diameter / 2.0,

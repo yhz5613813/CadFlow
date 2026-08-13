@@ -8,8 +8,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate:types": "uv run python ../tools/generate_scene_contract_types.py --language typescript",
-    "check:types": "uv run python ../tools/generate_scene_contract_types.py --check --language typescript",
+    "generate:types": "python ../tools/generate_scene_contract_types.py --language typescript",
+    "check:types": "python ../tools/generate_scene_contract_types.py --check --language typescript",
     "test": "npm run check:types && npm run build && node --test dist/test/*.test.js",
     "typecheck": "tsc --noEmit"
   },

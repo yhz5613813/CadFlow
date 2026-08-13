@@ -2,8 +2,8 @@
 
 Generated scripts are intended to run on Windows machines with SolidWorks and
 pywin32 installed. They interpret the same canonical low-level operation graph
-used by the FreeCAD and Fusion 360 translators and avoid topology-index based
-edge/face selection.
+used by the Fusion 360 translator and avoid topology-index based edge/face
+selection.
 """
 
 from __future__ import annotations
@@ -756,9 +756,8 @@ def _source_kernel_result_step_payload(
             ]
             distance = abs(float(node.params.get("distance", 0.0) or 0.0))
             if not extents or distance > 0.25 * min(extents):
-                # Match FreeCAD result collection: an invalid over-large final
-                # chamfer remains failed and is omitted without suppressing
-                # valid sibling results.
+                # An invalid over-large final chamfer remains failed and is
+                # omitted without suppressing valid sibling results.
                 continue
             wrapped = source_shape
         writer.Transfer(wrapped, STEPControl_AsIs)
@@ -6314,8 +6313,8 @@ class CadFlowSolidWorksRuntime:
             sx, sy = mapper(_v3(edge.get('start')))
             mx, my = mapper(_v3(edge.get('middle')))
             ex, ey = mapper(_v3(edge.get('end')))
-            # SolidWorks expects start, end, point-on-arc; CadFlow and FreeCAD
-            # represent the same arc as start, point-on-arc, end.
+            # SolidWorks expects start, end, point-on-arc; CadFlow represents
+            # the same arc as start, point-on-arc, end.
             return sketch.Create3PointArc(
                 _as_m(sx), _as_m(sy), 0.0,
                 _as_m(ex), _as_m(ey), 0.0,

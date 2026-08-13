@@ -44,7 +44,7 @@ pass `export_dir=...` to `@cad.model`; its captured geometry/product values
 then produce one self-contained `<graph_id>.scene.zip`. It embeds
 `model/model.json`, mapped project-relative Python sources, and the evaluated
 render/selection assets. It does not create adjacent model/session JSON, STEP,
-STL, or FCStd files. No files are written when `export_dir` is omitted.
+or STL files. No files are written when `export_dir` is omitted.
 
 ## Important rule: source API is not always graph API
 

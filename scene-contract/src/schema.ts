@@ -6,7 +6,7 @@ import { parseStrictJson } from "./canonical.js";
 
 const contractRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../../../src/cadflow/scene/contracts/schemas",
+  "../../../python/cadflow/_engine/exchange/scene/contracts/schemas",
 );
 
 const ajv = new Ajv2020({ strict: true, allErrors: true });

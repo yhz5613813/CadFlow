@@ -102,7 +102,7 @@ class TestAutoDocsGenPathResolution(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             package_root = Path(tmp_dir) / "src/cadflow"
             package_root.mkdir(parents=True, exist_ok=True)
-            backend_root = package_root / "translator/freecad_translator"
+            backend_root = package_root / "translator/fusion360_translator"
             backend_root.mkdir(parents=True)
             (backend_root / "api.py").write_text("", encoding="utf-8")
             (backend_root / "translator.py").write_text("", encoding="utf-8")
@@ -116,9 +116,9 @@ class TestAutoDocsGenPathResolution(unittest.TestCase):
             self.assertIn("tolerance.py", resolved_names)
             self.assertIn("sketch.py", resolved_names)
             self.assertIn("math.py", resolved_names)
-            self.assertIn("translator/freecad_translator/api.py", resolved_names)
+            self.assertIn("translator/fusion360_translator/api.py", resolved_names)
             self.assertIn(
-                "translator/freecad_translator/translator.py",
+                "translator/fusion360_translator/translator.py",
                 resolved_names,
             )
             self.assertIn("inspect/brep/inspect.py", resolved_names)

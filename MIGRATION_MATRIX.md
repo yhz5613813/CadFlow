@@ -11,7 +11,7 @@ compatibility suite as proof that every geometry path is native.
   intentionally not retained as an import alias.
 - Functions owned by the modeling operation layer: 164
 - Native dispatcher operations: 36
-- Full collected regression suite: 1090 tests
+- Full collected regression suite: 993 tests
 
 ## Native C++
 

@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    name: Python 3.10
+    runs-on: ubuntu-22.04
+    env:
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "cadquery-ocp==7.9.3.1"
+          python -m pip install --no-build-isolation ".[test,inspect]"
+          python -m pip install vtk pillow
+      - name: Build OCCT native core
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE="$(command -v python)"
+          cmake --build build --parallel 2
+      - name: Run regression suite
+        run: python -m pytest -q --disable-warnings --tb=short
+
+  fallback-build:
+    name: Analytic fallback
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --no-build-isolation ".[test]"
+      - name: Build fallback core
+        run: |
+          cmake -S . -B build-fallback -DCMAKE_BUILD_TYPE=Release -DCADFLOW_USE_OCCT=OFF -DCADFLOW_WITH_STEP=OFF
+          cmake --build build-fallback --parallel 2
+          echo "CADFLOW_CORE_LIBRARY=$PWD/build-fallback/native/libcadflow_core.so" >> "$GITHUB_ENV"
+      - name: Run fallback tests
+        run: python -m pytest -q tests/test_native_backend.py --disable-warnings --tb=short
+
+  distributions:
+    name: Wheel and sdist
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel build twine
+          python -m pip install "cadquery-ocp==7.9.3.1"
+      - name: Build distributions
+        run: |
+          python -m build --no-isolation
+          python -m twine check dist/*
+      - name: Verify wheel install
+        run: |
+          python -m venv /tmp/cadflow-wheel
+          /tmp/cadflow-wheel/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/cadflow-wheel/bin/python - <<'PY'
+          import cadflow
+
+          with cadflow.NativeSession() as session:
+              assert "occt-7.9.3" in session.version
+          with cadflow.Model() as model:
+              assert abs(model.box(2, 3, 4).volume - 24.0) < 1e-9
+          PY
+      - name: Rebuild wheel from sdist
+        run: |
+          mkdir sdist-wheel
+          python -m pip wheel dist/*.tar.gz --no-deps --no-build-isolation -w sdist-wheel
+          test -n "$(find sdist-wheel -name '*.whl' -print -quit)"
+
+  scene-contract:
+    name: Scene TypeScript parity
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: scene-contract/package-lock.json
+      - name: Install Node dependencies
+        working-directory: scene-contract
+        run: npm ci
+      - name: Run parity tests
+        working-directory: scene-contract
+        run: npm test

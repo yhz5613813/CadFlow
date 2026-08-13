@@ -2,7 +2,7 @@
 
 CadFlow attaches physical meaning at `Var` declarations and infers the
 dimension of every derived scalar expression. This catches invalid formulas before
-they reach geometry, tolerance analysis, model export, replay, or FreeCAD
+they reach geometry, tolerance analysis, model export, replay, or external CAD
 translation.
 
 ## Canonical CAD Units

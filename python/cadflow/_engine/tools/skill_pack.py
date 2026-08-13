@@ -568,7 +568,7 @@ class SkillPackager:
             - Use tags for semantic intent and selection anchors, such as `role.mounting_surface`, `anchor.datum.primary`, `face.top`, or `group.fasteners`.
             - Keep numeric and geometric facts in metadata or graph payloads, not in tags.
             - When a QL-selected face or edge is used by a later feature, expect the graph/model workflow to preserve that selection as a stable geo select node.
-            - For FreeCAD translation, prefer canonical model JSON generated from a `GraphSession`; selected profiles and detail-feature selections should come from the graph rather than ad hoc object lookup.
+            - For external CAD translation, prefer canonical model JSON generated from a `GraphSession`; selected profiles and detail-feature selections should come from the graph rather than ad hoc object lookup.
 
             ## Tagging Mental Model
             - Public tag attachment is `apply_tag(shape=..., tag=...)`.

@@ -1,9 +1,8 @@
 """Translate CadFlow model/graph payloads into Autodesk Fusion 360 scripts.
 
 Generated scripts are intended to run inside Fusion 360's Python environment.
-They interpret the same canonical low-level graph consumed by
-``freecad_translator.py`` and intentionally select detail-feature edges/faces by
-geometry signatures instead of topology indices.
+They interpret the canonical low-level graph and intentionally select
+detail-feature edges/faces by geometry signatures instead of topology indices.
 """
 
 from __future__ import annotations

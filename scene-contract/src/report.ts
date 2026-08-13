@@ -51,7 +51,7 @@ function utf8Compare(left: string, right: string): number {
 
 const contractRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../../../src/cadflow/scene/contracts",
+  "../../../python/cadflow/_engine/exchange/scene/contracts",
 );
 const ruleSchema = parseStrictJson(readFileSync(resolve(contractRoot, "schemas/rules-1.schema.json")));
 const validateRuleSchema = new Ajv2020({ strict: true, allErrors: true }).compile(ruleSchema as object);

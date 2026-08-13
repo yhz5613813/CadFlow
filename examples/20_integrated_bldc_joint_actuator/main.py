@@ -61,15 +61,12 @@ def build_integrated_bldc_joint_actuator():
 
 
 def main() -> None:
-    """Generate canonical model JSON, STEP, and optional FreeCAD output."""
+    """Generate canonical model JSON and STEP output."""
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     model_path = OUT_DIR / "integrated_bldc_joint_actuator.model.json"
     session_path = OUT_DIR / "integrated_bldc_joint_actuator.session.json"
     step_path = OUT_DIR / "integrated_bldc_joint_actuator.step"
-    fcstd_path = OUT_DIR / "integrated_bldc_joint_actuator.FCStd"
-    if fcstd_path.exists():
-        fcstd_path.unlink()
 
     result = build_integrated_bldc_joint_actuator()
     assembly, preview = result.value
@@ -78,18 +75,6 @@ def main() -> None:
     cad.export_step(shapes=preview, filename=str(step_path))
 
     payload = json.loads(result.model_json)
-
-    fcstd_status = "not attempted"
-    try:
-        cad.translator.freecad_translator.translate_model_json_to_fcstd(
-            json_str=result.model_json,
-            output_path=str(fcstd_path.resolve()),
-            document_name="Integrated50mmBLDCJointActuator",
-            freecad_cmd=None,
-        )
-        fcstd_status = f"{fcstd_path} ({fcstd_path.stat().st_size} bytes)"
-    except Exception as exc:  # pragma: no cover - depends on local FreeCAD install
-        fcstd_status = f"skipped ({exc.__class__.__name__}: {exc})"
 
     print(f"envelope_diameter={PACKAGE_RADIUS * 2.0:.1f}")
     print(f"structural_length={PACKAGE_TOP_Z - PACKAGE_STRUCTURAL_BOTTOM_Z:.1f}")
@@ -105,7 +90,6 @@ def main() -> None:
     print(f"model={model_path}")
     print(f"session={session_path}")
     print(f"step={step_path}")
-    print(f"fcstd={fcstd_status}")
 
 
 if __name__ == "__main__":

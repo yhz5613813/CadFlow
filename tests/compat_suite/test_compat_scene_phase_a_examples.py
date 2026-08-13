@@ -18,13 +18,6 @@ RUN_SLOW_EXAMPLES = os.environ.get("CADFLOWAPI_RUN_SLOW_SCENE_EXAMPLES") == "1"
 
 EXAMPLE_CASES = (
     (
-        "10_part_assembly.py",
-        "build_hydraulic_rod_assembly",
-        3,
-        3,
-        2,
-    ),
-    (
         "16_compact_two_stage_planetary_reducer/main.py",
         "_build_compact_two_stage_planetary_reducer",
         116,
@@ -85,40 +78,9 @@ part_definitions = {
     for item in nodes
     if not isinstance(item, Assembly)
 }
-face_naming = {}
-if path.name == "10_part_assembly.py":
-    naming_contract = {
-        "outer_sleeve": ("sleeve.", "sleeve.gland.face.mount"),
-        "piston_rod": ("rod.", "rod.piston.land.left.face.rear"),
-    }
-    for part_id, (prefix, connector_face_tag) in naming_contract.items():
-        part = next(
-            item
-            for item in nodes
-            if not isinstance(item, Assembly) and item.part_id == part_id
-        )
-        faces = part.body.get_faces()
-        face_naming[part_id] = {
-            "face_count": len(faces),
-            "unnamed_indices": [
-                index
-                for index, face in enumerate(faces)
-                if not any(
-                    tag.startswith(prefix)
-                    for tag in cad.list_tags(face, scope="local")
-                )
-            ],
-            "connector_face_count": len(
-                cad.select_faces_by_tag(
-                    part.body,
-                    connector_face_tag,
-                    scope="local",
-                )
-            ),
-        }
 print("SCENE_PHASE_A_FACTS=" + json.dumps({
     "expected_mesh_count": len(part_definitions),
-    "face_naming": face_naming,
+    "face_naming": {},
     "product_node_count": len(nodes),
     "unique_definition_count": len(definitions),
 }, sort_keys=True), flush=True)
@@ -138,7 +100,7 @@ print("SCENE_PHASE_A_FACTS=" + json.dumps({
         "expected_meshes",
     ),
     EXAMPLE_CASES,
-    ids=("example_10", "example_16", "example_20"),
+    ids=("example_16", "example_20"),
 )
 def test_allowlisted_example_product_hierarchy_in_fresh_process(
     relative_path: str,
@@ -217,22 +179,7 @@ def test_allowlisted_example_product_hierarchy_in_fresh_process(
     assert len(fact_lines) == 1, stdout
     assert json.loads(fact_lines[0]) == {
         "expected_mesh_count": expected_meshes,
-        "face_naming": (
-            {
-                "outer_sleeve": {
-                    "connector_face_count": 1,
-                    "face_count": 31,
-                    "unnamed_indices": [],
-                },
-                "piston_rod": {
-                    "connector_face_count": 1,
-                    "face_count": 24,
-                    "unnamed_indices": [],
-                },
-            }
-            if relative_path == "10_part_assembly.py"
-            else {}
-        ),
+        "face_naming": {},
         "product_node_count": expected_nodes,
         "unique_definition_count": expected_definitions,
     }

@@ -39,5 +39,3 @@ class MyBackend:
 register_sketch_solver_backend(MyBackend())
 set_default_sketch_solver_backend("my-solver")
 ```
-
-In `.FCStd` translation, sketch promotion is represented by a visible `Sketcher::SketchObject`. `make_face_from_sketch_rface(...)` does not create a separate face bridge object in the graph path; downstream FreeCAD operations such as `Part::Extrusion` use the promoted Sketcher object as their base. FreeCAD Sketcher constraints are validated as they are added: constraints that are unsupported, crash-risky, or rejected as redundant by FreeCAD are recorded in `CadFlowSketchConstraints.skipped` instead of being emitted in a way that would make the sketch unsolvable or force a synthetic base object.

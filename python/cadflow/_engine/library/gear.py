@@ -598,8 +598,7 @@ def make_spur_gear_rsolid(
     gear_height : float, default 6.0
         Gear thickness / extrusion height along Z in mm.
     addendum_factor : float, default 1.0
-        Tooth addendum as a multiple of module, matching FreeCAD's tooth
-        height factor default.
+        Tooth addendum as a multiple of module.
     clearance_factor : float, default 0.25
         Root clearance beyond the addendum, as a multiple of module.
     backlash : float, default 0.0

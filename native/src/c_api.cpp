@@ -10,6 +10,7 @@
 #include "kernel/operations.h"
 #include "kernel/queries.h"
 #include "kernel/surfaces.h"
+#include "physics/connections.h"
 #include "runtime/graph.h"
 
 #include <cstdlib>
@@ -709,6 +710,18 @@ int cadflow_build_flexible_shell_mesh(
                 thickness,
             },
             {out_vertices_xyz, out_normals_xyz, out_triangles});
+        return 1;
+    });
+}
+
+int cadflow_evaluate_physical_connections(
+    const cad_physical_connection_params_t* parameters,
+    const cad_physical_connection_state_t* states,
+    size_t connection_count,
+    cad_physical_connection_response_t* responses) {
+    return cadflow::core::guarded([&] {
+        cadflow::physics::evaluate_connection_responses(
+            parameters, states, connection_count, responses);
         return 1;
     });
 }

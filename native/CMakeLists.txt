@@ -13,6 +13,7 @@ add_library(cadflow_core SHARED
   src/kernel/operations.cpp
   src/kernel/queries.cpp
   src/kernel/surfaces.cpp
+  src/physics/connections.cpp
   src/runtime/graph.cpp
 )
 target_compile_features(cadflow_core PRIVATE cxx_std_17)

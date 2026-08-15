@@ -10,6 +10,7 @@ from . import (
     graph_api,
     inspection,
     modeling,
+    physical,
     query,
     scene,
     serialization,
@@ -25,6 +26,8 @@ from .native import NativeError, NativeSession, ShapeHandle
 from . import flexible
 from .feedback import Diagnostic, OperationReport, OperationResult
 from .frame import CoordinateFrame, Workplane, current_frame, use_frame
+from .physical import *
+from .physical import __all__ as _physical_all
 from .sketch_api import SketchDocument
 from ._compat_aliases import install as _install_compat_aliases
 
@@ -71,6 +74,7 @@ __all__ = [
     "legacy_api_module",
     "modeling",
     "native_model",
+    "physical",
     "query",
     "scene",
     "serialization",
@@ -87,6 +91,6 @@ __all__ = [
 
 # Keep ``from cadflow import *`` complete for the migrated API as well as the
 # new frontend. The engine is bundled, so this does not pull in another tree.
-__all__ = sorted(set(__all__) | set(legacy_api_module().__all__))
+__all__ = sorted(set(__all__) | set(_physical_all) | set(legacy_api_module().__all__))
 
 __version__ = "0.1.0"

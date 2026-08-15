@@ -18,6 +18,52 @@ extern "C" {
 
 typedef void *cad_session_t;
 
+typedef enum cad_physical_connection_mode_t {
+    CADFLOW_CONNECTION_BONDED = 0,
+    CADFLOW_CONNECTION_FRICTIONAL_CONTACT = 1,
+    CADFLOW_CONNECTION_FASTENER = 2,
+    CADFLOW_CONNECTION_INTERFERENCE = 3,
+    CADFLOW_CONNECTION_COMPLIANT = 4
+} cad_physical_connection_mode_t;
+
+typedef struct cad_physical_connection_params_t {
+    int response_mode;
+    double axis[3];
+    double normal_stiffness;
+    double tangential_stiffness;
+    double rotational_stiffness;
+    double normal_damping;
+    double tangential_damping;
+    double rotational_damping;
+    double friction_coefficient;
+    double preload;
+    double clearance;
+    double interference;
+    /* A zero limit disables the corresponding utilization check. */
+    double tensile_limit;
+    double shear_limit;
+    double torque_limit;
+} cad_physical_connection_params_t;
+
+typedef struct cad_physical_connection_state_t {
+    double relative_translation[3];
+    double relative_rotation[3];
+    double relative_linear_velocity[3];
+    double relative_angular_velocity[3];
+} cad_physical_connection_state_t;
+
+typedef struct cad_physical_connection_response_t {
+    double force[3];
+    double torque[3];
+    double normal_force;
+    double shear_force;
+    double tensile_utilization;
+    double shear_utilization;
+    double torque_utilization;
+    int active;
+    int failed;
+} cad_physical_connection_response_t;
+
 CADFLOW_API const char *cadflow_version(void);
 CADFLOW_API cad_session_t cadflow_session_create(void);
 CADFLOW_API void cadflow_session_destroy(cad_session_t session);
@@ -194,6 +240,14 @@ CADFLOW_API int cadflow_build_flexible_shell_mesh(
     double *out_vertices_xyz,
     double *out_normals_xyz,
     unsigned int *out_triangles);
+
+/* Stateless batched reduced-order physical connection response.  States and
+   responses use connector A's local frame; force/torque act on component B. */
+CADFLOW_API int cadflow_evaluate_physical_connections(
+    const cad_physical_connection_params_t *parameters,
+    const cad_physical_connection_state_t *states,
+    size_t connection_count,
+    cad_physical_connection_response_t *responses);
 
 CADFLOW_API void cadflow_free_string(char *value);
 CADFLOW_API const char *cadflow_last_error(void);

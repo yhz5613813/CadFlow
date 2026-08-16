@@ -1,0 +1,646 @@
+{
+  "dataset": {
+    "archive": "/data/yihongzhu/Text2CAD-data/text2cad_v1.1/misc/minimal_json/minimal_json_0000_0099.zip",
+    "license": "CC BY-NC-SA 4.0 (Text2CAD v1.1)",
+    "members": [
+      "0000/00003775/minimal_json/00003775.json",
+      "0015/00150738/minimal_json/00150738.json",
+      "0074/00743657/minimal_json/00743657.json",
+      "0069/00694843/minimal_json/00694843.json"
+    ],
+    "roles": {
+      "0000/00003775": "cylindrical vessel source",
+      "0015/00150738": "flange and hex-hub source",
+      "0074/00743657": "base/bracket source dimensions",
+      "0069/00694843": "manhole bolt-pattern source"
+    }
+  },
+  "units": "millimetres",
+  "reconstruction_assumptions": [
+    "The source records dimensions but no assembly mates, so the boiler uses a Z-up vessel frame.",
+    "The shell is an exterior solid envelope, not a pressure-rated wall or fluid simulation.",
+    "The Text2CAD cylinder/flange components are enlarged and placed as boiler shell, manhole, and pipe hardware.",
+    "All visible connections overlap host geometry before union and the result is one Solid."
+  ],
+  "validation": {
+    "operation": "validate",
+    "status": "valid",
+    "ok": true,
+    "output": {
+      "kind": "union"
+    },
+    "parameters": {},
+    "diagnostics": []
+  },
+  "feature_diagnostics": [
+    {
+      "feature": "vertical cylindrical shell",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2386039.620401447
+    },
+    {
+      "feature": "lower dished head",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2607328.3803720665
+    },
+    {
+      "feature": "upper dished head",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2828617.1403426863
+    },
+    {
+      "feature": "boiler foundation ring",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2974268.9155854774
+    },
+    {
+      "feature": "shell reinforcement band 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2978745.6851168433
+    },
+    {
+      "feature": "shell reinforcement band 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2983222.454648208
+    },
+    {
+      "feature": "shell reinforcement band 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2987699.2241795748
+    },
+    {
+      "feature": "boiler foot plate 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2991709.020561315
+    },
+    {
+      "feature": "boiler support leg 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2995727.384337167
+    },
+    {
+      "feature": "boiler foot plate 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 2999737.180722431
+    },
+    {
+      "feature": "boiler support leg 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3003755.5447288146
+    },
+    {
+      "feature": "boiler foot plate 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3007765.3411129816
+    },
+    {
+      "feature": "boiler support leg 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3011783.7050531474
+    },
+    {
+      "feature": "boiler foot plate 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3015793.5014311615
+    },
+    {
+      "feature": "boiler support leg 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3019811.8652984006
+    },
+    {
+      "feature": "chimney neck",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3041526.553721583
+    },
+    {
+      "feature": "chimney stack",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3065342.967630113
+    },
+    {
+      "feature": "chimney tapered crown",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3080505.0896493564
+    },
+    {
+      "feature": "chimney cap",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3084803.835599364
+    },
+    {
+      "feature": "safety valve boss",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3087631.268988953
+    },
+    {
+      "feature": "safety valve hex head",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3090214.7299031327
+    },
+    {
+      "feature": "manhole flange ring",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 13546.547522279194
+    },
+    {
+      "feature": "manhole flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3095796.3576141377
+    },
+    {
+      "feature": "manhole bolt hole 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3095490.542446412
+    },
+    {
+      "feature": "manhole bolt hole 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3095184.7272803565
+    },
+    {
+      "feature": "manhole bolt hole 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3094931.086810213
+    },
+    {
+      "feature": "manhole bolt hole 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3094686.4346781634
+    },
+    {
+      "feature": "manhole bolt hole 5",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3094441.7825424336
+    },
+    {
+      "feature": "manhole bolt hole 6",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3094155.204415071
+    },
+    {
+      "feature": "manhole bolt hole 7",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3093849.3892369354
+    },
+    {
+      "feature": "manhole bolt hole 8",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3093543.574060766
+    },
+    {
+      "feature": "manhole cover",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3097118.701675762
+    },
+    {
+      "feature": "manhole bolt stem 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3097421.0929807937
+    },
+    {
+      "feature": "manhole bolt head 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3097748.860725635
+    },
+    {
+      "feature": "manhole bolt stem 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3098051.2520457865
+    },
+    {
+      "feature": "manhole bolt head 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3098379.019786537
+    },
+    {
+      "feature": "manhole bolt stem 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3098717.16911804
+    },
+    {
+      "feature": "manhole bolt head 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3099044.936846197
+    },
+    {
+      "feature": "manhole bolt stem 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3099383.0861680694
+    },
+    {
+      "feature": "manhole bolt head 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3099710.85387747
+    },
+    {
+      "feature": "manhole bolt stem 5",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3100049.003189761
+    },
+    {
+      "feature": "manhole bolt head 5",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3100376.7708805483
+    },
+    {
+      "feature": "manhole bolt stem 6",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3100713.2321831346
+    },
+    {
+      "feature": "manhole bolt head 6",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3101040.999861211
+    },
+    {
+      "feature": "manhole bolt stem 7",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3101343.391147318
+    },
+    {
+      "feature": "manhole bolt head 7",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3101671.158822535
+    },
+    {
+      "feature": "manhole bolt stem 8",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3101810.403235475
+    },
+    {
+      "feature": "manhole bolt head 8",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3101975.014372923
+    },
+    {
+      "feature": "front furnace door flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3121512.6367018227
+    },
+    {
+      "feature": "front furnace door cover",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3131330.113712688
+    },
+    {
+      "feature": "front burner nozzle",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3143092.2365742326
+    },
+    {
+      "feature": "furnace bolt stem 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3143246.174582177
+    },
+    {
+      "feature": "furnace bolt head 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3143620.297367265
+    },
+    {
+      "feature": "furnace bolt stem 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3143774.235379087
+    },
+    {
+      "feature": "furnace bolt head 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3144148.3581865993
+    },
+    {
+      "feature": "furnace bolt stem 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3144302.2962025297
+    },
+    {
+      "feature": "furnace bolt head 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3144676.4190338803
+    },
+    {
+      "feature": "furnace bolt stem 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3144830.357052801
+    },
+    {
+      "feature": "furnace bolt head 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3145204.479901503
+    },
+    {
+      "feature": "furnace bolt stem 5",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3145358.417921552
+    },
+    {
+      "feature": "furnace bolt head 5",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3145732.540776827
+    },
+    {
+      "feature": "furnace bolt stem 6",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3145886.4787964406
+    },
+    {
+      "feature": "furnace bolt head 6",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3146260.601649133
+    },
+    {
+      "feature": "furnace bolt stem 7",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3146414.539667814
+    },
+    {
+      "feature": "furnace bolt head 7",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3146788.6625150302
+    },
+    {
+      "feature": "furnace bolt stem 8",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3146942.600533523
+    },
+    {
+      "feature": "furnace bolt head 8",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3147316.723379607
+    },
+    {
+      "feature": "feedwater inlet",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3152649.895132328
+    },
+    {
+      "feature": "feedwater inlet flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3156184.891596038
+    },
+    {
+      "feature": "feedwater inlet hex coupling",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3156531.0137203545
+    },
+    {
+      "feature": "steam outlet",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3165047.90380259
+    },
+    {
+      "feature": "steam outlet flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3168002.8077930845
+    },
+    {
+      "feature": "steam outlet hex coupling",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3168482.517537314
+    },
+    {
+      "feature": "steam riser",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3172588.1039621015
+    },
+    {
+      "feature": "steam pipe elbow",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3174261.719985319
+    },
+    {
+      "feature": "steam header arm",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3179267.219967852
+    },
+    {
+      "feature": "pressure gauge branch",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3181054.3659987375
+    },
+    {
+      "feature": "pressure gauge housing",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3182728.8341891104
+    },
+    {
+      "feature": "gauge mounting bracket",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3186919.955830144
+    },
+    {
+      "feature": "water level lower tap",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3188054.589189855
+    },
+    {
+      "feature": "water level lower flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3189091.314700385
+    },
+    {
+      "feature": "water level upper tap",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3190332.9254373442
+    },
+    {
+      "feature": "water level upper flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3191369.6508200984
+    },
+    {
+      "feature": "water level sight glass",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3191797.740680632
+    },
+    {
+      "feature": "bottom blowdown pipe",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3195651.223755453
+    },
+    {
+      "feature": "bottom blowdown flange",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3196959.5972385323
+    },
+    {
+      "feature": "bottom blowdown valve nut",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 3198243.032157344
+    }
+  ],
+  "source_dimensions": {
+    "cylinder_radius_mm": 28.12,
+    "cylinder_height_mm": 75.0,
+    "flange_radius_mm": 37.5,
+    "flange_bore_radius_mm": 14.249999999999998,
+    "flange_thickness_mm": 4.5,
+    "hex_points_mm": [
+      [
+        -20.785,
+        0.0
+      ],
+      [
+        -10.395,
+        -18.0
+      ],
+      [
+        10.395000000000001,
+        -18.0
+      ],
+      [
+        20.785,
+        0.0
+      ],
+      [
+        10.395000000000001,
+        18.0
+      ],
+      [
+        -10.395,
+        18.0
+      ]
+    ],
+    "hex_height_mm": 13.5,
+    "base_length_mm": 165.0,
+    "base_width_mm": 110.0,
+    "base_thickness_mm": 11.0,
+    "bolt_radius_mm": 3.12,
+    "bolt_count": 8
+  },
+  "assembly_dimensions": {
+    "shell_radius_mm": 70.0,
+    "shell_height_mm": 155.0,
+    "overall_height_mm": 257.0,
+    "base_length_mm": 165.0,
+    "base_width_mm": 110.0,
+    "manhole_bolt_count": 8.0,
+    "furnace_bolt_count": 8.0,
+    "support_leg_count": 4.0,
+    "pipe_connection_count": 6.0
+  },
+  "topology": {
+    "vertices": 703,
+    "edges": 1059,
+    "faces": 389,
+    "solids": 1
+  },
+  "volume_mm3": 3198243.032157344,
+  "area_mm2": 179077.44819328404,
+  "bbox_mm": [
+    -94.000001904179,
+    -107.000001904179,
+    -1.9041790048617931e-06,
+    102.000001904179,
+    78.000001904179,
+    257.000001904179
+  ],
+  "files": {
+    "png": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_boiler/boiler.png",
+      "width": 1760,
+      "height": 880,
+      "bytes": 171850
+    },
+    "step": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_boiler/boiler.step",
+      "bytes": 1811534
+    },
+    "stl": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_boiler/boiler.stl",
+      "bytes": 601934,
+      "triangles": 12037
+    },
+    "glb": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_boiler/boiler.glb",
+      "bytes": 367004
+    }
+  }
+}

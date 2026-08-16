@@ -1,0 +1,4 @@
+interface:
+  display_name: "CadFlow Real-Time Preview"
+  short_description: "Add incremental CAD rendering and preview streaming"
+  default_prompt: "Use $cadflow-realtime-preview to add or debug incremental CadFlow scene rendering."

@@ -28,6 +28,7 @@ from .feedback import Diagnostic, OperationReport, OperationResult
 from .frame import CoordinateFrame, Workplane, current_frame, use_frame
 from .physical import *
 from .physical import __all__ as _physical_all
+from .preview import PreviewMeshBuffer, parse_preview_mesh_buffer, preview_mesh_buffer_to_glb
 from .sketch_api import SketchDocument
 from ._compat_aliases import install as _install_compat_aliases
 
@@ -62,6 +63,9 @@ __all__ = [
     "OperationResult",
     "SketchDocument",
     "Workplane",
+    "PreviewMeshBuffer",
+    "parse_preview_mesh_buffer",
+    "preview_mesh_buffer_to_glb",
     "Router",
     "assembly",
     "flexible",

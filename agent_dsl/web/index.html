@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>CadFlow Preview</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand" aria-label="CadFlow Preview">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <strong>CadFlow</strong>
+        <span class="product">Preview</span>
+      </div>
+      <label class="model-field">
+        <span>Model</span>
+        <input id="model-id" value="bracket" spellcheck="false" autocomplete="off">
+      </label>
+      <div class="revision" aria-live="polite"><span class="revision-prefix">r</span><span id="revision">0</span></div>
+      <div class="connection" id="connection">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="status">Connecting</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="editor-pane" aria-label="DSL submission">
+        <div class="pane-heading">
+          <span>Revision DSL</span>
+          <div class="quality" role="group" aria-label="Preview quality">
+            <button class="quality-button active" type="button" data-quality="draft">Draft</button>
+            <button class="quality-button" type="button" data-quality="final">Final</button>
+          </div>
+        </div>
+        <form id="apply-form">
+          <textarea id="document" aria-label="CadFlow DSL" spellcheck="false">box base 80 54 8 at 0 0 0
+cylinder hole 9 12 at 0 0 -2
+cut bracket base hole
+result bracket</textarea>
+          <div id="error" class="error" role="alert" hidden></div>
+          <div class="editor-actions">
+            <span class="line-count"><span id="line-count">4</span> lines</span>
+            <button id="apply" class="apply-button" type="submit">Apply</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="viewport" aria-label="3D preview">
+        <canvas id="viewport-canvas"></canvas>
+        <div class="viewport-tools">
+          <button id="fit-view" type="button" title="Fit model in view">Fit</button>
+          <button id="toggle-edges" type="button" class="active" title="Toggle CAD edges">Edges</button>
+        </div>
+        <div class="scene-meta">
+          <span id="scene-quality">Draft</span>
+          <span id="scene-time">No scene</span>
+        </div>
+        <div id="empty-state" class="empty-state">Waiting for revision</div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Scene 1.0</span>
+      <span id="asset-count">0 assets</span>
+    </footer>
+    <script type="module" src="/viewer.js"></script>
+  </body>
+</html>

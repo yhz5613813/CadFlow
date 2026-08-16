@@ -16,5 +16,7 @@ void export_stl(
     bool binary);
 std::string mesh_json(
     const core::Session& session, core::ShapeId shape, double deflection);
+std::string preview_mesh_buffer(
+    const core::Session& session, core::ShapeId shape, double deflection);
 
 }  // namespace cadflow::io

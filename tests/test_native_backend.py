@@ -352,3 +352,32 @@ def test_occt_mesh_and_step_export(tmp_path: Path) -> None:
         assert imported.kind == "imported"
         assert imported.volume == pytest.approx(6)
         assert imported.topology["solids"] == 1
+
+
+@requires_occt
+def test_native_preview_buffer_and_glb_profile(tmp_path: Path) -> None:
+    with cadflow.Model() as model:
+        shape = model.box(20, 10, 4)
+        raw = shape.preview_mesh_buffer(0.35)
+        mesh = cadflow.parse_preview_mesh_buffer(raw)
+
+        assert raw[:4] == b"CFMB"
+        assert mesh.vertex_count > 0
+        assert mesh.triangle_count > 0
+        assert len(mesh.positions) == mesh.vertex_count * 12
+        assert len(mesh.normals) == mesh.vertex_count * 12
+        assert mesh.bounds[0] == pytest.approx((0.0, 0.0, -0.01), abs=1e-7)
+        assert mesh.bounds[1] == pytest.approx((0.02, 0.004, 0.0), abs=1e-7)
+
+        glb = shape.preview_glb(0.35)
+        info = cadflow.scene.preflight_glb(glb, expected_kind="triangle")
+        assert info.vertex_count == mesh.vertex_count
+        assert info.primitive_count == mesh.triangle_count
+        target = tmp_path / "box-preview.glb"
+        shape.export_preview_glb(str(target), 0.35)
+        assert target.read_bytes() == glb
+
+        with pytest.raises(cadflow.NativeError, match="positive and finite"):
+            shape.preview_mesh_buffer(0.0)
+        with pytest.raises(cadflow.NativeError, match="positive and finite"):
+            shape.preview_mesh_buffer(float("nan"))

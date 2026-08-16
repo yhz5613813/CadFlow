@@ -655,6 +655,26 @@ int cadflow_mesh_json(
     });
 }
 
+int cadflow_preview_mesh_buffer(
+    cad_session_t handle,
+    unsigned long long shape,
+    double deflection,
+    char** result,
+    size_t* result_size) {
+    return cadflow::core::guarded([&] {
+        if (!result || !result_size) {
+            throw std::invalid_argument("preview mesh result and size are required");
+        }
+        return with_session(handle, [&](Session& session) {
+            const std::string buffer =
+                cadflow::io::preview_mesh_buffer(session, shape, deflection);
+            *result = cadflow::core::copy_string(buffer);
+            *result_size = buffer.size();
+            return 1;
+        });
+    });
+}
+
 int cadflow_execute(cad_session_t handle, const char* program, char** result) {
     return cadflow::core::guarded([&] {
         if (!program || !result) {

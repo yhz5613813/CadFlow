@@ -170,6 +170,13 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_export_step": [handle, u64, C.c_char_p],
         "cadflow_export_stl": [handle, u64, C.c_char_p, C.c_int],
         "cadflow_mesh_json": [handle, u64, f64, C.POINTER(C.c_char_p)],
+        "cadflow_preview_mesh_buffer": [
+            handle,
+            u64,
+            f64,
+            C.POINTER(C.c_char_p),
+            C.POINTER(C.c_size_t),
+        ],
         "cadflow_execute": [handle, C.c_char_p, C.POINTER(C.c_char_p)],
     }.items():
         getattr(lib, name).argtypes = args
@@ -204,6 +211,7 @@ def _configure(lib: C.CDLL) -> None:
     lib.cadflow_export_step.restype = C.c_int
     lib.cadflow_export_stl.restype = C.c_int
     lib.cadflow_mesh_json.restype = C.c_int
+    lib.cadflow_preview_mesh_buffer.restype = C.c_int
     lib.cadflow_bbox.argtypes = [handle, u64, C.POINTER(f64)]
     lib.cadflow_bbox.restype = C.c_int
     lib.cadflow_center_of_mass.argtypes = [handle, u64, C.POINTER(f64)]
@@ -784,6 +792,27 @@ class NativeSession:
             raise NativeError("native mesh generation failed")
         try:
             return json.loads(result.value.decode("utf-8"))
+        finally:
+            self._lib.cadflow_free_string(result)
+
+    def preview_mesh_buffer(
+        self, shape: ShapeHandle, deflection: float = 0.35
+    ) -> bytes:
+        """Return the versioned native render buffer without JSON conversion."""
+        result = C.c_char_p()
+        size = C.c_size_t()
+        ok = self._lib.cadflow_preview_mesh_buffer(
+            self._raw,
+            self._id(shape),
+            deflection,
+            C.byref(result),
+            C.byref(size),
+        )
+        self._check()
+        if not ok or not result or size.value == 0:
+            raise NativeError("native preview mesh generation failed")
+        try:
+            return C.string_at(result, size.value)
         finally:
             self._lib.cadflow_free_string(result)
 

@@ -56,6 +56,21 @@ class Shape:
     def mesh(self, deflection: float = 0.1) -> dict[str, list[float] | list[int]]:
         return self._session.mesh(self._handle, deflection)
 
+    def preview_mesh_buffer(self, deflection: float = 0.35) -> bytes:
+        """Return a compact C++-generated mesh buffer for real-time preview."""
+        return self._session.preview_mesh_buffer(self._handle, deflection)
+
+    def preview_glb(self, deflection: float = 0.35) -> bytes:
+        """Return a browser-ready GLB assembled from the native mesh buffer."""
+        from .preview import preview_mesh_buffer_to_glb
+
+        return preview_mesh_buffer_to_glb(self.preview_mesh_buffer(deflection))
+
+    def export_preview_glb(self, path: str, deflection: float = 0.35) -> None:
+        from pathlib import Path
+
+        Path(path).write_bytes(self.preview_glb(deflection))
+
     def export_step(self, path: str) -> None:
         self._session.export_step(self._handle, path)
 

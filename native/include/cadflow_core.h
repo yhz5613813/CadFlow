@@ -213,6 +213,12 @@ CADFLOW_API int cadflow_export_stl(
     cad_session_t session, unsigned long long shape, const char *path, int binary);
 CADFLOW_API int cadflow_mesh_json(
     cad_session_t session, unsigned long long shape, double deflection, char **result);
+/* Return a render-ready binary mesh buffer. The caller owns *result and must
+   release it with cadflow_free_string. The buffer format is versioned and
+   contains glTF-space float32 positions/normals plus compact triangle indices. */
+CADFLOW_API int cadflow_preview_mesh_buffer(
+    cad_session_t session, unsigned long long shape, double deflection,
+    char **result, size_t *result_size);
 
 /* Execute a complete graph in one native call.
    The compact line protocol is intentionally independent of Python objects:

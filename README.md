@@ -68,6 +68,20 @@ PY
 
 The expected box volume is `24.0`.
 
+For an interactive renderer, export the native tessellation directly as GLB:
+
+```python
+with cadflow.Model() as model:
+    shape = model.box(80, 50, 8)
+    shape.export_preview_glb("preview.glb", deflection=0.35)
+```
+
+`Shape.preview_mesh_buffer()` exposes the versioned C++ mesh buffer when a
+custom renderer needs positions, normals, and compact indices without JSON.
+`Shape.preview_glb()` wraps that buffer in CadFlow's validated triangle GLB
+profile. The optional stateful Agent DSL includes an SSE/Three.js preview
+service; see `agent_dsl/README.md`.
+
 The complete OCCT-backed source build is currently tested on Linux x86_64. The
 current CMake library discovery targets Linux `.so` files; Windows and macOS
 builds require platform-specific CMake support that is not yet provided.

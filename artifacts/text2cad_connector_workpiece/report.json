@@ -1,0 +1,469 @@
+{
+  "dataset": {
+    "archive": "/data/yihongzhu/Text2CAD-data/text2cad_v1.1/misc/minimal_json/minimal_json_0000_0099.zip",
+    "license": "CC BY-NC-SA 4.0 (Text2CAD v1.1)",
+    "members": [
+      "0074/00743657/minimal_json/00743657.json",
+      "0015/00150738/minimal_json/00150738.json",
+      "0069/00694843/minimal_json/00694843.json"
+    ],
+    "roles": {
+      "0074/00743657": "base plate source dimensions",
+      "0015/00150738": "drive shaft, hex hub, flange, keyway",
+      "0069/00694843": "mounting-hole source radius"
+    }
+  },
+  "units": "millimetres",
+  "reconstruction_assumptions": [
+    "The source records dimensions but no mates, so the fixture uses an explicit Z-up frame.",
+    "The base is enlarged to 180 x 120 mm to accommodate four supports and connection hardware.",
+    "The source gear-shaft label is represented by 18 rectangular drive teeth.",
+    "All connectors overlap their host solids before union; the final result remains one Solid."
+  ],
+  "validation": {
+    "operation": "validate",
+    "status": "valid",
+    "ok": true,
+    "output": {
+      "kind": "cut"
+    },
+    "parameters": {},
+    "diagnostics": []
+  },
+  "feature_diagnostics": [
+    {
+      "feature": "base plate",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 259200.0
+    },
+    {
+      "feature": "base through hole 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 257732.087062699
+    },
+    {
+      "feature": "base counterbore 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 257099.96705407373
+    },
+    {
+      "feature": "base through hole 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 255632.0541167727
+    },
+    {
+      "feature": "base counterbore 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 254999.9341081474
+    },
+    {
+      "feature": "base through hole 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 253532.02117084642
+    },
+    {
+      "feature": "base counterbore 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 252899.90116222115
+    },
+    {
+      "feature": "base through hole 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 251431.98822492015
+    },
+    {
+      "feature": "base counterbore 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 250799.86821629488
+    },
+    {
+      "feature": "support tower 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 398569.051074983
+    },
+    {
+      "feature": "support tower 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 546338.233933671
+    },
+    {
+      "feature": "support shaft bore",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 526395.4037686829
+    },
+    {
+      "feature": "front gusset 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 530442.6723112157
+    },
+    {
+      "feature": "rear gusset 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 534489.9408537485
+    },
+    {
+      "feature": "front gusset 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 538537.209396281
+    },
+    {
+      "feature": "rear gusset 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 542584.4779388135
+    },
+    {
+      "feature": "upper connecting beam",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 560296.4779388139
+    },
+    {
+      "feature": "front tie rod",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 565423.5571494721
+    },
+    {
+      "feature": "transverse main shaft",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 654803.9451047324
+    },
+    {
+      "feature": "shaft collar 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 659629.4314206463
+    },
+    {
+      "feature": "shaft collar 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 664454.9177365603
+    },
+    {
+      "feature": "drive gear core",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 680323.8729802363
+    },
+    {
+      "feature": "drive tooth 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 680746.3384174494
+    },
+    {
+      "feature": "drive tooth 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 681168.8038546628
+    },
+    {
+      "feature": "drive tooth 3",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 681591.2692918759
+    },
+    {
+      "feature": "drive tooth 4",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 682013.734729089
+    },
+    {
+      "feature": "drive tooth 5",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 682436.2001663022
+    },
+    {
+      "feature": "drive tooth 6",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 682858.6656035157
+    },
+    {
+      "feature": "drive tooth 7",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 683281.131040728
+    },
+    {
+      "feature": "drive tooth 8",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 683703.5964779418
+    },
+    {
+      "feature": "drive tooth 9",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 684126.0619151549
+    },
+    {
+      "feature": "drive tooth 10",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 684548.5273523686
+    },
+    {
+      "feature": "drive tooth 11",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 684970.9927895815
+    },
+    {
+      "feature": "drive tooth 12",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 685393.4582267946
+    },
+    {
+      "feature": "drive tooth 13",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 685815.9236640079
+    },
+    {
+      "feature": "drive tooth 14",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 686238.389101221
+    },
+    {
+      "feature": "drive tooth 15",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 686660.8545384337
+    },
+    {
+      "feature": "drive tooth 16",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 687083.3199756475
+    },
+    {
+      "feature": "drive tooth 17",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 687505.7854128599
+    },
+    {
+      "feature": "drive tooth 18",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 687928.2508500736
+    },
+    {
+      "feature": "hexagonal drive hub",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 692106.7005843162
+    },
+    {
+      "feature": "tower cap 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 694938.7005843153
+    },
+    {
+      "feature": "clamp bolt stem 1-1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 695441.3554088905
+    },
+    {
+      "feature": "clamp bolt head 1-1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 696137.4237793061
+    },
+    {
+      "feature": "clamp bolt stem 1-2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 696640.0786038807
+    },
+    {
+      "feature": "clamp bolt head 1-2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 697336.1469742964
+    },
+    {
+      "feature": "tower cap 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 700168.1469742962
+    },
+    {
+      "feature": "clamp bolt stem 2-1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 700670.801798871
+    },
+    {
+      "feature": "clamp bolt head 2-1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 701366.8701692852
+    },
+    {
+      "feature": "clamp bolt stem 2-2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 701869.5249938584
+    },
+    {
+      "feature": "clamp bolt head 2-2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 702565.5933642738
+    },
+    {
+      "feature": "shaft retaining nut 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 706287.7021204748
+    },
+    {
+      "feature": "shaft retaining nut 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 712133.3735960223
+    },
+    {
+      "feature": "tie rod nut 1",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 713101.5539884125
+    },
+    {
+      "feature": "tie rod nut 2",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 714119.9998632636
+    },
+    {
+      "feature": "drive keyway",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 713625.2437115363
+    },
+    {
+      "feature": "drive radial pin hole",
+      "ok": true,
+      "solids": 1,
+      "volume_mm3": 712670.1995448468
+    }
+  ],
+  "source_dimensions": {
+    "bracket_length_mm": 165.0,
+    "bracket_width_mm": 110.0,
+    "bracket_thickness_mm": 11.0,
+    "gear_radius_mm": 37.5,
+    "flange_bore_radius_mm": 14.249999999999998,
+    "hex_points_mm": [
+      [
+        -20.785,
+        0.0
+      ],
+      [
+        -10.395,
+        -18.0
+      ],
+      [
+        10.395000000000001,
+        -18.0
+      ],
+      [
+        20.785,
+        0.0
+      ],
+      [
+        10.395000000000001,
+        18.0
+      ],
+      [
+        -10.395,
+        18.0
+      ]
+    ],
+    "hex_height_mm": 13.5,
+    "keyway_width_mm": 4.5,
+    "keyway_depth_mm": 2.25,
+    "shaft_radius_mm": 12.0,
+    "shaft_length_mm": 30.0,
+    "tip_radius_mm": 9.0,
+    "tip_length_mm": 19.5,
+    "mounting_hole_radius_mm": 3.12,
+    "mounting_hole_count": 8
+  },
+  "assembly_dimensions": {
+    "base_x_mm": 180.0,
+    "base_y_mm": 120.0,
+    "base_thickness_mm": 12.0,
+    "tower_height_mm": 86.0,
+    "shaft_axis_z_mm": 76.0,
+    "drive_tooth_count": 18.0,
+    "clamp_bolt_count": 4.0,
+    "base_mount_count": 4.0,
+    "base_hole_radius_mm": 6.24,
+    "counterbore_radius_mm": 10.296,
+    "mounting_hole_radius_mm": 3.12
+  },
+  "topology": {
+    "vertices": 610,
+    "edges": 963,
+    "faces": 369,
+    "solids": 1
+  },
+  "volume_mm3": 712670.1995448468,
+  "area_mm2": 126534.98390439035,
+  "bbox_mm": [
+    -102.00000015,
+    -60.00000015,
+    -1.5e-07,
+    102.00000015,
+    60.00000015,
+    113.94363929746471
+  ],
+  "files": {
+    "png": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_connector_workpiece/connector_workpiece.png",
+      "width": 1760,
+      "height": 880,
+      "bytes": 112700
+    },
+    "step": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_connector_workpiece/connector_workpiece.step",
+      "bytes": 1278490
+    },
+    "stl": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_connector_workpiece/connector_workpiece.stl",
+      "bytes": 236784,
+      "triangles": 4734
+    },
+    "glb": {
+      "path": "/data/yihongzhu/CadFlow/artifacts/text2cad_connector_workpiece/connector_workpiece.glb",
+      "bytes": 158920
+    }
+  }
+}

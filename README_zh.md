@@ -1,27 +1,212 @@
-# CadFlow
+<p align="center">
+  <img src="docs/assets/cadflow-logo.png" width="168" alt="CadFlow logo">
+</p>
 
-[English](README.md) | [简体中文](README_zh.md)
+<h1 align="center">CadFlow</h1>
 
-CadFlow 是一个以 Python 为前端、以句柄式 C++17 OpenCascade 内核为后端的
-CAD 项目。
+<p align="center">
+  <strong>面向智能体的 Python-first CAD 基础设施，由 OpenCascade 驱动。</strong>
+</p>
 
-## 从源码安装
+<p align="center">
+  构建可编程几何、获取结构化反馈，并通过一个稳定的 Python 接口<br>
+  交付经过验证的 CAD 与 Scene 产物。
+</p>
 
-CadFlow 支持 Python 3.10 至 3.13。从源码安装时，会在用户本机编译 C++17
-后端，因此需要：
+<p align="center">
+  <a href="https://www.python.org/"><img alt="Python 3.10–3.13" src="https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white"></a>
+  <img alt="C++ 17" src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white">
+  <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
+  <img alt="Platform Linux x86-64" src="https://img.shields.io/badge/Platform-Linux%20x86--64-FCC624?logo=linux&logoColor=black">
+  <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
+  <img alt="Status Alpha" src="https://img.shields.io/badge/Status-Alpha-F59E0B">
+</p>
 
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README_zh.md">简体中文</a>
+</p>
+
+<p align="center">
+  <a href="#why-cadflow">🧭 核心优势</a> ·
+  <a href="#quick-start">🚀 快速开始</a> ·
+  <a href="#capabilities">🧰 能力概览</a> ·
+  <a href="#architecture">🏗️ 系统架构</a> ·
+  <a href="#agent-workflows">🤖 Agent 工作流</a>
+</p>
+
+---
+
+CadFlow 是面向**程序化建模与几何驱动智能体**的 Python-first CAD SDK。它将富有表达力的 Python 前端与句柄式 C++17 运行时结合，把 OpenCascade 几何运算保留在原生层，同时提供可预测的建模操作、JSON-safe 诊断、检查工具和可移植产物。
+
+CadFlow 不是 Text-to-3D 模型，也不是 LLM 应用。它是这些系统下方的确定性 CAD 层：Python 程序或智能体描述建模意图，CadFlow 构建并测量几何，将可操作的事实反馈给调用方。
+
+> [!IMPORTANT]
+> CadFlow 目前仍处于 Alpha 阶段。完整的 OCCT 后端源码构建已在 Linux x86_64 上测试，公共 API 正按照领域从内置兼容引擎逐步迁移到原生 Session。
+
+<a id="why-cadflow"></a>
+
+## 🧭 为什么选择 CadFlow
+
+### 为智能体设计的 CAD 执行边界
+
+`Shape.describe()`、`Shape.validate()`、`Model.capabilities()`、`Model.preflight()` 和 `Model.apply()` 返回结构化、JSON-safe 的报告。智能体可以直接判断操作支持情况、无效拓扑、实体数量、包围盒、体积和修复建议，而不必解析不稳定的控制台文本。
+
+### 原生几何计算，不泄漏内核对象
+
+Python 侧只持有轻量的 `(session_token, shape_id)` 句柄，不会让 `TopoDS_Shape` 跨越 ABI 边界。C++ Session 管理几何对象，并在靠近 OpenCascade 的位置完成构造、布尔运算、三角化、测量和数据交换等高成本操作。
+
+### 可编辑、可重放的工程状态
+
+CadFlow 同时支持直接 Session 建模、类型化批处理图、可重放 Model JSON、语义标签、来源映射和谱系记录。最终结果保留为可检查的 Python 程序和结构化数据，而不是一次不透明的网格生成过程。
+
+### 从建模到交付的一体化路径
+
+同一个软件包覆盖几何构造、拓扑检查、BREP 对比、STEP/STL 交换、GLB 预览、装配和经过验证的 Scene 归档。建模、验证与交付共享同一个几何事实来源。
+
+<a id="quick-start"></a>
+
+## 🚀 快速开始
+
+```python
+import cadflow as cad
+
+
+with cad.Model() as model:
+    plate = model.box(80, 50, 8)
+
+    bore = model.cylinder(radius=6, height=12)
+    bore = model.translate(bore, 20, 25, -2)
+    part = model.cut(plate, bore)
+
+    report = part.validate()
+    if not report.ok:
+        raise RuntimeError(report.to_dict())
+
+    print(part.describe())
+    part.export_step("mounting_plate.step")
+    part.export_preview_glb("mounting_plate.glb")
+```
+
+`cadflow.Model` 管理原生 Session，返回的每个 `cadflow.Shape` 都归属于该 Session。应用代码无需接触 OpenCascade 对象，即可查询、验证、三角化或导出最终 Shape。
+
+根据工作流选择合适的 API 层：
+
+| API | 适用场景 |
+| --- | --- |
+| `cadflow.Model` / `cadflow.Shape` | 交互式构造、检查与导出 |
+| `cadflow.Graph` | 通过一次原生调用执行类型化的多操作计划 |
+| 领域模块 | 草图、装配、Scene 归档、序列化、检查和标准件 |
+| `cadflow.compat` | 原生迁移期间保持完整兼容功能面 |
+
+新的集成应优先从 `cadflow.Model` 或 `cadflow.Graph` 开始，并通过公开领域模块使用更高层工作流。
+
+<a id="capabilities"></a>
+
+## 🧰 能力概览
+
+| 领域 | 当前能力 |
+| --- | --- |
+| 实体建模 | 长方体、圆柱、球体、圆台、轮廓、面、拉伸、旋转、放样、扫掠、圆角、倒角和抽壳 |
+| 几何操作 | 精确 OCCT 布尔运算、刚体变换、缩放、缝合、壳转实体和子形状提取 |
+| 曲线与曲面 | 直线、圆弧、样条、螺旋线、Bezier 曲面、拟合 B-spline 曲面、直纹/填充/Gordon 曲面和扭转扫掠 |
+| 草图与上下文 | 不可变坐标系、工作平面、声明式草图、约束和 `py-slvs` 求解 |
+| 几何检查 | 体积、面积、长度、质心、距离、包围盒、拓扑计数、法向、曲率、自由边界和 BREP 对比 |
+| 数据交换与预览 | STEP 导入导出、BREP/STL 导入、STL 导出、原生网格缓冲区和经过验证的三角形 GLB 预览 |
+| 产品结构 | 装配、连接器、约束报告、语义标签、来源映射、谱系、材料和标准件 |
+| 结构化产物 | Model JSON、严格重放、Schema 验证，以及包含可渲染几何和结构化元数据的便携式 Scene 归档 |
+
+几何密集型操作正逐步迁移到原生 C++ Session。约束、装配、语义、诊断、序列化和其他结构化数据工作流则有意保留在 Python：将它们迁移到 ABI 另一侧只会增加复杂度，并不能消除几何计算瓶颈。
+
+<a id="architecture"></a>
+
+## 🏗️ 系统架构
+
+```mermaid
+flowchart LR
+    U["Python 应用<br/>CAD 智能体"]
+
+    subgraph P["Python 前端"]
+        M["Model · Shape · Graph"]
+        D["草图 · 装配 · 检查<br/>Scene · 序列化 · 语义"]
+    end
+
+    subgraph N["原生运行时"]
+        A["稳定 C ABI"]
+        S["Session + ShapeHandle"]
+        K["几何内核 · IO · 批处理执行器"]
+        A --> S --> K
+    end
+
+    O["OpenCascade<br/>几何 + 拓扑"]
+    R["STEP · STL · GLB<br/>Scene 归档 · 结构化报告"]
+
+    U --> M
+    M --> A
+    M <--> D
+    D --> A
+    K --> O
+    M --> R
+    D --> R
+```
+
+整个依赖方向保持刻意收窄：
+
+```text
+Python 前端  →  稳定 C ABI  →  C++ Session / ShapeHandle  →  OpenCascade
+```
+
+- 现代 Python 前端不直接导入 OCC。
+- Shape 句柄归属于特定 Session；Session 关闭后，其中的所有句柄都会失效。
+- 原生代码负责几何构造、布尔运算、查询、三角化和数据交换。
+- Python 负责建模上下文、约束、操作策略、诊断、元数据和产物 Schema。
+- 内置兼容引擎在几何路径迁往原生运行时的过程中继续提供完整功能。
+
+如需了解所有权模型，请阅读 [ARCHITECTURE.md](ARCHITECTURE.md)；当前原生与兼容层的实际边界记录在 [MIGRATION_MATRIX.md](MIGRATION_MATRIX.md)。
+
+<a id="agent-workflows"></a>
+
+## 🤖 Agent 工作流
+
+CadFlow 为 CAD 智能体提供稳定的执行与反馈边界，但不会把 SDK 绑定到某个模型供应商或 Agent 编排框架。
+
+```text
+自然语言 CAD 任务
+        ↓
+智能体编写 Python 建模程序
+        ↓
+CadFlow 构建并检查确定性几何
+        ↓
+结构化诊断 ──→ 有针对性的源码修复
+        ↓
+经过验证的 CAD / Scene 产物
+```
+
+仓库提供按需展开的 [CAD Skills](skills/)，覆盖刚性零件建模、柔性几何、STEP/BREP 重建、验证导出和实时预览。智能体可以只加载当前任务需要的工作流和准确 API 参考，而不必在每次提示中塞入完整 CAD 手册。
+
+[CadFlowAgent](https://github.com/zion-zion-zion/CadFlowAgent) 是基于这一边界构建的独立上层应用。它提供 LLM Harness、项目工作区、执行与修复循环、实时进度、浏览器 Viewer 和运行记录；CadFlow 则负责几何、测量、数据交换和 Scene 编译。
+
+> [!NOTE]
+> [`agent_dsl/`](agent_dsl/) 是用于紧凑有状态指令协议的隔离实验层。它不是 CadFlowAgent，不会改变 CadFlow 公共 API，也不会随核心发行版安装。
+
+## 📦 从源码安装
+
+### 环境要求
+
+- Linux x86_64，用于当前已测试的完整 OCCT 构建
+- Python 3.10 至 3.13
 - CMake 3.16 或更高版本
-- 支持 C++17 的编译器，例如 GCC、Clang 或 MSVC
+- 支持 C++17 的编译器
 - Python 开发头文件
 
-Ubuntu/Debian 用户先安装系统构建工具：
+Ubuntu 或 Debian 用户可以执行：
 
 ```bash
 sudo apt update
 sudo apt install build-essential cmake python3-dev
 ```
 
-克隆项目、创建独立虚拟环境并安装 CadFlow：
+克隆仓库，并在构建 CadFlow 前安装 OpenCascade 运行时：
 
 ```bash
 git clone https://github.com/yhz5613813/CadFlow.git
@@ -35,25 +220,9 @@ python -m pip install "cadquery-ocp==7.9.3.1"
 python -m pip install --no-build-isolation .
 ```
 
-应当先安装 `cadquery-ocp`，使 CMake 能找到与 OpenCascade 7.9.3 匹配的共享库。
-`--no-build-isolation` 允许源码构建使用当前虚拟环境中的这些库。如果没有找到
-这些库，CMake 可能只构建不依赖 OpenCascade 的解析式 fallback 后端，而不是完整
-CAD 后端。
+先安装 `cadquery-ocp`，可以让 CMake 找到匹配的 OpenCascade 7.9.3 头文件和共享库。`--no-build-isolation` 允许源码构建发现当前环境中的这些文件。
 
-也可以直接安装源码压缩包：
-
-```bash
-python -m pip install "cadquery-ocp==7.9.3.1"
-python -m pip install --no-build-isolation ./cadflow-0.1.0.tar.gz
-```
-
-如果需要输出 PNG 或检查图片，请安装可选的渲染依赖：
-
-```bash
-python -m pip install vtk pillow
-```
-
-安装后，使用下面的最小建模程序同时验证 Python 包和编译后的 C++ 后端：
+验证 Python 包和编译后的后端：
 
 ```bash
 python - <<'PY'
@@ -65,43 +234,51 @@ with cadflow.Model() as model:
 PY
 ```
 
-正常情况下，长方体体积应为 `24.0`。
+预期体积为 `24.0`。
 
-目前只有 Linux x86_64 环境经过完整的 OCCT 后端源码构建测试。现有 CMake 库发现
-逻辑针对 Linux `.so` 文件；Windows 和 macOS 仍需要补充对应的平台构建支持。
+如需 PNG 渲染和图片检查，请安装可选运行时工具：
 
-## 项目结构
-
-```text
-python/cadflow/           Python 模型对象、类型化计算图和分发层
-python/cadflow/_engine/   按领域划分的 Python 实现
-native/                   C++17 会话存储和计算图执行器
-tests/                    原生后端、打包和兼容性测试
+```bash
+python -m pip install vtk pillow
 ```
 
-原生实现按照职责分层：
+### 平台与 fallback 说明
+
+- 完整 OCCT 后端源码构建目前已在 Linux x86_64 上测试。
+- 当前 CMake 库发现逻辑针对 Linux `.so` 文件；Windows 和 macOS 仍需补充各自的平台发现支持。
+- 如果缺少匹配的 OCCT 开发文件，CMake 可以构建不依赖 OCCT 的解析式 fallback；它用于冒烟测试，并不是完整 CAD 后端。
+- 完整兼容实现包含在安装包内；CadFlow 运行时不会读取其他源码 checkout。
+
+## 🗂️ 仓库结构
 
 ```text
-native/src/c_api.cpp       稳定的 C ABI
-native/src/core/           会话所有权、句柄和错误边界
-native/src/kernel/         构造、特征、布尔运算、变换和查询
-native/src/io/             网格和 CAD 数据交换
-native/src/runtime/        批量计算图解释器
+CadFlow/
+├── python/cadflow/          公开 Python 前端与领域 Facade
+├── python/cadflow/_engine/  内置的完整 Python 功能层
+├── native/                  C++17 Session、几何内核、数据交换与计算图运行时
+├── scene-contract/          跨语言 Scene Schema 与验证器
+├── skills/                  面向 Agent 的 CAD 工作流与 API 参考
+├── examples/                零件、装配、柔性模型与重建示例
+├── docs/                    架构、指南与自动生成的 API 文档
+├── agent_dsl/               可选的实验性有状态 Agent 封装
+└── tests/                   原生、打包、兼容性与工作流测试
 ```
 
-原生层通过 `ctypes` 加载一个小型 C ABI，不会跨 ABI 边界传递 `TopoDS_Shape`
-对象。完整的 OpenCascade 兼容功能包含在安装包中，并可通过 `cadflow.compat`
-使用。CadFlow 不会从其他源码目录动态加载文件。
+推荐从以下内容开始探索：
 
-当前原生后端支持基本体、折线、圆、圆弧、样条曲线、螺旋线、Bezier 曲面、拟合
-网格曲面、面构造、拉伸、旋转、放样、扫掠、圆角、倒角、抽壳、布尔运算、刚体
-变换、缩放、几何属性、拓扑计数、三角化、STEP 导入导出、STL 导出和批量计算图
-执行。边和面以从零开始的索引跨 ABI 传递。装配、约束、语义跟踪、Scene 归档、
-转换器和标准件仍由 Python 层编排。
+- [现代 Python 前端](docs/guides/modern-frontend.md)
+- [架构与原生所有权](ARCHITECTURE.md)
+- [原生迁移矩阵](MIGRATION_MATRIX.md)
+- [工程指南](docs/guides/)
+- [API 参考](docs/api/)
+- [标准件](docs/stdlib/)
+- [柔性建模](docs/flexible-modeling.md)
+- [示例](examples/)
+- [Scene Contract](scene-contract/)
 
-## 构建与测试
+## 🧪 构建与测试
 
-直接开发原生后端时可以执行：
+开发原生后端时可以执行：
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -110,13 +287,10 @@ python -m pytest -q
 python -m pip wheel . --no-deps -w dist
 ```
 
-默认构建会在可用时使用匹配的 OCCT 7.9.3 头文件和共享库。可以使用
-`-DCADFLOW_USE_OCCT=OFF` 构建用于冒烟测试、不依赖 OCCT 的解析式 fallback。
-当 OCCT 数据交换头文件可用时，原生 STEP 写入会自动启用；也可以设置
-`-DCADFLOW_WITH_STEP=OFF` 生成更小的构建。无论是否启用此选项，现有完整 STEP
-API 仍可通过 `cadflow.compat` 使用。
+默认构建会在可用时使用匹配的 OCCT 7.9.3 头文件和库。使用 `-DCADFLOW_USE_OCCT=OFF` 可以构建解析式 fallback；使用 `-DCADFLOW_WITH_STEP=OFF` 可以生成不包含原生 STEP 写入功能的较小构建。完整的兼容 STEP API 仍可通过 `cadflow.compat` 使用。
 
-构建生成的 wheel 包含 `libcadflow_core`、`cadflow/include/` 下的稳定公共头文件，
-以及指向 `cadquery-ocp` 所提供 OCCT 动态库的相对运行时路径。只有使用外部编译
-的核心库时才需要设置 `CADFLOW_CORE_LIBRARY`。新代码应优先使用 `cadflow.Model`
-或 `cadflow.Graph`；完整兼容实现也包含在同一个安装包中。
+构建生成的 wheel 包含 `libcadflow_core`、`cadflow/include/` 下的稳定公共头文件，以及指向 `cadquery-ocp` 所提供 OCCT 动态库的相对运行时路径。只有明确使用外部编译的核心库时，才需要设置 `CADFLOW_CORE_LIBRARY`。
+
+## 📄 许可证
+
+CadFlow 采用 [MIT License](LICENSE)。OpenCascade 相关声明见 [NOTICE-OCCT.md](NOTICE-OCCT.md)。

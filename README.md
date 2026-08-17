@@ -1,27 +1,202 @@
-# CadFlow
+<p align="center">
+  <img src="docs/assets/cadflow-logo.png" width="168" alt="CadFlow logo">
+</p>
 
-[English](README.md) | [简体中文](README_zh.md)
+<h1 align="center">CadFlow</h1>
 
-CadFlow is a Python-first CAD frontend backed by a handle-oriented C++17
-OpenCascade kernel.
+<p align="center">
+  <strong>Agent-ready, Python-first CAD infrastructure powered by OpenCascade.</strong>
+</p>
 
-## Installation from source
+<p align="center">
+  Build programmable geometry, inspect it with structured feedback, and deliver<br>
+  validated CAD and Scene artifacts through one stable Python interface.
+</p>
 
-CadFlow supports Python 3.10 through 3.13. Installing from source compiles the
-C++17 backend on the user's machine. The build requires:
+<p align="center">
+  <a href="https://www.python.org/"><img alt="Python 3.10–3.13" src="https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white"></a>
+  <img alt="C++ 17" src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white">
+  <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
+  <img alt="Platform Linux x86-64" src="https://img.shields.io/badge/Platform-Linux%20x86--64-FCC624?logo=linux&logoColor=black">
+  <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
+  <img alt="Status Alpha" src="https://img.shields.io/badge/Status-Alpha-F59E0B">
+</p>
 
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README_zh.md">简体中文</a>
+</p>
+
+<p align="center">
+  <a href="#-why-cadflow">🧭 Why CadFlow</a> ·
+  <a href="#-quick-start">🚀 Quick start</a> ·
+  <a href="#-capabilities">🧰 Capabilities</a> ·
+  <a href="#-architecture">🏗️ Architecture</a> ·
+  <a href="#-agent-workflows">🤖 Agent workflows</a>
+</p>
+
+---
+
+CadFlow is a Python-first CAD SDK for **programmatic modeling and geometry-grounded agents**. It combines an expressive Python frontend with a handle-oriented C++17 runtime, keeping OpenCascade geometry native while exposing predictable modeling operations, JSON-safe diagnostics, inspection tools, and portable artifacts.
+
+CadFlow is not a text-to-3D model or an LLM application. It is the deterministic CAD layer beneath those systems: Python programs and agents describe modeling intent; CadFlow builds the geometry, measures the result, and returns evidence they can act on.
+
+> [!IMPORTANT]
+> CadFlow is currently an alpha release. The complete OCCT-backed source build is tested on Linux x86_64, and the public API is being migrated from the bundled compatibility engine to the native session one domain at a time.
+
+## 🧭 Why CadFlow
+
+### A CAD boundary designed for agents
+
+`Shape.describe()`, `Shape.validate()`, `Model.capabilities()`, `Model.preflight()`, and `Model.apply()` return structured, JSON-safe reports. An agent can reason about operation support, invalid topology, solid count, bounds, volume, and recovery hints instead of scraping arbitrary console output.
+
+### Native geometry without leaking kernel objects
+
+Python sees lightweight `(session_token, shape_id)` handles—not `TopoDS_Shape` instances crossing an ABI boundary. The C++ session owns geometry and performs expensive construction, boolean, tessellation, measurement, and exchange work close to OpenCascade.
+
+### Editable and replayable engineering state
+
+CadFlow supports direct session modeling, typed batch graphs, replayable Model JSON, semantic tags, source mapping, and lineage. The result remains inspectable Python and structured data rather than an opaque mesh-generation step.
+
+### One path from model to artifact
+
+The same package covers construction, topology inspection, BREP comparison, STEP/STL exchange, GLB preview, assemblies, and validated Scene archives. Modeling and delivery share the same geometry source of truth.
+
+## 🚀 Quick start
+
+```python
+import cadflow as cad
+
+
+with cad.Model() as model:
+    plate = model.box(80, 50, 8)
+
+    bore = model.cylinder(radius=6, height=12)
+    bore = model.translate(bore, 20, 25, -2)
+    part = model.cut(plate, bore)
+
+    report = part.validate()
+    if not report.ok:
+        raise RuntimeError(report.to_dict())
+
+    print(part.describe())
+    part.export_step("mounting_plate.step")
+    part.export_preview_glb("mounting_plate.glb")
+```
+
+`cadflow.Model` owns the native session, and every returned `cadflow.Shape` belongs to that session. The final shape can be queried, validated, tessellated, or exported without exposing OpenCascade objects to application code.
+
+Use the API layer that matches the workflow:
+
+| API | Best for |
+| --- | --- |
+| `cadflow.Model` / `cadflow.Shape` | Interactive construction, inspection, and export |
+| `cadflow.Graph` | Typed multi-operation plans executed through one native call |
+| Domain modules | Sketching, assemblies, Scene archives, serialization, inspection, and standard parts |
+| `cadflow.compat` | The complete compatibility surface while native migration continues |
+
+New integrations should begin with `cadflow.Model` or `cadflow.Graph` and use public domain modules for higher-level workflows.
+
+## 🧰 Capabilities
+
+| Area | Current scope |
+| --- | --- |
+| Solid modeling | Box, cylinder, sphere, cone, profiles, faces, extrude, revolve, loft, sweep, fillet, chamfer, and shell |
+| Geometry operations | Exact OCCT booleans, rigid transforms, scale, sewing, shell-to-solid conversion, and subshape extraction |
+| Curves and surfaces | Lines, arcs, splines, helices, Bezier surfaces, fitted B-spline surfaces, ruled/filling/Gordon surfaces, and twisted sweeps |
+| Sketch and context | Immutable coordinate frames, workplanes, declarative sketches, constraints, and `py-slvs` solving |
+| Inspection | Volume, area, length, center of mass, distance, bounds, topology counts, normals, curvature, free boundaries, and BREP comparison |
+| Exchange and preview | STEP import/export, BREP/STL import, STL export, native mesh buffers, and validated triangle GLB previews |
+| Product structure | Assemblies, connectors, constraint reports, semantic tags, source mapping, lineage, materials, and standard parts |
+| Artifacts | Model JSON, strict replay, schema validation, and portable Scene archives containing renderable geometry and structured metadata |
+
+Geometry-heavy operations increasingly run in the native C++ session. Constraints, assemblies, semantics, diagnostics, serialization, and other structured-data workflows intentionally remain in Python where moving them across the ABI would add complexity without removing a geometry bottleneck.
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    U["Python applications<br/>CAD agents"]
+
+    subgraph P["Python frontend"]
+        M["Model · Shape · Graph"]
+        D["Sketch · Assembly · Inspection<br/>Scene · Serialization · Semantics"]
+    end
+
+    subgraph N["Native runtime"]
+        A["Stable C ABI"]
+        S["Session + ShapeHandle"]
+        K["Kernel · IO · Batch executor"]
+        A --> S --> K
+    end
+
+    O["OpenCascade<br/>geometry + topology"]
+    R["STEP · STL · GLB<br/>Scene archives · reports"]
+
+    U --> M
+    M --> A
+    M <--> D
+    D --> A
+    K --> O
+    M --> R
+    D --> R
+```
+
+The dependency direction is deliberately narrow:
+
+```text
+Python frontend  →  stable C ABI  →  C++ Session / ShapeHandle  →  OpenCascade
+```
+
+- The frontend contains no direct OCC imports.
+- A shape handle is session-bound and becomes invalid when its session closes.
+- Native code owns geometry construction, booleans, queries, tessellation, and exchange.
+- Python owns modeling context, constraints, policy, diagnostics, metadata, and artifact schemas.
+- The bundled compatibility engine preserves the complete feature set while geometry paths migrate into the native runtime.
+
+Read [ARCHITECTURE.md](ARCHITECTURE.md) for the ownership model and [MIGRATION_MATRIX.md](MIGRATION_MATRIX.md) for the measured native/compatibility boundary.
+
+## 🤖 Agent workflows
+
+CadFlow provides the stable execution and feedback boundary for CAD agents, without coupling the SDK to a particular model provider or orchestration framework.
+
+```text
+natural-language task
+        ↓
+agent writes a Python modeling program
+        ↓
+CadFlow builds and inspects deterministic geometry
+        ↓
+structured diagnostics ──→ targeted source repair
+        ↓
+validated CAD / Scene artifact
+```
+
+The repository includes progressively disclosed [CAD Skills](skills/) for rigid-part modeling, flexible geometry, STEP/BREP reconstruction, validated export, and real-time preview. They give an agent task-specific workflows and exact API references without loading the entire CAD surface into every prompt.
+
+[CadFlowAgent](https://github.com/zion-zion-zion/CadFlowAgent) is a separate application built on this boundary. It adds LLM harnesses, project workspaces, execution and repair loops, live progress, a browser viewer, and run records; CadFlow remains responsible for geometry, measurements, exchange, and Scene compilation.
+
+> [!NOTE]
+> [`agent_dsl/`](agent_dsl/) is an isolated experimental wrapper for a compact, stateful command protocol. It is not CadFlowAgent, does not change the public CadFlow API, and is not installed with the core distribution.
+
+## 📦 Installation from source
+
+### Requirements
+
+- Linux x86_64 for the currently tested full OCCT build
+- Python 3.10 through 3.13
 - CMake 3.16 or newer
-- A C++17 compiler (GCC, Clang, or MSVC)
+- A C++17 compiler
 - Python development headers
 
-On Ubuntu/Debian, install the system build tools first:
+On Ubuntu or Debian:
 
 ```bash
 sudo apt update
 sudo apt install build-essential cmake python3-dev
 ```
 
-Clone the repository, create an isolated environment, and install CadFlow:
+Clone the repository and install the OpenCascade runtime before building CadFlow:
 
 ```bash
 git clone https://github.com/yhz5613813/CadFlow.git
@@ -35,26 +210,9 @@ python -m pip install "cadquery-ocp==7.9.3.1"
 python -m pip install --no-build-isolation .
 ```
 
-Installing `cadquery-ocp` before CadFlow makes the matching OpenCascade 7.9.3
-shared libraries visible to CMake. `--no-build-isolation` lets the source build
-use those libraries from the active virtual environment. Without them, CMake
-can build the dependency-free analytic fallback instead of the complete CAD
-backend.
+Installing `cadquery-ocp` first exposes the matching OpenCascade 7.9.3 headers and shared libraries to CMake. `--no-build-isolation` allows the source build to discover them in the active environment.
 
-The same process works with a source archive:
-
-```bash
-python -m pip install "cadquery-ocp==7.9.3.1"
-python -m pip install --no-build-isolation ./cadflow-0.1.0.tar.gz
-```
-
-For PNG rendering and image inspection, install the optional runtime tools:
-
-```bash
-python -m pip install vtk pillow
-```
-
-Verify both the Python package and the compiled backend:
+Verify the Python package and compiled backend:
 
 ```bash
 python - <<'PY'
@@ -66,62 +224,51 @@ with cadflow.Model() as model:
 PY
 ```
 
-The expected box volume is `24.0`.
+The expected volume is `24.0`.
 
-For an interactive renderer, export the native tessellation directly as GLB:
+For PNG rendering and image inspection, install the optional runtime tools:
 
-```python
-with cadflow.Model() as model:
-    shape = model.box(80, 50, 8)
-    shape.export_preview_glb("preview.glb", deflection=0.35)
+```bash
+python -m pip install vtk pillow
 ```
 
-`Shape.preview_mesh_buffer()` exposes the versioned C++ mesh buffer when a
-custom renderer needs positions, normals, and compact indices without JSON.
-`Shape.preview_glb()` wraps that buffer in CadFlow's validated triangle GLB
-profile. The optional stateful Agent DSL includes an SSE/Three.js preview
-service; see `agent_dsl/README.md`.
+### Platform and fallback notes
 
-The complete OCCT-backed source build is currently tested on Linux x86_64. The
-current CMake library discovery targets Linux `.so` files; Windows and macOS
-builds require platform-specific CMake support that is not yet provided.
+- The complete OCCT-backed source build is currently tested on Linux x86_64.
+- Current CMake discovery targets Linux `.so` libraries; Windows and macOS need platform-specific discovery support.
+- Without the matching OCCT development files, CMake can build a dependency-free analytic fallback intended for smoke tests—not the complete CAD backend.
+- The full compatibility implementation is bundled in the installed package; CadFlow never reads another source checkout at runtime.
+
+## 🗂️ Repository map
 
 ```text
-python/cadflow/          Python model objects, typed graph and dispatch
-python/cadflow/_engine/   domain-owned Python implementation
-native/                  C++17 session store and graph executor
-tests/                   native, packaging, and full compatibility tests
+CadFlow/
+├── python/cadflow/          Public Python frontend and domain facades
+├── python/cadflow/_engine/  Bundled complete Python feature layer
+├── native/                  C++17 session, kernel, exchange, and graph runtime
+├── scene-contract/          Cross-language Scene schemas and validators
+├── skills/                  Agent-oriented CAD workflows and API references
+├── examples/                Parts, assemblies, flexible models, and reconstructions
+├── docs/                    Architecture, guides, and generated API documentation
+├── agent_dsl/               Optional experimental stateful Agent wrapper
+└── tests/                   Native, packaging, compatibility, and workflow tests
 ```
 
-The native implementation is layered by responsibility:
+Start exploring with:
 
-```text
-native/src/c_api.cpp       stable C ABI only
-native/src/core/           session ownership, handles, error boundary
-native/src/kernel/         construction, features, booleans, transforms, queries
-native/src/io/             mesh and CAD exchange
-native/src/runtime/        batch graph interpreter
-```
+- [Modern Python frontend](docs/guides/modern-frontend.md)
+- [Architecture and native ownership](ARCHITECTURE.md)
+- [Native migration matrix](MIGRATION_MATRIX.md)
+- [Engineering guides](docs/guides/)
+- [API reference](docs/api/)
+- [Standard parts](docs/stdlib/)
+- [Flexible modeling](docs/flexible-modeling.md)
+- [Examples](examples/)
+- [Scene Contract](scene-contract/)
 
-The native layer uses a small C ABI loaded with `ctypes`, so it does not pass
-`TopoDS_Shape` objects across an ABI boundary. The complete OpenCascade-based
-compatibility feature set is bundled inside the installed package and remains
-available through `cadflow.compat`. CadFlow does not load source files from
-another checkout.
+## 🧪 Build and test
 
-The native vertical slice includes primitives, polygon/circle/arc/spline/helix
-curves, Bezier and fitted-grid surfaces, face construction, extrusion,
-revolution, loft, sweep, indexed fillet/chamfer/shell features, booleans, rigid
-and scale transforms, geometry properties (including length, center of mass,
-and distance), topology counts, tessellation, STEP import/export, STL export,
-and batch graph execution. Edge and face selections cross the ABI as zero-based
-indices, never as OpenCascade objects. Assemblies, constraints, semantic
-tracking, Scene archives, translators, and standard parts remain Python
-orchestration.
-
-## Build and test
-
-For contributors working directly on the native backend:
+For contributors working on the native backend:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -130,16 +277,10 @@ python -m pytest -q
 python -m pip wheel . --no-deps -w dist
 ```
 
-The default build uses the matching OCCT 7.9.3 headers and shared libraries
-when they are available. Use `-DCADFLOW_USE_OCCT=OFF` for the dependency-free
-analytic fallback used by smoke tests.
-Native STEP writing is enabled when its OCCT data-exchange headers are
-available; use `-DCADFLOW_WITH_STEP=OFF` for a smaller build. The complete
-existing STEP API remains available through `cadflow.compat` regardless of this
-option.
+The default build uses matching OCCT 7.9.3 headers and libraries when available. Use `-DCADFLOW_USE_OCCT=OFF` for the analytic fallback or `-DCADFLOW_WITH_STEP=OFF` for a smaller native build without STEP writing. The compatibility STEP API remains available through `cadflow.compat`.
 
-Built wheels contain `libcadflow_core`, the stable public header under
-`cadflow/include/`, and a relative runtime path to the OCCT libraries supplied
-by `cadquery-ocp`. Set `CADFLOW_CORE_LIBRARY` only when using an externally
-built core. New code should use `cadflow.Model` or `cadflow.Graph`; the complete
-compatibility implementation is bundled in the same wheel.
+Built wheels contain `libcadflow_core`, the stable public header under `cadflow/include/`, and a relative runtime path to OCCT libraries supplied by `cadquery-ocp`. Set `CADFLOW_CORE_LIBRARY` only when deliberately using an externally built core.
+
+## 📄 License
+
+CadFlow is available under the [MIT License](LICENSE). See [NOTICE-OCCT.md](NOTICE-OCCT.md) for OpenCascade notices.

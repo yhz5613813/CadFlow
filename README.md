@@ -31,6 +31,7 @@
   <a href="#-why-cadflow">🧭 Why CadFlow</a> ·
   <a href="#-quick-start">🚀 Quick start</a> ·
   <a href="#-capabilities">🧰 Capabilities</a> ·
+  <a href="#roadmap">🗺️ Roadmap</a> ·
   <a href="#-architecture">🏗️ Architecture</a> ·
   <a href="#-agent-workflows">🤖 Agent workflows</a>
 </p>
@@ -111,6 +112,16 @@ New integrations should begin with `cadflow.Model` or `cadflow.Graph` and use pu
 | Artifacts | Model JSON, strict replay, schema validation, and portable Scene archives containing renderable geometry and structured metadata |
 
 Geometry-heavy operations increasingly run in the native C++ session. Constraints, assemblies, semantics, diagnostics, serialization, and other structured-data workflows intentionally remain in Python where moving them across the ABI would add complexity without removing a geometry bottleneck.
+
+<a id="roadmap"></a>
+
+## 🗺️ Roadmap
+
+CadFlow is under active development. Our planned work focuses on the following directions:
+
+- [ ] Support cross-platform deployment.
+- [ ] Open-source the companion agentic model, together with its training data and training code.
+- [ ] Add CUDA acceleration.
 
 ## 🏗️ Architecture
 

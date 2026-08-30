@@ -31,6 +31,7 @@
   <a href="#why-cadflow">🧭 核心优势</a> ·
   <a href="#quick-start">🚀 快速开始</a> ·
   <a href="#capabilities">🧰 能力概览</a> ·
+  <a href="#roadmap">🗺️ 未来规划</a> ·
   <a href="#architecture">🏗️ 系统架构</a> ·
   <a href="#agent-workflows">🤖 Agent 工作流</a>
 </p>
@@ -117,6 +118,16 @@ with cad.Model() as model:
 | 结构化产物 | Model JSON、严格重放、Schema 验证，以及包含可渲染几何和结构化元数据的便携式 Scene 归档 |
 
 几何密集型操作正逐步迁移到原生 C++ Session。约束、装配、语义、诊断、序列化和其他结构化数据工作流则有意保留在 Python：将它们迁移到 ABI 另一侧只会增加复杂度，并不能消除几何计算瓶颈。
+
+<a id="roadmap"></a>
+
+## 🗺️ 未来规划
+
+CadFlow 正在持续开发。后续工作将重点围绕以下方向展开：
+
+- [ ] 支持跨平台部署。
+- [ ] 开源配套的 Agentic Model，以及对应的训练数据和训练代码。
+- [ ] 支持 CUDA 加速。
 
 <a id="architecture"></a>
 

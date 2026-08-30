@@ -133,39 +133,11 @@ CadFlow 正在持续开发。后续工作将重点围绕以下方向展开：
 
 ## 🏗️ 系统架构
 
-```mermaid
-flowchart LR
-    U["Python 应用<br/>CAD 智能体"]
+<p align="center">
+  <img src="docs/assets/cadflow-architecture.svg" width="100%" alt="CadFlow 系统架构：Python 应用与 CAD 智能体通过公开 Python 前端，跨越稳定 C ABI 进入原生运行时和 OpenCascade，最终生成经过验证的 CAD、预览、Scene 与诊断产物。">
+</p>
 
-    subgraph P["Python 前端"]
-        M["Model · Shape · Graph"]
-        D["草图 · 装配 · 检查<br/>Scene · 序列化 · 语义"]
-    end
-
-    subgraph N["原生运行时"]
-        A["稳定 C ABI"]
-        S["Session + ShapeHandle"]
-        K["几何内核 · IO · 批处理执行器"]
-        A --> S --> K
-    end
-
-    O["OpenCascade<br/>几何 + 拓扑"]
-    R["STEP · STL · GLB<br/>Scene 归档 · 结构化报告"]
-
-    U --> M
-    M --> A
-    M <--> D
-    D --> A
-    K --> O
-    M --> R
-    D --> R
-```
-
-整个依赖方向保持刻意收窄：
-
-```text
-Python 前端  →  稳定 C ABI  →  C++ Session / ShapeHandle  →  OpenCascade
-```
+核心几何路径被刻意收窄为：**Python 前端 → 稳定 C ABI → C++ Session / ShapeHandle → OpenCascade**。高层编排保留在 Python，几何所有权和计算密集型任务则留在原生层。
 
 - 现代 Python 前端不直接导入 OCC。
 - Shape 句柄归属于特定 Session；Session 关闭后，其中的所有句柄都会失效。

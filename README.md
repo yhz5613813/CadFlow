@@ -125,39 +125,11 @@ CadFlow is under active development. Our planned work focuses on the following d
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart LR
-    U["Python applications<br/>CAD agents"]
+<p align="center">
+  <img src="docs/assets/cadflow-architecture.svg" width="100%" alt="CadFlow architecture: Python applications and CAD agents enter through the public Python frontend, cross a stable C ABI into the native runtime and OpenCascade, then produce validated CAD, preview, Scene, and diagnostic artifacts.">
+</p>
 
-    subgraph P["Python frontend"]
-        M["Model · Shape · Graph"]
-        D["Sketch · Assembly · Inspection<br/>Scene · Serialization · Semantics"]
-    end
-
-    subgraph N["Native runtime"]
-        A["Stable C ABI"]
-        S["Session + ShapeHandle"]
-        K["Kernel · IO · Batch executor"]
-        A --> S --> K
-    end
-
-    O["OpenCascade<br/>geometry + topology"]
-    R["STEP · STL · GLB<br/>Scene archives · reports"]
-
-    U --> M
-    M --> A
-    M <--> D
-    D --> A
-    K --> O
-    M --> R
-    D --> R
-```
-
-The dependency direction is deliberately narrow:
-
-```text
-Python frontend  →  stable C ABI  →  C++ Session / ShapeHandle  →  OpenCascade
-```
+The primary geometry path stays deliberately narrow: **Python frontend → stable C ABI → C++ Session / ShapeHandle → OpenCascade**. Higher-level orchestration remains in Python, while geometry ownership and compute-intensive work stay native.
 
 - The frontend contains no direct OCC imports.
 - A shape handle is session-bound and becomes invalid when its session closes.

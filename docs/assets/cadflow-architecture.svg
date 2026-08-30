@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">CadFlow system architecture</title>
+  <desc id="desc">A left-to-right architecture diagram showing callers entering the Python frontend, crossing a stable C ABI into the native runtime and OpenCascade, then producing geometry, previews, portable state, and structured reports.</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#101B2E"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16243A"/>
+      <stop offset="1" stop-color="#111C2F"/>
+    </linearGradient>
+    <linearGradient id="boundary" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#62DDF5"/>
+      <stop offset="1" stop-color="#4B8FE8"/>
+    </linearGradient>
+    <linearGradient id="artifact" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#14243A"/>
+      <stop offset="1" stop-color="#132033"/>
+    </linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#AFC1D6" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#02060D" flood-opacity="0.28"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#62DDF5"/>
+    </marker>
+    <marker id="arrowMuted" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#71839A"/>
+    </marker>
+  </defs>
+
+  <rect x="8" y="8" width="1184" height="684" rx="30" fill="url(#canvas)" stroke="#2A3A50" stroke-width="1.5"/>
+  <rect x="9" y="9" width="1182" height="682" rx="29" fill="url(#grid)"/>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <!-- Header -->
+    <g>
+      <rect x="46" y="42" width="7" height="40" rx="3.5" fill="url(#boundary)"/>
+      <text x="70" y="54" fill="#78DFF4" font-size="11" font-weight="700" letter-spacing="2.2">CADFLOW / SYSTEM OVERVIEW</text>
+      <text x="70" y="82" fill="#F2F7FC" font-size="24" font-weight="650">One boundary from intent to verified geometry</text>
+
+      <g transform="translate(867 48)">
+        <line x1="0" y1="8" x2="36" y2="8" stroke="#62DDF5" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="49" y="12" fill="#AEBBCA" font-size="11">primary execution path</text>
+        <rect x="0" y="30" width="36" height="14" rx="7" fill="#15263C" stroke="#62758D" stroke-dasharray="4 3"/>
+        <text x="49" y="41" fill="#AEBBCA" font-size="11">migration bridge</text>
+      </g>
+    </g>
+
+    <!-- Stage labels -->
+    <g font-size="10" font-weight="700" letter-spacing="1.7">
+      <text x="46" y="139" fill="#71849B">01 / CALLERS</text>
+      <text x="244" y="139" fill="#64D9F2">02 / PYTHON FRONTEND</text>
+      <text x="670" y="139" fill="#8DB8F3">03 / NATIVE RUNTIME</text>
+      <text x="1014" y="139" fill="#A3B0C1">04 / GEOMETRY KERNEL</text>
+    </g>
+
+    <!-- Caller cards -->
+    <g filter="url(#shadow)">
+      <rect x="46" y="156" width="158" height="92" rx="16" fill="#121F32" stroke="#2A3C53"/>
+      <rect x="46" y="262" width="158" height="92" rx="16" fill="#121F32" stroke="#2A3C53"/>
+      <rect x="46" y="368" width="158" height="92" rx="16" fill="#121F32" stroke="#2A3C53"/>
+    </g>
+    <g>
+      <circle cx="76" cy="186" r="12" fill="#1D334A"/>
+      <path d="M70 182 L66 186 L70 190 M82 182 L86 186 L82 190" fill="none" stroke="#77D9ED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="96" y="188" fill="#ECF3FA" font-size="14" font-weight="600">Python apps</text>
+      <text x="66" y="220" fill="#8495A9" font-size="11">interactive modeling</text>
+
+      <circle cx="76" cy="292" r="12" fill="#1D334A"/>
+      <path d="M76 284 L78.1 289.9 L84 292 L78.1 294.1 L76 300 L73.9 294.1 L68 292 L73.9 289.9 Z" fill="none" stroke="#77D9ED" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="96" y="294" fill="#ECF3FA" font-size="14" font-weight="600">CAD agents</text>
+      <text x="66" y="326" fill="#8495A9" font-size="11">plan · inspect · repair</text>
+
+      <circle cx="76" cy="398" r="12" fill="#1D334A"/>
+      <path d="M70 398 A6 6 0 1 1 73 403 M70 398 L70 393 M70 398 L75 398" fill="none" stroke="#77D9ED" stroke-width="1.7" stroke-linecap="round"/>
+      <text x="96" y="400" fill="#ECF3FA" font-size="14" font-weight="600">Replay &amp; batch</text>
+      <text x="66" y="432" fill="#8495A9" font-size="11">deterministic programs</text>
+    </g>
+
+    <!-- Python frontend -->
+    <g filter="url(#shadow)">
+      <rect x="238" y="156" width="320" height="304" rx="20" fill="url(#panel)" stroke="#31506A" stroke-width="1.2"/>
+    </g>
+    <rect x="238" y="156" width="5" height="304" rx="2.5" fill="#59CFE9"/>
+
+    <g>
+      <text x="266" y="188" fill="#8698AC" font-size="10" font-weight="700" letter-spacing="1.4">PUBLIC PROGRAMMING SURFACE</text>
+      <rect x="262" y="204" width="272" height="80" rx="14" fill="#1A2A41" stroke="#3B607B"/>
+      <g fill="#7DE0F3">
+        <circle cx="286" cy="230" r="4"/>
+        <circle cx="301" cy="230" r="4" fill-opacity="0.65"/>
+        <circle cx="316" cy="230" r="4" fill-opacity="0.35"/>
+        <path d="M286 230 H316" stroke="#7DE0F3" stroke-opacity="0.55"/>
+      </g>
+      <text x="334" y="236" fill="#F1F6FB" font-size="17" font-weight="650">Model · Shape · Graph</text>
+      <text x="286" y="261" fill="#91A4B9" font-size="11">stable, handle-oriented Python API</text>
+
+      <text x="266" y="316" fill="#8698AC" font-size="10" font-weight="700" letter-spacing="1.4">DOMAIN SERVICES</text>
+      <rect x="262" y="332" width="272" height="70" rx="14" fill="#15243A" stroke="#2E465E"/>
+      <text x="282" y="360" fill="#DCE7F1" font-size="13" font-weight="600">Sketch · Assembly · Inspection</text>
+      <text x="282" y="384" fill="#93A5B9" font-size="12">Scene · Serialization · Semantics</text>
+
+      <rect x="262" y="420" width="272" height="22" rx="11" fill="#132338" stroke="#52687E" stroke-dasharray="5 4"/>
+      <text x="398" y="435" text-anchor="middle" fill="#8FA2B6" font-size="10.5">compat · complete surface during migration</text>
+    </g>
+
+    <!-- Input merge and primary path -->
+    <path d="M204 202 H220 Q226 202 226 208 V302 Q226 308 232 308 H262" fill="none" stroke="#587086" stroke-width="1.5"/>
+    <path d="M204 308 H262" fill="none" stroke="#62DDF5" stroke-width="2.2" marker-end="url(#arrow)"/>
+    <path d="M204 414 H220 Q226 414 226 408 V314 Q226 308 232 308" fill="none" stroke="#587086" stroke-width="1.5"/>
+
+    <!-- ABI boundary -->
+    <g filter="url(#shadow)">
+      <rect x="594" y="156" width="42" height="304" rx="18" fill="#101D30" stroke="#3A6E8A"/>
+      <rect x="606" y="174" width="18" height="268" rx="9" fill="url(#boundary)" fill-opacity="0.9"/>
+    </g>
+    <text x="619" y="309" text-anchor="middle" fill="#06121E" font-size="10" font-weight="800" letter-spacing="1.8" transform="rotate(-90 619 309)">STABLE C ABI</text>
+    <path d="M534 244 H594" fill="none" stroke="#62DDF5" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+    <!-- Native runtime -->
+    <g filter="url(#shadow)">
+      <rect x="670" y="156" width="310" height="304" rx="20" fill="url(#panel)" stroke="#385477" stroke-width="1.2"/>
+    </g>
+    <rect x="670" y="156" width="5" height="304" rx="2.5" fill="#6D9FE8"/>
+
+    <g>
+      <text x="698" y="188" fill="#8799AE" font-size="10" font-weight="700" letter-spacing="1.4">OWNERSHIP &amp; LIFETIME</text>
+      <rect x="694" y="204" width="262" height="80" rx="14" fill="#1A2940" stroke="#415C80"/>
+      <circle cx="720" cy="234" r="13" fill="none" stroke="#8FB9EF" stroke-width="2"/>
+      <circle cx="720" cy="234" r="5" fill="#8FB9EF"/>
+      <text x="744" y="232" fill="#F1F5FB" font-size="16" font-weight="650">Session</text>
+      <text x="744" y="255" fill="#94A6BA" font-size="11">owns native shapes and handles</text>
+
+      <text x="698" y="316" fill="#8799AE" font-size="10" font-weight="700" letter-spacing="1.4">EXECUTION</text>
+      <rect x="694" y="332" width="126" height="70" rx="14" fill="#15243A" stroke="#304A67"/>
+      <rect x="830" y="332" width="126" height="70" rx="14" fill="#15243A" stroke="#304A67"/>
+      <text x="757" y="361" text-anchor="middle" fill="#DDE7F2" font-size="13" font-weight="600">Geometry · I/O</text>
+      <text x="757" y="383" text-anchor="middle" fill="#8FA2B7" font-size="11">query · exchange</text>
+      <text x="893" y="361" text-anchor="middle" fill="#DDE7F2" font-size="13" font-weight="600">Batch executor</text>
+      <text x="893" y="383" text-anchor="middle" fill="#8FA2B7" font-size="11">graphs · meshes</text>
+
+      <text x="825" y="433" text-anchor="middle" fill="#73879E" font-size="10.5">native geometry stays behind the boundary</text>
+    </g>
+    <path d="M636 244 H694" fill="none" stroke="#62DDF5" stroke-width="2.2" marker-end="url(#arrow)"/>
+    <path d="M825 284 V316" fill="none" stroke="#647C96" stroke-width="1.5" marker-end="url(#arrowMuted)"/>
+
+    <!-- OpenCascade -->
+    <g filter="url(#shadow)">
+      <rect x="1014" y="190" width="140" height="226" rx="20" fill="#121F32" stroke="#3A4C62" stroke-width="1.2"/>
+    </g>
+    <g transform="translate(1052 221)" fill="none" stroke-linejoin="round">
+      <path d="M31 0 L62 17 L31 34 L0 17 Z" stroke="#9AACBE" stroke-width="1.8"/>
+      <path d="M0 17 V52 L31 70 V34 M62 17 V52 L31 70" stroke="#6E849B" stroke-width="1.8"/>
+      <path d="M13 24 L31 14 L49 24 V45 L31 55 L13 45 Z" stroke="#62DDF5" stroke-width="1.5" stroke-opacity="0.8"/>
+    </g>
+    <text x="1084" y="318" text-anchor="middle" fill="#F0F5FA" font-size="15" font-weight="650">OpenCascade</text>
+    <text x="1084" y="341" text-anchor="middle" fill="#93A5B8" font-size="11">exact B-Rep</text>
+    <text x="1084" y="359" text-anchor="middle" fill="#93A5B8" font-size="11">geometry + topology</text>
+    <rect x="1041" y="379" width="86" height="20" rx="10" fill="#172940"/>
+    <text x="1084" y="393" text-anchor="middle" fill="#7EDCF0" font-size="9.5" font-weight="700" letter-spacing="0.8">SOURCE OF TRUTH</text>
+    <path d="M956 367 H988 Q998 367 998 357 V303 Q998 293 1008 293 H1014" fill="none" stroke="#62DDF5" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+    <!-- Responsibility notes -->
+    <g>
+      <rect x="238" y="476" width="320" height="34" rx="10" fill="#0E192A" stroke="#263A50"/>
+      <circle cx="257" cy="493" r="4" fill="#62DDF5"/>
+      <text x="270" y="497" fill="#8498AE" font-size="10.5">Python owns intent, policy, diagnostics &amp; metadata</text>
+
+      <rect x="670" y="476" width="310" height="34" rx="10" fill="#0E192A" stroke="#263A50"/>
+      <circle cx="689" cy="493" r="4" fill="#7CA8EA"/>
+      <text x="702" y="497" fill="#8498AE" font-size="10.5">C++ owns geometry, compute &amp; kernel exchange</text>
+    </g>
+
+    <!-- Delivery rail -->
+    <g>
+      <text x="46" y="562" fill="#71849B" font-size="10" font-weight="700" letter-spacing="1.7">05 / VERIFIED OUTPUTS</text>
+      <path d="M204 558 H1127" fill="none" stroke="#30445A" stroke-width="1"/>
+      <path d="M398 510 V534 Q398 544 408 544 H510 Q520 544 520 554" fill="none" stroke="#527188" stroke-width="1.3" marker-end="url(#arrowMuted)"/>
+      <path d="M825 510 V534 Q825 544 815 544 H714 Q704 544 704 554" fill="none" stroke="#527188" stroke-width="1.3" marker-end="url(#arrowMuted)"/>
+
+      <g filter="url(#shadow)">
+        <rect x="46" y="578" width="256" height="76" rx="16" fill="url(#artifact)" stroke="#2C4259"/>
+        <rect x="316" y="578" width="256" height="76" rx="16" fill="url(#artifact)" stroke="#2C4259"/>
+        <rect x="586" y="578" width="256" height="76" rx="16" fill="url(#artifact)" stroke="#2C4259"/>
+        <rect x="856" y="578" width="298" height="76" rx="16" fill="url(#artifact)" stroke="#2C4259"/>
+      </g>
+
+      <g>
+        <rect x="66" y="598" width="36" height="36" rx="10" fill="#18324A"/>
+        <path d="M75 610 H93 M75 616 H93 M75 622 H88" stroke="#72D9EE" stroke-width="1.7" stroke-linecap="round"/>
+        <text x="116" y="608" fill="#EEF4FA" font-size="13" font-weight="650">CAD geometry</text>
+        <text x="116" y="630" fill="#8699AE" font-size="11">STEP · STL · BREP</text>
+
+        <rect x="336" y="598" width="36" height="36" rx="10" fill="#18324A"/>
+        <path d="M344 625 L354 606 L364 625 Z M349 619 H359" fill="none" stroke="#72D9EE" stroke-width="1.6" stroke-linejoin="round"/>
+        <text x="386" y="608" fill="#EEF4FA" font-size="13" font-weight="650">Visual previews</text>
+        <text x="386" y="630" fill="#8699AE" font-size="11">GLB · triangle buffers</text>
+
+        <rect x="606" y="598" width="36" height="36" rx="10" fill="#18324A"/>
+        <path d="M614 609 L624 604 L634 609 V623 L624 628 L614 623 Z M614 609 L624 614 L634 609 M624 614 V628" fill="none" stroke="#72D9EE" stroke-width="1.4" stroke-linejoin="round"/>
+        <text x="656" y="608" fill="#EEF4FA" font-size="13" font-weight="650">Portable state</text>
+        <text x="656" y="630" fill="#8699AE" font-size="11">Scene · Model JSON</text>
+
+        <rect x="876" y="598" width="36" height="36" rx="10" fill="#18324A"/>
+        <path d="M885 616 L891 622 L903 608" fill="none" stroke="#72D9EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="926" y="608" fill="#EEF4FA" font-size="13" font-weight="650">Structured evidence</text>
+        <text x="926" y="630" fill="#8699AE" font-size="11">validation · inspection · lineage</text>
+      </g>
+    </g>
+  </g>
+</svg>

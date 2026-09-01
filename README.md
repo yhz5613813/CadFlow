@@ -5,12 +5,11 @@
 <h1 align="center">CadFlow</h1>
 
 <p align="center">
-  <strong>Agent-ready, Python-first CAD infrastructure powered by OpenCascade.</strong>
+  <strong>CAD infrastructure for agents</strong>
 </p>
 
 <p align="center">
-  Build programmable geometry, inspect it with structured feedback, and deliver<br>
-  validated CAD and Scene artifacts through one stable Python interface.
+  An Agentic CAD Infra framework for building programmable geometry and obtaining structured feedback
 </p>
 
 <p align="center">
@@ -38,12 +37,7 @@
 
 ---
 
-CadFlow is a Python-first CAD SDK for **programmatic modeling and geometry-grounded agents**. It combines an expressive Python frontend with a handle-oriented C++17 runtime, keeping OpenCascade geometry native while exposing predictable modeling operations, JSON-safe diagnostics, inspection tools, and portable artifacts.
-
-CadFlow is not a text-to-3D model or an LLM application. It is the deterministic CAD layer beneath those systems: Python programs and agents describe modeling intent; CadFlow builds the geometry, measures the result, and returns evidence they can act on.
-
-> [!IMPORTANT]
-> CadFlow is currently an alpha release. The complete OCCT-backed source build is tested on Linux x86_64, and the public API is being migrated from the bundled compatibility engine to the native session one domain at a time.
+CadFlow is a CAD SDK for **programmatic modeling and geometry-grounded agents**. CadFlow is not a text-to-3D model or an LLM application. It is the deterministic Agentic CAD Infra beneath those systems: Python programs and agents describe modeling intent; CadFlow builds and measures the geometry, then returns actionable facts to the caller.
 
 ## 🧭 Why CadFlow
 
@@ -129,19 +123,13 @@ CadFlow is under active development. Our planned work focuses on the following d
   <img src="docs/assets/cadflow-architecture.svg" width="100%" alt="CadFlow architecture: Python applications and CAD agents enter through the public Python frontend, cross a stable C ABI into the native runtime and OpenCascade, then produce validated CAD, preview, Scene, and diagnostic artifacts.">
 </p>
 
-The primary geometry path stays deliberately narrow: **Python frontend → stable C ABI → C++ Session / ShapeHandle → OpenCascade**. Higher-level orchestration remains in Python, while geometry ownership and compute-intensive work stay native.
+The primary path is: **Python frontend → stable C ABI → C++ Session / ShapeHandle → OpenCascade**. Higher-level orchestration remains in Python, while geometry ownership and compute-intensive work stay native.
 
-- The frontend contains no direct OCC imports.
-- A shape handle is session-bound and becomes invalid when its session closes.
-- Native code owns geometry construction, booleans, queries, tessellation, and exchange.
-- Python owns modeling context, constraints, policy, diagnostics, metadata, and artifact schemas.
-- The bundled compatibility engine preserves the complete feature set while geometry paths migrate into the native runtime.
-
-Read [ARCHITECTURE.md](ARCHITECTURE.md) for the ownership model and [MIGRATION_MATRIX.md](MIGRATION_MATRIX.md) for the measured native/compatibility boundary.
+Read [ARCHITECTURE.md](ARCHITECTURE.md) for the framework model.
 
 ## 🤖 Agent workflows
 
-CadFlow provides the stable execution and feedback boundary for CAD agents, without coupling the SDK to a particular model provider or orchestration framework.
+CadFlow provides a stable execution and feedback boundary for CAD agents.
 
 ```text
 natural-language task
@@ -160,7 +148,7 @@ The repository includes progressively disclosed [CAD Skills](skills/) for rigid-
 [CadFlowAgent](https://github.com/zion-zion-zion/CadFlowAgent) is a separate application built on this boundary. It adds LLM harnesses, project workspaces, execution and repair loops, live progress, a browser viewer, and run records; CadFlow remains responsible for geometry, measurements, exchange, and Scene compilation.
 
 > [!NOTE]
-> [`agent_dsl/`](agent_dsl/) is an isolated experimental wrapper for a compact, stateful command protocol. It is not CadFlowAgent, does not change the public CadFlow API, and is not installed with the core distribution.
+> [`agent_dsl/`](agent_dsl/) is an isolated experimental layer for a compact, stateful command protocol. It can significantly reduce token consumption during generation, and we will continue to improve it in future releases.
 
 ## 📦 Installation from source
 
@@ -214,13 +202,6 @@ For PNG rendering and image inspection, install the optional runtime tools:
 ```bash
 python -m pip install vtk pillow
 ```
-
-### Platform and fallback notes
-
-- The complete OCCT-backed source build is currently tested on Linux x86_64.
-- Current CMake discovery targets Linux `.so` libraries; Windows and macOS need platform-specific discovery support.
-- Without the matching OCCT development files, CMake can build a dependency-free analytic fallback intended for smoke tests—not the complete CAD backend.
-- The full compatibility implementation is bundled in the installed package; CadFlow never reads another source checkout at runtime.
 
 ## 🗂️ Repository map
 

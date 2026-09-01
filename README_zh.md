@@ -5,12 +5,11 @@
 <h1 align="center">CadFlow</h1>
 
 <p align="center">
-  <strong>面向智能体的 Python-first CAD 基础设施，由 OpenCascade 驱动。</strong>
+  <strong>面向智能体的 CAD 基础设施</strong>
 </p>
 
 <p align="center">
-  构建可编程几何、获取结构化反馈，并通过一个稳定的 Python 接口<br>
-  交付经过验证的 CAD 与 Scene 产物。
+  提供一个Agentic CAD Infra框架，构建可编程几何、获取结构化反馈
 </p>
 
 <p align="center">
@@ -38,12 +37,7 @@
 
 ---
 
-CadFlow 是面向**程序化建模与几何驱动智能体**的 Python-first CAD SDK。它将富有表达力的 Python 前端与句柄式 C++17 运行时结合，把 OpenCascade 几何运算保留在原生层，同时提供可预测的建模操作、JSON-safe 诊断、检查工具和可移植产物。
-
-CadFlow 不是 Text-to-3D 模型，也不是 LLM 应用。它是这些系统下方的确定性 CAD 层：Python 程序或智能体描述建模意图，CadFlow 构建并测量几何，将可操作的事实反馈给调用方。
-
-> [!IMPORTANT]
-> CadFlow 目前仍处于 Alpha 阶段。完整的 OCCT 后端源码构建已在 Linux x86_64 上测试，公共 API 正按照领域从内置兼容引擎逐步迁移到原生 Session。
+CadFlow 是面向**程序化建模与几何驱动智能体**的 CAD SDK。CadFlow 不是 Text-to-3D 模型，也不是 LLM 应用。它是这些系统下方的确定性 Agentic CAD Infra：Python 程序或智能体描述建模意图，CadFlow 构建并测量几何，将可操作的事实反馈给调用方。
 
 <a id="why-cadflow"></a>
 
@@ -137,21 +131,15 @@ CadFlow 正在持续开发。后续工作将重点围绕以下方向展开：
   <img src="docs/assets/cadflow-architecture.svg" width="100%" alt="CadFlow 系统架构：Python 应用与 CAD 智能体通过公开 Python 前端，跨越稳定 C ABI 进入原生运行时和 OpenCascade，最终生成经过验证的 CAD、预览、Scene 与诊断产物。">
 </p>
 
-核心几何路径被刻意收窄为：**Python 前端 → 稳定 C ABI → C++ Session / ShapeHandle → OpenCascade**。高层编排保留在 Python，几何所有权和计算密集型任务则留在原生层。
+核心路径为：**Python 前端 → 稳定 C ABI → C++ Session / ShapeHandle → OpenCascade**。高层编排保留在 Python，几何所有权和计算密集型任务则留在原生层。
 
-- 现代 Python 前端不直接导入 OCC。
-- Shape 句柄归属于特定 Session；Session 关闭后，其中的所有句柄都会失效。
-- 原生代码负责几何构造、布尔运算、查询、三角化和数据交换。
-- Python 负责建模上下文、约束、操作策略、诊断、元数据和产物 Schema。
-- 内置兼容引擎在几何路径迁往原生运行时的过程中继续提供完整功能。
-
-如需了解所有权模型，请阅读 [ARCHITECTURE.md](ARCHITECTURE.md)；当前原生与兼容层的实际边界记录在 [MIGRATION_MATRIX.md](MIGRATION_MATRIX.md)。
+如需了解框架模型，请阅读 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 <a id="agent-workflows"></a>
 
 ## 🤖 Agent 工作流
 
-CadFlow 为 CAD 智能体提供稳定的执行与反馈边界，但不会把 SDK 绑定到某个模型供应商或 Agent 编排框架。
+CadFlow 为 CAD 智能体提供稳定的执行与反馈边界。
 
 ```text
 自然语言 CAD 任务
@@ -170,7 +158,7 @@ CadFlow 构建并检查确定性几何
 [CadFlowAgent](https://github.com/zion-zion-zion/CadFlowAgent) 是基于这一边界构建的独立上层应用。它提供 LLM Harness、项目工作区、执行与修复循环、实时进度、浏览器 Viewer 和运行记录；CadFlow 则负责几何、测量、数据交换和 Scene 编译。
 
 > [!NOTE]
-> [`agent_dsl/`](agent_dsl/) 是用于紧凑有状态指令协议的隔离实验层。它不是 CadFlowAgent，不会改变 CadFlow 公共 API，也不会随核心发行版安装。
+> [`agent_dsl/`](agent_dsl/) 是用于紧凑有状态指令协议的隔离实验层，它可以大幅度减少生成过程的token消耗，我们将在后续版本逐步优化。
 
 ## 📦 从源码安装
 
@@ -225,12 +213,6 @@ PY
 python -m pip install vtk pillow
 ```
 
-### 平台与 fallback 说明
-
-- 完整 OCCT 后端源码构建目前已在 Linux x86_64 上测试。
-- 当前 CMake 库发现逻辑针对 Linux `.so` 文件；Windows 和 macOS 仍需补充各自的平台发现支持。
-- 如果缺少匹配的 OCCT 开发文件，CMake 可以构建不依赖 OCCT 的解析式 fallback；它用于冒烟测试，并不是完整 CAD 后端。
-- 完整兼容实现包含在安装包内；CadFlow 运行时不会读取其他源码 checkout。
 
 ## 🗂️ 仓库结构
 

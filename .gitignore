@@ -8,3 +8,14 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 examples/agentic_reconstruction_dataset/out_hard/
+
+# Local Text2CAD reports and experiment sources
+artifacts/text2cad_*/report.json
+examples/agentic_reconstruction_dataset/README.md
+examples/agentic_reconstruction_dataset/README.zh-CN.md
+examples/agentic_reconstruction_dataset/README_hard.zh-CN.md
+examples/agentic_reconstruction_dataset/generate_example.py
+examples/text2cad_boiler.py
+examples/text2cad_complex_workpiece.py
+examples/text2cad_connector_workpiece.py
+examples/text2cad_workpiece.py

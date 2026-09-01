@@ -68,25 +68,25 @@ Build and test with the requested project environment:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-  -DPython3_EXECUTABLE=/data/yihongzhu/SimpleCADAPI-venv/bin/python
+  -DPython3_EXECUTABLE=.venv/bin/python
 cmake --build build --parallel 2
 
-/data/yihongzhu/SimpleCADAPI-venv/bin/python -m pip install \
+.venv/bin/python -m pip install \
   --no-build-isolation --no-deps .
 
-PYTHONPATH=.:python /data/yihongzhu/SimpleCADAPI-venv/bin/python \
+PYTHONPATH=.:python .venv/bin/python \
   -m pytest -q agent_dsl/tests/test_realtime.py
 
 PYTHONPATH=python \
 CADFLOW_CORE_LIBRARY="$PWD/build/native/libcadflow_core.so" \
-  /data/yihongzhu/SimpleCADAPI-venv/bin/python \
+  .venv/bin/python \
   -m pytest -q tests/test_native_backend.py::test_native_preview_buffer_and_glb_profile
 ```
 
 Start the workbench with:
 
 ```bash
-PYTHONPATH=.:python /data/yihongzhu/SimpleCADAPI-venv/bin/python \
+PYTHONPATH=.:python .venv/bin/python \
   -m agent_dsl.realtime --host 127.0.0.1 --port 8765
 ```
 

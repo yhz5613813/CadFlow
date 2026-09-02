@@ -18,6 +18,7 @@
   <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
   <img alt="Platform Linux x86-64" src="https://img.shields.io/badge/Platform-Linux%20x86--64-FCC624?logo=linux&logoColor=black">
   <a href="http://119.28.82.252/"><img alt="在线文档" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
+  <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness 仓库" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
   <img alt="Status Alpha" src="https://img.shields.io/badge/Status-Alpha-F59E0B">
 </p>
@@ -156,7 +157,7 @@ CadFlow 构建并检查确定性几何
 
 仓库提供按需展开的 [CAD Skills](skills/)，覆盖刚性零件建模、柔性几何、STEP/BREP 重建、验证导出和实时预览。智能体可以只加载当前任务需要的工作流和准确 API 参考，而不必在每次提示中塞入完整 CAD 手册。
 
-[CadFlowAgent](https://github.com/zion-zion-zion/CadFlowAgent) 是基于这一边界构建的独立上层应用。它提供 LLM Harness、项目工作区、执行与修复循环、实时进度、浏览器 Viewer 和运行记录；CadFlow 则负责几何、测量、数据交换和 Scene 编译。
+**CadFlow-Harness** 是基于这一边界构建的独立上层应用。它提供 LLM Harness、项目工作区、执行与修复循环、实时进度、浏览器 Viewer 和运行记录；CadFlow 则负责几何、测量、数据交换和 Scene 编译。
 
 > [!NOTE]
 > [`agent_dsl/`](agent_dsl/) 是用于紧凑有状态指令协议的隔离实验层，它可以大幅度减少生成过程的token消耗，我们将在后续版本逐步优化。

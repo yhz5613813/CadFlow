@@ -246,6 +246,10 @@ The default build uses matching OCCT 7.9.3 headers and libraries when available.
 
 Built wheels contain `libcadflow_core`, the stable public header under `cadflow/include/`, and a relative runtime path to OCCT libraries supplied by `cadquery-ocp`. Set `CADFLOW_CORE_LIBRARY` only when deliberately using an externally built core.
 
+## 🙏 Thanks
+
+CadFlow is built on [Open CASCADE Technology (OCCT)](https://dev.opencascade.org/), which provides its robust CAD geometry foundation. We also thank the [SimpleCADAPI](https://github.com/NiJingzhe/SimpleCADAPI) project for its open-source work and inspiration.
+
 ## 📄 License
 
 CadFlow is available under the [MIT License](LICENSE). See [NOTICE-OCCT.md](NOTICE-OCCT.md) for OpenCascade notices.

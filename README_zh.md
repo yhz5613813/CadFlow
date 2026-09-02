@@ -257,6 +257,10 @@ python -m pip wheel . --no-deps -w dist
 
 构建生成的 wheel 包含 `libcadflow_core`、`cadflow/include/` 下的稳定公共头文件，以及指向 `cadquery-ocp` 所提供 OCCT 动态库的相对运行时路径。只有明确使用外部编译的核心库时，才需要设置 `CADFLOW_CORE_LIBRARY`。
 
+## 🙏 致谢
+
+CadFlow 基于 [Open CASCADE Technology（OCCT）](https://dev.opencascade.org/) 构建，感谢其提供稳健的 CAD 几何基础；同时感谢 [SimpleCADAPI](https://github.com/NiJingzhe/SimpleCADAPI) 项目的开源工作与启发。
+
 ## 📄 许可证
 
 CadFlow 采用 [MIT License](LICENSE)。OpenCascade 相关声明见 [NOTICE-OCCT.md](NOTICE-OCCT.md)。

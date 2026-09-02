@@ -261,6 +261,14 @@ python -m pip wheel . --no-deps -w dist
 
 CadFlow 基于 [Open CASCADE Technology（OCCT）](https://dev.opencascade.org/) 构建，感谢其提供稳健的 CAD 几何基础；同时感谢 [SimpleCADAPI](https://github.com/NiJingzhe/SimpleCADAPI) 项目的开源工作与启发。
 
+## ✉️ 联系方式
+
+邮箱：[yihongzhu23@mails.ucas.ac.cn](mailto:yihongzhu23@mails.ucas.ac.cn)
+
+微信：
+
+<img src="docs/assets/wechat-contact.jpg" width="320" alt="微信联系人二维码">
+
 ## 📄 许可证
 
 CadFlow 采用 [MIT License](LICENSE)。OpenCascade 相关声明见 [NOTICE-OCCT.md](NOTICE-OCCT.md)。

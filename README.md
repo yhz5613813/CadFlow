@@ -250,6 +250,14 @@ Built wheels contain `libcadflow_core`, the stable public header under `cadflow/
 
 CadFlow is built on [Open CASCADE Technology (OCCT)](https://dev.opencascade.org/), which provides its robust CAD geometry foundation. We also thank the [SimpleCADAPI](https://github.com/NiJingzhe/SimpleCADAPI) project for its open-source work and inspiration.
 
+## ✉️ Contact
+
+Email: [yihongzhu23@mails.ucas.ac.cn](mailto:yihongzhu23@mails.ucas.ac.cn)
+
+WeChat:
+
+<img src="docs/assets/wechat-contact.jpg" width="320" alt="WeChat contact QR code">
+
 ## 📄 License
 
 CadFlow is available under the [MIT License](LICENSE). See [NOTICE-OCCT.md](NOTICE-OCCT.md) for OpenCascade notices.

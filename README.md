@@ -18,6 +18,7 @@
   <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
   <img alt="Platform Linux x86-64" src="https://img.shields.io/badge/Platform-Linux%20x86--64-FCC624?logo=linux&logoColor=black">
   <a href="http://119.28.82.252/"><img alt="Documentation" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
+  <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness repository" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
   <img alt="Status Alpha" src="https://img.shields.io/badge/Status-Alpha-F59E0B">
 </p>
@@ -146,7 +147,7 @@ validated CAD / Scene artifact
 
 The repository includes progressively disclosed [CAD Skills](skills/) for rigid-part modeling, flexible geometry, STEP/BREP reconstruction, validated export, and real-time preview. They give an agent task-specific workflows and exact API references without loading the entire CAD surface into every prompt.
 
-[CadFlowAgent](https://github.com/zion-zion-zion/CadFlowAgent) is a separate application built on this boundary. It adds LLM harnesses, project workspaces, execution and repair loops, live progress, a browser viewer, and run records; CadFlow remains responsible for geometry, measurements, exchange, and Scene compilation.
+**CadFlow-Harness** is a separate application built on this boundary. It adds an LLM harness, project workspaces, execution and repair loops, live progress, a browser viewer, and run records; CadFlow remains responsible for geometry, measurements, exchange, and Scene compilation.
 
 > [!NOTE]
 > [`agent_dsl/`](agent_dsl/) is an isolated experimental layer for a compact, stateful command protocol. It can significantly reduce token consumption during generation, and we will continue to improve it in future releases.

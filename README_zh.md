@@ -13,6 +13,11 @@
 </p>
 
 <p align="center">
+  <sub>由 Coserve AI 开发</sub><br>
+  <img src="docs/assets/coserve-ai-logo.png" width="220" alt="Coserve AI">
+</p>
+
+<p align="center">
   <a href="https://www.python.org/"><img alt="Python 3.10–3.13" src="https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white"></a>
   <img alt="C++ 17" src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white">
   <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">

@@ -209,6 +209,11 @@ CADFLOW_API const char *cadflow_kind(
     cad_session_t session, unsigned long long shape);
 CADFLOW_API int cadflow_export_step(
     cad_session_t session, unsigned long long shape, const char *path);
+/* Export one planar face as closed 2D machining-profile polylines in DXF.
+   Straight and circular edges remain exact; other curves use tolerance. */
+CADFLOW_API int cadflow_export_dxf(
+    cad_session_t session, unsigned long long face, const char *path,
+    double tolerance);
 CADFLOW_API int cadflow_export_stl(
     cad_session_t session, unsigned long long shape, const char *path, int binary);
 CADFLOW_API int cadflow_mesh_json(

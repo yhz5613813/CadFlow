@@ -74,6 +74,10 @@ class Shape:
     def export_step(self, path: str) -> None:
         self._session.export_step(self._handle, path)
 
+    def export_dxf(self, path: str, *, tolerance: float = 0.01) -> None:
+        """Export this planar face's outer and inner machining contours to DXF."""
+        self._session.export_dxf(self._handle, path, tolerance=tolerance)
+
     def face_properties(self, *, u: float = 0.5, v: float = 0.5) -> dict[str, tuple[float, ...]]:
         return self._session.face_properties(self._handle, u=u, v=v)
 
@@ -372,6 +376,10 @@ class Model:
     def subshapes(self, shape: Shape, shape_type: int) -> tuple[Shape, ...]:
         self._same_model(shape)
         return tuple(Shape(self.session, value) for value in self.session.subshapes(shape._handle, shape_type))
+
+    def faces(self, shape: Shape) -> tuple[Shape, ...]:
+        """Return deterministic zero-based OCCT face handles for a shape."""
+        return self.subshapes(shape, 4)
 
     def free_boundaries(self, shape: Shape, *, tolerance: float = 1e-6) -> tuple[Shape, ...]:
         self._same_model(shape)

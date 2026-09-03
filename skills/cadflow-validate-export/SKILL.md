@@ -1,6 +1,6 @@
 ---
 name: cadflow-validate-export
-description: Validate CadFlow geometry and mesh results, replay model JSON, check topology and files, and produce trustworthy STEP/STL/OBJ/JSON/PNG deliverables. Use after any CAD or static flexible-material generation when the output must be tested, rendered, exported, or reported with measured evidence.
+description: Validate CadFlow geometry and mesh results, replay model JSON, check topology and files, and produce trustworthy STEP/STL/DXF/OBJ/JSON/PNG deliverables. Use after any CAD or static flexible-material generation when the output must be tested, rendered, exported, or reported with measured evidence.
 ---
 
 # CadFlow Validation and Export
@@ -69,7 +69,10 @@ if any(panel.material.thickness > 0 for panel in mesh.panels):
 
 ## Export gate
 
-For rigid shapes use `export_step` and `export_stl`. For flexible meshes use
+For rigid shapes use `export_step` and `export_stl`. Export a 2D machining DXF
+only from the intended planar face, then verify every `LWPOLYLINE` is closed,
+outer and inner loop counts match the part, `$INSUNITS` is millimeters, and
+the profile bounds match the selected face. For flexible meshes use
 `write_obj`, `write_stl`, and `write_json`. Ensure the parent directory exists.
 Check STL triangle count and expected binary length when applicable:
 

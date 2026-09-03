@@ -5,6 +5,7 @@ add_library(cadflow_core SHARED
   src/c_api.cpp
   src/core/session.cpp
   src/flexible/shell_mesh.cpp
+  src/io/dxf_profile.cpp
   src/io/exchange.cpp
   src/kernel/construction.cpp
   src/kernel/advanced.cpp

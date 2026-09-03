@@ -168,6 +168,7 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_distance": [handle, u64, u64],
         "cadflow_kind": [handle, u64],
         "cadflow_export_step": [handle, u64, C.c_char_p],
+        "cadflow_export_dxf": [handle, u64, C.c_char_p, f64],
         "cadflow_export_stl": [handle, u64, C.c_char_p, C.c_int],
         "cadflow_mesh_json": [handle, u64, f64, C.POINTER(C.c_char_p)],
         "cadflow_preview_mesh_buffer": [
@@ -209,6 +210,7 @@ def _configure(lib: C.CDLL) -> None:
     lib.cadflow_face_properties.restype = C.c_int
     lib.cadflow_kind.restype = C.c_char_p
     lib.cadflow_export_step.restype = C.c_int
+    lib.cadflow_export_dxf.restype = C.c_int
     lib.cadflow_export_stl.restype = C.c_int
     lib.cadflow_mesh_json.restype = C.c_int
     lib.cadflow_preview_mesh_buffer.restype = C.c_int
@@ -764,6 +766,23 @@ class NativeSession:
         self._check()
         if not ok:
             raise NativeError("native STEP export failed")
+
+    def export_dxf(
+        self,
+        face: ShapeHandle,
+        path: str | os.PathLike[str],
+        *,
+        tolerance: float = 0.01,
+    ) -> None:
+        ok = self._lib.cadflow_export_dxf(
+            self._raw,
+            self._id(face),
+            os.fspath(path).encode("utf-8"),
+            float(tolerance),
+        )
+        self._check()
+        if not ok:
+            raise NativeError("native DXF profile export failed")
 
     def export_stl(
         self,

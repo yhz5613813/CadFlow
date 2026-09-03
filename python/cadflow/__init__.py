@@ -97,4 +97,4 @@ __all__ = [
 # new frontend. The engine is bundled, so this does not pull in another tree.
 __all__ = sorted(set(__all__) | set(_physical_all) | set(legacy_api_module().__all__))
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

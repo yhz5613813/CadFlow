@@ -25,6 +25,7 @@
   <a href="http://119.28.82.252/"><img alt="Documentation" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
   <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness repository" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
+  <img alt="Version 0.2.0" src="https://img.shields.io/badge/Version-0.2.0-2563EB">
   <img alt="Status Alpha" src="https://img.shields.io/badge/Status-Alpha-F59E0B">
 </p>
 
@@ -34,6 +35,7 @@
 </p>
 
 <p align="center">
+  <a href="#latest-news">📰 Latest News</a> ·
   <a href="#-why-cadflow">🧭 Why CadFlow</a> ·
   <a href="#-quick-start">🚀 Quick start</a> ·
   <a href="#-capabilities">🧰 Capabilities</a> ·
@@ -43,6 +45,17 @@
 </p>
 
 ---
+
+<a id="latest-news"></a>
+
+## 📰 Latest News
+
+### 2026-09-03 · v0.2.0 - Validated 2D machining DXF workflow
+
+- Added native `Shape.export_dxf(...)` support for selected planar faces, including closed outer and inner machining loops, millimeter units, exact line and circular-arc preservation, adaptive approximation with a configurable chord-tolerance target, and atomic file replacement.
+- Added a validated engineering-drawing example with separate annotation, dimension, and centerline layers. It includes hole identifiers, diameter summaries, and a 21-row XY hole table without changing the CAM profile geometry.
+- Exercised the workflow on an existing fire-tube-boiler tube sheet: 22 closed loops, 97 arcs, 5 lines, a clean `ezdxf` audit, deterministic regeneration, and 2400 x 1350 annotated and 3D-context PNG renders.
+- Read the [DXF machining-profile guide](docs/guides/dxf-profile-export.md) for the API contract and validation workflow.
 
 CadFlow is a CAD SDK for **programmatic modeling and geometry-grounded agents**. CadFlow is not a text-to-3D model or an LLM application. It is the deterministic Agentic CAD Infra beneath those systems: Python programs and agents describe modeling intent; CadFlow builds and measures the geometry, then returns actionable facts to the caller.
 
@@ -108,7 +121,7 @@ New integrations should begin with `cadflow.Model` or `cadflow.Graph` and use pu
 | Curves and surfaces | Lines, arcs, splines, helices, Bezier surfaces, fitted B-spline surfaces, ruled/filling/Gordon surfaces, and twisted sweeps |
 | Sketch and context | Immutable coordinate frames, workplanes, declarative sketches, constraints, and `py-slvs` solving |
 | Inspection | Volume, area, length, center of mass, distance, bounds, topology counts, normals, curvature, free boundaries, and BREP comparison |
-| Exchange and preview | STEP import/export, BREP/STL import, STL export, native mesh buffers, and validated triangle GLB previews |
+| Exchange and preview | STEP import/export, planar-face DXF profiles, BREP/STL import, STL export, native mesh buffers, and validated triangle GLB previews |
 | Product structure | Assemblies, connectors, constraint reports, semantic tags, source mapping, lineage, materials, and standard parts |
 | Artifacts | Model JSON, strict replay, schema validation, and portable Scene archives containing renderable geometry and structured metadata |
 
@@ -249,6 +262,11 @@ python -m pip wheel . --no-deps -w dist
 ```
 
 The default build uses matching OCCT 7.9.3 headers and libraries when available. Use `-DCADFLOW_USE_OCCT=OFF` for the analytic fallback or `-DCADFLOW_WITH_STEP=OFF` for a smaller native build without STEP writing. The compatibility STEP API remains available through `cadflow.compat`.
+
+For 2D manufacturing, select a planar face and export its outer boundary and
+holes with `face.export_dxf("profile.dxf")`. See the
+[DXF machining-profile guide](docs/guides/dxf-profile-export.md) for the output
+contract and validation requirements.
 
 Built wheels contain `libcadflow_core`, the stable public header under `cadflow/include/`, and a relative runtime path to OCCT libraries supplied by `cadquery-ocp`. Set `CADFLOW_CORE_LIBRARY` only when deliberately using an externally built core.
 

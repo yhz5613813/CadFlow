@@ -84,6 +84,11 @@ Shape diagnostics are available as `kind`, `volume`, `area`, `length`,
 `center_of_mass`, `bbox`, `topology`, `describe()`, `validate()`, and `mesh()`.
 Always compare bbox extents (`xmax-xmin`, etc.), not only the origin.
 
+For a 2D machining deliverable, select the intended planar face with
+`model.faces(part)` and call `face.export_dxf(path, tolerance=0.01)`. This
+exports the face's closed outer and inner boundaries, not a hidden-line view of
+the complete solid.
+
 ```python
 assert final_part.validate().to_dict()["ok"]
 assert final_part.topology["solids"] == 1

@@ -25,7 +25,7 @@ class NativeBackend:
         "intersect",
         "translate", "rotate", "mirror", "scale", "volume", "area", "bbox",
         "topology", "kind", "length", "distance", "center_of_mass", "mesh", "export_step",
-        "export_stl",
+        "export_stl", "export_dxf",
     })
 
     def __init__(self, session: NativeSession | None = None) -> None:

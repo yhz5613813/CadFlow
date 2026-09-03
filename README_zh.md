@@ -25,6 +25,7 @@
   <a href="http://119.28.82.252/"><img alt="在线文档" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
   <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness 仓库" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
+  <img alt="Version 0.2.0" src="https://img.shields.io/badge/Version-0.2.0-2563EB">
   <img alt="Status Alpha" src="https://img.shields.io/badge/Status-Alpha-F59E0B">
 </p>
 
@@ -34,6 +35,7 @@
 </p>
 
 <p align="center">
+  <a href="#latest-news">📰 最新动态</a> ·
   <a href="#why-cadflow">🧭 核心优势</a> ·
   <a href="#quick-start">🚀 快速开始</a> ·
   <a href="#capabilities">🧰 能力概览</a> ·
@@ -43,6 +45,17 @@
 </p>
 
 ---
+
+<a id="latest-news"></a>
+
+## 📰 最新动态
+
+### 2026-09-03 · v0.2.0 - 经过验证的二维加工 DXF 工作流
+
+- 新增原生 `Shape.export_dxf(...)` 平面面导出能力，支持闭合外轮廓和内轮廓、毫米单位、直线与圆弧的精确保留、基于可配置弦距容差目标的自适应近似，以及原子文件替换。
+- 新增经过验证的工程图示例，将注释、尺寸和中心线分层管理，包含孔位编号、直径汇总和 21 行 XY 孔位表，且不会改变 CAM 加工轮廓。
+- 使用现有火管锅炉管板完成端到端验证：导出 22 个闭合轮廓、97 段圆弧和 5 段直线，`ezdxf` 审计无错误，重复导出结果一致，并生成 2400 x 1350 的标注图和三维上下文 PNG 渲染图。
+- 阅读 [DXF 加工轮廓指南](docs/guides/dxf-profile-export.md)，了解 API 约定和完整验证流程。
 
 CadFlow 是面向**程序化建模与几何驱动智能体**的 CAD SDK。CadFlow 不是 Text-to-3D 模型，也不是 LLM 应用。它是这些系统下方的确定性 Agentic CAD Infra：Python 程序或智能体描述建模意图，CadFlow 构建并测量几何，将可操作的事实反馈给调用方。
 
@@ -114,7 +127,7 @@ with cad.Model() as model:
 | 曲线与曲面 | 直线、圆弧、样条、螺旋线、Bezier 曲面、拟合 B-spline 曲面、直纹/填充/Gordon 曲面和扭转扫掠 |
 | 草图与上下文 | 不可变坐标系、工作平面、声明式草图、约束和 `py-slvs` 求解 |
 | 几何检查 | 体积、面积、长度、质心、距离、包围盒、拓扑计数、法向、曲率、自由边界和 BREP 对比 |
-| 数据交换与预览 | STEP 导入导出、BREP/STL 导入、STL 导出、原生网格缓冲区和经过验证的三角形 GLB 预览 |
+| 数据交换与预览 | STEP 导入导出、平面面 DXF 加工轮廓、BREP/STL 导入、STL 导出、原生网格缓冲区和经过验证的三角形 GLB 预览 |
 | 产品结构 | 装配、连接器、约束报告、语义标签、来源映射、谱系、材料和标准件 |
 | 结构化产物 | Model JSON、严格重放、Schema 验证，以及包含可渲染几何和结构化元数据的便携式 Scene 归档 |
 
@@ -260,6 +273,10 @@ python -m pip wheel . --no-deps -w dist
 ```
 
 默认构建会在可用时使用匹配的 OCCT 7.9.3 头文件和库。使用 `-DCADFLOW_USE_OCCT=OFF` 可以构建解析式 fallback；使用 `-DCADFLOW_WITH_STEP=OFF` 可以生成不包含原生 STEP 写入功能的较小构建。完整的兼容 STEP API 仍可通过 `cadflow.compat` 使用。
+
+二维加工时，先选中一个平面面，再通过
+`face.export_dxf("profile.dxf")` 导出外轮廓和孔。输出约定和检查方法见
+[DXF 加工轮廓指南](docs/guides/dxf-profile-export.md)。
 
 构建生成的 wheel 包含 `libcadflow_core`、`cadflow/include/` 下的稳定公共头文件，以及指向 `cadquery-ocp` 所提供 OCCT 动态库的相对运行时路径。只有明确使用外部编译的核心库时，才需要设置 `CADFLOW_CORE_LIBRARY`。
 

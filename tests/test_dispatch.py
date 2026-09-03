@@ -56,5 +56,6 @@ def test_native_capabilities_cover_all_bound_operations() -> None:
         "mesh",
         "export_step",
         "export_stl",
+        "export_dxf",
         "import_step",
     } <= native

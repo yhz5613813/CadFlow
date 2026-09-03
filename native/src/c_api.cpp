@@ -3,6 +3,7 @@
 #include "core/session.h"
 #include "flexible/shell_mesh.h"
 #include "io/exchange.h"
+#include "io/dxf_profile.h"
 #include "kernel/construction.h"
 #include "kernel/advanced.h"
 #include "kernel/edge_features.h"
@@ -623,6 +624,22 @@ int cadflow_export_step(
         }
         return with_session(handle, [&](Session& session) {
             cadflow::io::export_step(session, shape, path);
+            return 1;
+        });
+    });
+}
+
+int cadflow_export_dxf(
+    cad_session_t handle,
+    unsigned long long face,
+    const char* path,
+    double tolerance) {
+    return cadflow::core::guarded([&] {
+        if (!path) {
+            throw std::invalid_argument("DXF path is null");
+        }
+        return with_session(handle, [&](Session& session) {
+            cadflow::io::export_dxf_profile(session, face, path, tolerance);
             return 1;
         });
     });

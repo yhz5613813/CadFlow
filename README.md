@@ -53,8 +53,6 @@
 ### 2026-09-03 · v0.2.0 - Validated 2D machining DXF workflow
 
 - Added native `Shape.export_dxf(...)` support for selected planar faces, including closed outer and inner machining loops, millimeter units, exact line and circular-arc preservation, adaptive approximation with a configurable chord-tolerance target, and atomic file replacement.
-- Added a validated engineering-drawing example with separate annotation, dimension, and centerline layers. It includes hole identifiers, diameter summaries, and a 21-row XY hole table without changing the CAM profile geometry.
-- Exercised the workflow on an existing fire-tube-boiler tube sheet: 22 closed loops, 97 arcs, 5 lines, a clean `ezdxf` audit, deterministic regeneration, and 2400 x 1350 annotated and 3D-context PNG renders.
 - Read the [DXF machining-profile guide](docs/guides/dxf-profile-export.md) for the API contract and validation workflow.
 
 CadFlow is a CAD SDK for **programmatic modeling and geometry-grounded agents**. CadFlow is not a text-to-3D model or an LLM application. It is the deterministic Agentic CAD Infra beneath those systems: Python programs and agents describe modeling intent; CadFlow builds and measures the geometry, then returns actionable facts to the caller.

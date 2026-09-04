@@ -1,6 +1,6 @@
 ---
 name: cadflow-validate-export
-description: Validate CadFlow geometry and mesh results, replay model JSON, check topology and files, and produce trustworthy STEP/STL/DXF/OBJ/JSON/PNG deliverables. Use after any CAD or static flexible-material generation when the output must be tested, rendered, exported, or reported with measured evidence.
+description: Validate CadFlow geometry, mesh, and contact-simulation results; replay model JSON; check topology and files; and produce trustworthy STEP/STL/DXF/OBJ/JSON/PNG/BREP deliverables. Use after CAD, static flexible-material, or face-contact generation when output must be tested, rendered, exported, or reported with measured evidence.
 ---
 
 # CadFlow Validation and Export
@@ -11,9 +11,9 @@ unmeasured claims.
 
 ## Required validation sequence
 
-1. Identify the artifact type: rigid `Shape`, replayable `ModelResult`, or
-   static `FlexibleMesh`. Record source script, environment, units, and output
-   directory.
+1. Identify the artifact type: rigid `Shape`, replayable `ModelResult`, static
+   `FlexibleMesh`, or `ContactSimulationModel`. Record source script,
+   environment, units, and output directory.
 2. Validate geometry before export. For solids check validity, one-solid
    topology, volume, area, bbox extents, and expected feature dimensions. For
    flexible meshes check finite arrays, index bounds, unit normals, triangle
@@ -27,11 +27,19 @@ unmeasured claims.
 6. Write a concise report with pass/fail status, measured values, tolerances,
    file sizes, and residual risks.
 
+For a `ContactSimulationModel`, run its semantic validation and native analysis
+before exporting the package. Check every component/material/surface/law/pair
+reference, face BREP hash, assembly transform, oriented normal, initial gap,
+candidate count, and explicit unit string. Read `references/checklists.md` for
+the package gate.
+
 ## Public boundaries
 
 - Use `import cadflow as cad`.
 - Use public `cadflow.flexible` for flexible meshes and public modeling,
   serialization, and inspection APIs for rigid geometry.
+- Use public `cadflow.simulation` for face-contact validation and package
+  export. Do not load the native library or OCP directly in user scripts.
 - Do not repair a bad result by editing private native code during validation.
 - Do not call a static mesh watertight merely because it renders; inspect edge
   multiplicities and triangle orientation.

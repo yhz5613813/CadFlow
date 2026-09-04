@@ -70,6 +70,7 @@ from cadflow._engine.exchange.scene.compiler import (
     SceneCompileOptions,
     SceneRoot,
     SceneSource,
+    apply_presentation,
     compile_scene,
     export_scene,
 )
@@ -113,6 +114,7 @@ __all__ = [
     "assert_presentation",
     "assert_scene_manifest",
     "assert_scene_package",
+    "apply_presentation",
     "canonical_json_bytes",
     "canonical_json_hash",
     "canonical_archive_size",

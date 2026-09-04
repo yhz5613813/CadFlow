@@ -64,6 +64,91 @@ typedef struct cad_physical_connection_response_t {
     int failed;
 } cad_physical_connection_response_t;
 
+typedef enum cad_surface_geometry_t {
+    CADFLOW_SURFACE_OTHER = 0,
+    CADFLOW_SURFACE_PLANE = 1,
+    CADFLOW_SURFACE_CYLINDER = 2,
+    CADFLOW_SURFACE_CONE = 3,
+    CADFLOW_SURFACE_SPHERE = 4,
+    CADFLOW_SURFACE_TORUS = 5,
+    CADFLOW_SURFACE_BSPLINE = 6,
+    CADFLOW_SURFACE_BEZIER = 7
+} cad_surface_geometry_t;
+
+/* Solver-neutral geometric evidence for one transformed BREP face. Curvature
+   values use inverse model-length units. bbox stores xmin/ymin/zmin/xmax/ymax/zmax. */
+typedef struct cad_surface_face_metrics_t {
+    double area;
+    double centroid[3];
+    double normal[3];
+    double bbox[6];
+    double mean_curvature;
+    double gaussian_curvature;
+    double principal_curvature_min;
+    double principal_curvature_max;
+    int surface_geometry;
+    int valid;
+} cad_surface_face_metrics_t;
+
+/* Pair evidence is intentionally geometric, not a contact constitutive law.
+   signed_normal_gap is dot(closest_b-closest_a, normal_a). */
+typedef struct cad_surface_pair_metrics_t {
+    cad_surface_face_metrics_t face_a;
+    cad_surface_face_metrics_t face_b;
+    double closest_a[3];
+    double closest_b[3];
+    double minimum_distance;
+    double normal_dot;
+    double signed_normal_gap;
+    double tangential_offset;
+} cad_surface_pair_metrics_t;
+
+typedef enum cad_presentation_alpha_mode_t {
+    CADFLOW_PRESENTATION_ALPHA_OPAQUE = 0,
+    CADFLOW_PRESENTATION_ALPHA_MASK = 1,
+    CADFLOW_PRESENTATION_ALPHA_BLEND = 2
+} cad_presentation_alpha_mode_t;
+
+typedef enum cad_presentation_camera_projection_t {
+    CADFLOW_PRESENTATION_CAMERA_PERSPECTIVE = 0,
+    CADFLOW_PRESENTATION_CAMERA_ORTHOGRAPHIC = 1
+} cad_presentation_camera_projection_t;
+
+/* Stateless Presentation inputs. Strings are borrowed for the duration of the
+   call. appearance_capable is true only for Part and Shape scene nodes. */
+typedef struct cad_presentation_appearance_t {
+    const char *name;
+    double base_color[4];
+    double metallic;
+    double roughness;
+    int alpha_mode;
+    int double_sided;
+    double edge_color[4];
+} cad_presentation_appearance_t;
+
+typedef struct cad_presentation_scene_node_t {
+    const char *node_id;
+    int appearance_capable;
+    int visible;
+} cad_presentation_scene_node_t;
+
+typedef struct cad_presentation_node_override_t {
+    const char *node_id;
+    int has_visible;
+    int visible;
+    const char *appearance_name;
+} cad_presentation_node_override_t;
+
+typedef struct cad_presentation_camera_t {
+    const char *name;
+    const char *parent_node_id;
+    int projection;
+    double near_plane;
+    double far_plane;
+    /* Perspective vertical FOV in degrees or orthographic vertical span. */
+    double projection_value;
+} cad_presentation_camera_t;
+
 CADFLOW_API const char *cadflow_version(void);
 CADFLOW_API cad_session_t cadflow_session_create(void);
 CADFLOW_API void cadflow_session_destroy(cad_session_t session);
@@ -205,6 +290,37 @@ CADFLOW_API size_t cadflow_free_boundary_handles(
 CADFLOW_API int cadflow_face_properties(
     cad_session_t session, unsigned long long face, double u, double v,
     double normal_out[3], double curvature_out[3]);
+CADFLOW_API int cadflow_surface_face_metrics(
+    cad_session_t session, unsigned long long face,
+    cad_surface_face_metrics_t *output);
+CADFLOW_API int cadflow_surface_pair_metrics(
+    cad_session_t session, unsigned long long face_a,
+    unsigned long long face_b, cad_surface_pair_metrics_t *output);
+/* Stateless variants accept ASCII OCCT BREP buffers and row-major rigid
+   transforms [R00 R01 R02 Tx R10 ... Ty R20 ... Tz]. */
+CADFLOW_API int cadflow_surface_face_metrics_brep(
+    const char *brep, size_t brep_size, const double transform[12],
+    cad_surface_face_metrics_t *output);
+CADFLOW_API int cadflow_surface_pair_metrics_brep(
+    const char *brep_a, size_t brep_a_size, const double transform_a[12],
+    const char *brep_b, size_t brep_b_size, const double transform_b[12],
+    cad_surface_pair_metrics_t *output);
+/* Resolve one Presentation against a compiled scene. Unset appearance and
+   camera-parent indices are returned as (size_t)-1. */
+CADFLOW_API int cadflow_evaluate_presentation(
+    const char *presentation_source_scene_id,
+    const char *scene_id,
+    const cad_presentation_appearance_t *appearances,
+    size_t appearance_count,
+    const cad_presentation_scene_node_t *nodes,
+    size_t node_count,
+    const cad_presentation_node_override_t *overrides,
+    size_t override_count,
+    const cad_presentation_camera_t *cameras,
+    size_t camera_count,
+    int *node_visibility_output,
+    size_t *node_appearance_index_output,
+    size_t *camera_parent_index_output);
 CADFLOW_API const char *cadflow_kind(
     cad_session_t session, unsigned long long shape);
 CADFLOW_API int cadflow_export_step(

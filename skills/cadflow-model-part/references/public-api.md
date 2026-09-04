@@ -89,6 +89,12 @@ For a 2D machining deliverable, select the intended planar face with
 exports the face's closed outer and inner boundaries, not a hidden-line view of
 the complete solid.
 
+For native face inspection, `model.faces(shape)` returns face handles;
+`face.surface_metrics()` returns area, centroid, oriented normal, bounds,
+surface type, and curvatures. Use the contact-simulation API rather than raw
+face metrics when the result must remain attached to replayable assembly
+components.
+
 ```python
 assert final_part.validate().to_dict()["ok"]
 assert final_part.topology["solids"] == 1

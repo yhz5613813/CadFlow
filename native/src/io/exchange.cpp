@@ -1,5 +1,4 @@
 #include "io/exchange.h"
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -9,7 +8,6 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
-#include <utility>
 #include <vector>
 
 #ifdef CADFLOW_WITH_OCCT

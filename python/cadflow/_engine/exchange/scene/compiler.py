@@ -133,8 +133,6 @@ class SceneCompileOptions:
             raise ValueError("linear_tolerance must be in (0, 1000000]")
         if not 0.0 < float(self.angular_tolerance) <= 3.141592653589793:
             raise ValueError("angular_tolerance must be in (0, pi]")
-        if self.embed_presentation:
-            raise ValueError("presentation embedding is not implemented in the first compiler slice")
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,9 +157,9 @@ def compile_scene(
     presentation: Any = None,
     options: SceneCompileOptions | None = None,
 ) -> CompiledScenePackage:
-    if presentation is not None:
-        raise ValueError("presentation compilation is not implemented in the first compiler slice")
     options = options or SceneCompileOptions()
+    if options.embed_presentation and presentation is None:
+        raise ValueError("embed_presentation requires a Presentation document")
     root_values = tuple(roots)
     if not root_values:
         raise ValueError("compile_scene requires at least one root")
@@ -278,6 +276,45 @@ def compile_scene(
     report = validate_scene_package(manifest, blobs)
     if not report.valid:
         raise ValueError("compiled scene package failed validation: " + "; ".join(issue.message for issue in report.issues[:3]))
+    package = CompiledScenePackage(manifest=manifest, blobs=blobs)
+    if presentation is not None:
+        return apply_presentation(
+            package=package,
+            presentation=presentation,
+            embed_presentation=options.embed_presentation,
+        )
+    return package
+
+
+def apply_presentation(
+    *,
+    package: CompiledScenePackage,
+    presentation: Any,
+    embed_presentation: bool = True,
+) -> CompiledScenePackage:
+    """Apply or replace Presentation data without rebuilding scene geometry."""
+
+    if not isinstance(package, CompiledScenePackage):
+        raise TypeError("package must be a CompiledScenePackage")
+    if presentation is None:
+        raise TypeError("presentation must be a Presentation document or mapping")
+    if not isinstance(embed_presentation, bool):
+        raise TypeError("embed_presentation must be a bool")
+    from cadflow._engine.exchange.scene.presentation import apply_presentation_values
+
+    manifest, blobs = apply_presentation_values(
+        manifest=package.manifest,
+        blobs=package.blobs,
+        presentation=presentation,
+        embed_presentation=embed_presentation,
+    )
+    SceneDocument.from_value(manifest)
+    report = validate_scene_package(manifest, blobs)
+    if not report.valid:
+        raise ValueError(
+            "presented scene package failed validation: "
+            + "; ".join(issue.message for issue in report.issues[:3])
+        )
     return CompiledScenePackage(manifest=manifest, blobs=blobs)
 
 
@@ -1057,4 +1094,4 @@ def _thaw_mapping(value: Any) -> Any:
     return value
 
 
-__all__ = ["CompiledScenePackage", "SceneCompileOptions", "SceneRoot", "SceneSource", "compile_scene", "export_scene"]
+__all__ = ["CompiledScenePackage", "SceneCompileOptions", "SceneRoot", "SceneSource", "apply_presentation", "compile_scene", "export_scene"]

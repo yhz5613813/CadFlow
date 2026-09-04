@@ -88,7 +88,9 @@ reloaded = cad.import_physical_connection_layer_json_rphysicalconnectionlayer(
 )
 ```
 
-Use the existing BREP/scene geometry references in `ConnectionRegion` when a
-downstream solver needs actual contact or adhesive surfaces. The layer does
-not infer a connection type from an unannotated STEP file; it stores declared
-semantics and the physical parameters needed by a downstream solver.
+`ConnectionRegion` may still annotate where a reduced connection acts. When a
+downstream continuum solver needs distributed traction over actual faces, use
+`cadflow.simulation` instead; it exports stable face references, BREP geometry,
+materials, surface laws, assembly transforms, and native gap evidence. See
+[`surface-contact-simulation.md`](surface-contact-simulation.md). Neither layer
+infers physical parameters from unannotated geometry.

@@ -31,7 +31,8 @@ if (DEFINED ENV{CADFLOW_OCCT_LIB_DIR})
   set(_CADFLOW_DEFAULT_OCCT_LIB_DIR "$ENV{CADFLOW_OCCT_LIB_DIR}")
 elseif (DEFINED ENV{VIRTUAL_ENV})
   file(GLOB _CADFLOW_VENV_OCCT_LIB_DIRS LIST_DIRECTORIES true
-       "$ENV{VIRTUAL_ENV}/lib/python*/site-packages/cadquery_ocp.libs")
+       "$ENV{VIRTUAL_ENV}/lib/python*/site-packages/cadquery_ocp.libs"
+       "$ENV{VIRTUAL_ENV}/lib/python*/site-packages/OCP/.dylibs")
   list(LENGTH _CADFLOW_VENV_OCCT_LIB_DIRS _CADFLOW_VENV_OCCT_COUNT)
   if (_CADFLOW_VENV_OCCT_COUNT GREATER 0)
     list(GET _CADFLOW_VENV_OCCT_LIB_DIRS 0 _CADFLOW_DEFAULT_OCCT_LIB_DIR)
@@ -44,7 +45,7 @@ if (NOT _CADFLOW_DEFAULT_OCCT_LIB_DIR)
   if (Python3_Interpreter_FOUND)
     execute_process(
       COMMAND "${Python3_EXECUTABLE}" -c
-              "import pathlib,sys; print(next((str(pathlib.Path(p)/'cadquery_ocp.libs') for p in sys.path if (pathlib.Path(p)/'cadquery_ocp.libs').is_dir()), ''))"
+              "import pathlib,sys; print(next((str(q) for p in sys.path for q in (pathlib.Path(p)/'cadquery_ocp.libs', pathlib.Path(p)/'OCP'/'.dylibs') if q.is_dir()), ''))"
       OUTPUT_VARIABLE _CADFLOW_DEFAULT_OCCT_LIB_DIR
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -57,23 +58,66 @@ if (CADFLOW_USE_OCCT AND EXISTS "${CADFLOW_OCCT_SOURCE}/src/TopoDS/TopoDS_Shape.
   file(GLOB OCCT_PACKAGE_DIRS LIST_DIRECTORIES true "${CADFLOW_OCCT_SOURCE}/src/*")
   target_include_directories(cadflow_core SYSTEM PRIVATE ${OCCT_PACKAGE_DIRS})
   target_compile_definitions(cadflow_core PRIVATE CADFLOW_WITH_OCCT=1)
-  set(OCCT_NAMES TKernel TKMath TKG2d TKG3d TKGeomBase TKBRep TKGeomAlgo TKTopAlgo TKPrim TKBO TKMesh TKOffset TKFillet TKDESTL)
+  set(OCCT_NAMES TKernel TKMath TKG2d TKG3d TKGeomBase TKBRep TKGeomAlgo TKTopAlgo TKPrim TKBO TKBool TKMesh TKOffset TKFillet TKDESTL)
   if (CADFLOW_WITH_STEP)
     list(APPEND OCCT_NAMES TKDE TKDESTEP TKXSBase)
     target_compile_definitions(cadflow_core PRIVATE CADFLOW_WITH_STEP=1)
   endif()
   foreach(OCCT_NAME ${OCCT_NAMES})
-    file(GLOB OCCT_LIBRARY "${CADFLOW_OCCT_LIB_DIR}/lib${OCCT_NAME}-*.so.7.9.3")
+    if (APPLE)
+      file(GLOB OCCT_LIBRARY "${CADFLOW_OCCT_LIB_DIR}/lib${OCCT_NAME}.7.9.3.dylib")
+    else()
+      file(GLOB OCCT_LIBRARY "${CADFLOW_OCCT_LIB_DIR}/lib${OCCT_NAME}-*.so.7.9.3")
+    endif()
     if (NOT OCCT_LIBRARY)
       message(FATAL_ERROR "Missing OCCT library ${OCCT_NAME} in ${CADFLOW_OCCT_LIB_DIR}")
     endif()
     target_link_libraries(cadflow_core PRIVATE ${OCCT_LIBRARY})
+    if (APPLE)
+      execute_process(
+        COMMAND otool -D "${OCCT_LIBRARY}"
+        RESULT_VARIABLE _CADFLOW_OTOOL_RESULT
+        OUTPUT_VARIABLE _CADFLOW_OTOOL_OUTPUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+      if (NOT _CADFLOW_OTOOL_RESULT EQUAL 0)
+        message(FATAL_ERROR "Could not inspect OCCT library ${OCCT_LIBRARY}")
+      endif()
+      string(REPLACE "\n" ";" _CADFLOW_OTOOL_LINES "${_CADFLOW_OTOOL_OUTPUT}")
+      list(LENGTH _CADFLOW_OTOOL_LINES _CADFLOW_OTOOL_LINE_COUNT)
+      if (_CADFLOW_OTOOL_LINE_COUNT LESS 2)
+        message(FATAL_ERROR "OCCT library ${OCCT_LIBRARY} has no Mach-O install name")
+      endif()
+      list(GET _CADFLOW_OTOOL_LINES 1 _CADFLOW_OCCT_INSTALL_NAME)
+      string(STRIP "${_CADFLOW_OCCT_INSTALL_NAME}" _CADFLOW_OCCT_INSTALL_NAME)
+      get_filename_component(_CADFLOW_OCCT_FILENAME "${OCCT_LIBRARY}" NAME)
+      add_custom_command(TARGET cadflow_core POST_BUILD
+        COMMAND "${CMAKE_INSTALL_NAME_TOOL}" -change
+                "${_CADFLOW_OCCT_INSTALL_NAME}"
+                "@rpath/${_CADFLOW_OCCT_FILENAME}"
+                "$<TARGET_FILE:cadflow_core>"
+        VERBATIM
+      )
+    endif()
   endforeach()
-  set_target_properties(cadflow_core PROPERTIES
-      BUILD_RPATH "${CADFLOW_OCCT_LIB_DIR}"
-      INSTALL_RPATH "$ORIGIN/../cadquery_ocp.libs"
-  )
+  if (APPLE)
+    set_target_properties(cadflow_core PROPERTIES
+        BUILD_RPATH "${CADFLOW_OCCT_LIB_DIR}"
+        INSTALL_RPATH "@loader_path/../OCP/.dylibs;@loader_path/../vtkmodules/.dylibs"
+    )
+  else()
+    set_target_properties(cadflow_core PROPERTIES
+        BUILD_RPATH "${CADFLOW_OCCT_LIB_DIR}"
+        INSTALL_RPATH "$ORIGIN/../cadquery_ocp.libs"
+    )
+  endif()
 else()
+  if (APPLE AND CADFLOW_USE_OCCT)
+    message(FATAL_ERROR
+      "A matching cadquery-ocp 7.9.3 installation is required for macOS builds. "
+      "Install cadquery-ocp==7.9.3.1 or set CADFLOW_OCCT_LIB_DIR."
+    )
+  endif()
   message(WARNING "Matching OCCT headers/libraries not found; building the analytic fallback")
 endif()
 set_target_properties(cadflow_core PROPERTIES

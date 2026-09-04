@@ -21,7 +21,7 @@
   <a href="https://www.python.org/"><img alt="Python 3.10–3.13" src="https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white"></a>
   <img alt="C++ 17" src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white">
   <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
-  <img alt="Platform Linux x86-64" src="https://img.shields.io/badge/Platform-Linux%20x86--64-FCC624?logo=linux&logoColor=black">
+  <img alt="支持 Linux x86-64 和 macOS arm64" src="https://img.shields.io/badge/Platforms-Linux%20x86--64%20%7C%20macOS%20arm64-555555">
   <a href="http://119.28.82.252/"><img alt="在线文档" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
   <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness 仓库" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
@@ -182,17 +182,25 @@ CadFlow 构建并检查确定性几何
 
 ### 环境要求
 
-- Linux x86_64，用于当前已测试的完整 OCCT 构建
-- Python 3.10 至 3.13
+- Linux x86_64，或运行 macOS 12 及更高版本的 Apple Silicon Mac
+- Linux 支持 Python 3.10 至 3.13；macOS arm64 wheel 使用 Python 3.13
 - CMake 3.16 或更高版本
 - 支持 C++17 的编译器
-- Python 开发头文件
+- Linux 需要 Python 开发头文件，macOS 需要 Xcode Command Line Tools
 
 Ubuntu 或 Debian 用户可以执行：
 
 ```bash
 sudo apt update
 sudo apt install build-essential cmake python3-dev
+```
+
+在 macOS 上，需要安装 Xcode Command Line Tools 并确保 CMake 可用。Homebrew
+可以用来安装 CMake，但不是硬性依赖：
+
+```bash
+xcode-select --install
+brew install cmake
 ```
 
 克隆仓库，并在构建 CadFlow 前安装 OpenCascade 运行时：
@@ -267,16 +275,16 @@ CadFlow/
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j2
 python -m pytest -q
-python -m pip wheel . --no-deps -w dist
+python -m build --wheel --no-isolation
 ```
 
-默认构建会在可用时使用匹配的 OCCT 7.9.3 头文件和库。使用 `-DCADFLOW_USE_OCCT=OFF` 可以构建解析式 fallback；使用 `-DCADFLOW_WITH_STEP=OFF` 可以生成不包含原生 STEP 写入功能的较小构建。完整的兼容 STEP API 仍可通过 `cadflow.compat` 使用。
+默认构建会在可用时使用匹配的 OCCT 7.9.3 头文件和库。macOS 构建要求 Apple Silicon、Python 3.13；缺少匹配的 OCCT 时会直接失败，不会静默生成 fallback wheel。使用 `-DCADFLOW_USE_OCCT=OFF` 可以显式构建解析式 fallback；使用 `-DCADFLOW_WITH_STEP=OFF` 可以生成不包含原生 STEP 写入功能的较小构建。完整的兼容 STEP API 仍可通过 `cadflow.compat` 使用。
 
 二维加工时，先选中一个平面面，再通过
 `face.export_dxf("profile.dxf")` 导出外轮廓和孔。输出约定和检查方法见
 [DXF 加工轮廓指南](docs/guides/dxf-profile-export.md)。
 
-构建生成的 wheel 包含 `libcadflow_core`、`cadflow/include/` 下的稳定公共头文件，以及指向 `cadquery-ocp` 所提供 OCCT 动态库的相对运行时路径。只有明确使用外部编译的核心库时，才需要设置 `CADFLOW_CORE_LIBRARY`。
+构建生成的 wheel 包含 `libcadflow_core`、`cadflow/include/` 下的稳定公共头文件，以及指向 `cadquery-ocp` 所提供 OCCT 动态库的平台相对运行时路径。macOS wheel 默认构建为 arm64，并以 macOS 12.0 为最低部署目标。只有明确使用外部编译的核心库时，才需要设置 `CADFLOW_CORE_LIBRARY`。
 
 ## 🙏 致谢
 

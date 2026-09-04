@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <limits>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -268,10 +270,31 @@ TopoDS_Shape read_transformed_brep_face(
     if (!data || size == 0) {
         throw std::invalid_argument("surface BREP buffer is empty");
     }
-    std::istringstream stream(std::string(data, size));
     BRep_Builder builder;
     TopoDS_Shape shape;
-    BRepTools::Read(shape, stream, builder);
+    const std::filesystem::path path =
+        std::filesystem::temp_directory_path()
+        / ("cadflow-surface-" +
+           std::to_string(reinterpret_cast<std::uintptr_t>(data)) + ".brep");
+    {
+        std::ofstream file(path, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("surface BREP temporary file could not be opened");
+        }
+        file.write(data, static_cast<std::streamsize>(size));
+        if (!file) {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+            throw std::runtime_error("surface BREP temporary file could not be written");
+        }
+    }
+    const Standard_Boolean read_ok =
+        BRepTools::Read(shape, path.string().c_str(), builder);
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    if (!read_ok) {
+        throw std::runtime_error("surface BREP buffer could not be read");
+    }
     const TopoDS_Face face = require_face(shape);
     return BRepBuilderAPI_Transform(
         face, rigid_transform(transform_values), true).Shape();

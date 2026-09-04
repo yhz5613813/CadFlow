@@ -10,6 +10,8 @@ skill matching the requested artifact and read its `SKILL.md`:
    reverse engineering.
 4. `skills/cadflow-validate-export/SKILL.md` for final geometry/file/replay
    validation and checked exports.
+5. `skills/cadflow-contact-simulation/SKILL.md` for face-level mechanical
+   properties, distributed contact laws, FEA handoff, and simulation packages.
 
 Read the relevant `references/` file when an operation signature or format
 detail is needed. Use `import cadflow as cad` and the public Python frontend as

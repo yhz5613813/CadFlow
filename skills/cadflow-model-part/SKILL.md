@@ -18,6 +18,8 @@ signature or operation boundary matters.
 - Do not mix shapes created by different sessions.
 - Do not import `cadflow._engine`, OCP/CadQuery classes, native handles, or
   private shared-library symbols in a part script.
+- For FEA surfaces, face contact, friction, coatings, or solver handoff, finish
+  the geometry here and then use `cadflow-contact-simulation`.
 
 ## Required workflow
 

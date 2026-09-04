@@ -81,6 +81,16 @@ class Shape:
     def face_properties(self, *, u: float = 0.5, v: float = 0.5) -> dict[str, tuple[float, ...]]:
         return self._session.face_properties(self._handle, u=u, v=v)
 
+    def surface_metrics(self) -> dict[str, object]:
+        """Return C++-measured properties needed by simulation preprocessors."""
+        return self._session.surface_face_metrics(self._handle)
+
+    def contact_metrics(self, other: "Shape") -> dict[str, object]:
+        """Measure face-to-face proximity and relative orientation in C++."""
+        if other._session is not self._session:
+            raise ValueError("both faces must belong to the same Model")
+        return self._session.surface_pair_metrics(self._handle, other._handle)
+
     def export_stl(self, path: str, *, binary: bool = True) -> None:
         self._session.export_stl(self._handle, path, binary=binary)
 

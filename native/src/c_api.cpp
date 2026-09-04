@@ -12,6 +12,8 @@
 #include "kernel/queries.h"
 #include "kernel/surfaces.h"
 #include "physics/connections.h"
+#include "physics/surface_contact.h"
+#include "presentation/evaluator.h"
 #include "runtime/graph.h"
 
 #include <cstdlib>
@@ -605,6 +607,131 @@ int cadflow_face_properties(
                 session, face, u, v, normal_out, curvature_out);
             return 1;
         });
+    });
+}
+
+int cadflow_surface_face_metrics(
+    cad_session_t handle, unsigned long long face,
+    cad_surface_face_metrics_t* output) {
+    return cadflow::core::guarded([&] {
+        if (!output) {
+            throw std::invalid_argument("surface face metrics output is null");
+        }
+        return with_session(handle, [&](Session& session) {
+            *output = cadflow::physics::measure_session_face(session, face);
+            return 1;
+        });
+    });
+}
+
+int cadflow_surface_pair_metrics(
+    cad_session_t handle, unsigned long long face_a, unsigned long long face_b,
+    cad_surface_pair_metrics_t* output) {
+    return cadflow::core::guarded([&] {
+        if (!output) {
+            throw std::invalid_argument("surface pair metrics output is null");
+        }
+        return with_session(handle, [&](Session& session) {
+            *output = cadflow::physics::measure_session_pair(
+                session, face_a, face_b);
+            return 1;
+        });
+    });
+}
+
+int cadflow_surface_face_metrics_brep(
+    const char* brep, size_t brep_size, const double transform[12],
+    cad_surface_face_metrics_t* output) {
+    return cadflow::core::guarded([&]() -> int {
+        if (!output) {
+            throw std::invalid_argument("surface BREP metrics output is null");
+        }
+#ifdef CADFLOW_WITH_OCCT
+        *output = cadflow::physics::measure_surface_face(
+            cadflow::physics::read_transformed_brep_face(
+                brep, brep_size, transform));
+        return 1;
+#else
+        (void)brep;
+        (void)brep_size;
+        (void)transform;
+        throw std::runtime_error(
+            "surface contact metrics require the OCCT native backend");
+#endif
+    });
+}
+
+int cadflow_surface_pair_metrics_brep(
+    const char* brep_a, size_t brep_a_size, const double transform_a[12],
+    const char* brep_b, size_t brep_b_size, const double transform_b[12],
+    cad_surface_pair_metrics_t* output) {
+    return cadflow::core::guarded([&]() -> int {
+        if (!output) {
+            throw std::invalid_argument("surface pair BREP metrics output is null");
+        }
+#ifdef CADFLOW_WITH_OCCT
+        *output = cadflow::physics::measure_surface_pair(
+            cadflow::physics::read_transformed_brep_face(
+                brep_a, brep_a_size, transform_a),
+            cadflow::physics::read_transformed_brep_face(
+                brep_b, brep_b_size, transform_b));
+        return 1;
+#else
+        (void)brep_a;
+        (void)brep_a_size;
+        (void)transform_a;
+        (void)brep_b;
+        (void)brep_b_size;
+        (void)transform_b;
+        throw std::runtime_error(
+            "surface contact metrics require the OCCT native backend");
+#endif
+    });
+}
+
+int cadflow_evaluate_presentation(
+    const char* presentation_source_scene_id,
+    const char* scene_id,
+    const cad_presentation_appearance_t* appearances,
+    size_t appearance_count,
+    const cad_presentation_scene_node_t* nodes,
+    size_t node_count,
+    const cad_presentation_node_override_t* overrides,
+    size_t override_count,
+    const cad_presentation_camera_t* cameras,
+    size_t camera_count,
+    int* node_visibility_output,
+    size_t* node_appearance_index_output,
+    size_t* camera_parent_index_output) {
+    return cadflow::core::guarded([&] {
+        if ((node_count != 0 &&
+             (!node_visibility_output || !node_appearance_index_output)) ||
+            (camera_count != 0 && !camera_parent_index_output)) {
+            throw std::invalid_argument(
+                "presentation evaluation output array is null");
+        }
+        const cadflow::presentation::Evaluation evaluation =
+            cadflow::presentation::evaluate(
+                presentation_source_scene_id,
+                scene_id,
+                appearances,
+                appearance_count,
+                nodes,
+                node_count,
+                overrides,
+                override_count,
+                cameras,
+                camera_count);
+        for (size_t index = 0; index < node_count; ++index) {
+            node_visibility_output[index] = evaluation.node_visibility[index];
+            node_appearance_index_output[index] =
+                evaluation.node_appearance_indices[index];
+        }
+        for (size_t index = 0; index < camera_count; ++index) {
+            camera_parent_index_output[index] =
+                evaluation.camera_parent_indices[index];
+        }
+        return 1;
     });
 }
 

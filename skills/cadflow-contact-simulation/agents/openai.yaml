@@ -1,0 +1,4 @@
+interface:
+  display_name: "CadFlow Contact Simulation"
+  short_description: "Prepare face contact data for mechanics solvers"
+  default_prompt: "Use $cadflow-contact-simulation to annotate assembly faces with materials and distributed contact laws, validate native geometry evidence, and export a checked simulation package."

@@ -15,6 +15,8 @@ add_library(cadflow_core SHARED
   src/kernel/queries.cpp
   src/kernel/surfaces.cpp
   src/physics/connections.cpp
+  src/physics/surface_contact.cpp
+  src/presentation/evaluator.cpp
   src/runtime/graph.cpp
 )
 target_compile_features(cadflow_core PRIVATE cxx_std_17)
@@ -85,6 +87,15 @@ install(TARGETS cadflow_core
     RUNTIME DESTINATION cadflow
 )
 install(FILES include/cadflow_core.h DESTINATION cadflow/include)
+
+option(CADFLOW_BUILD_NATIVE_TESTS "Build native CadFlow regression tests" OFF)
+if (CADFLOW_BUILD_NATIVE_TESTS)
+  add_executable(cadflow_presentation_evaluator_test
+      tests/presentation_evaluator_test.cpp
+  )
+  target_compile_features(cadflow_presentation_evaluator_test PRIVATE cxx_std_17)
+  target_link_libraries(cadflow_presentation_evaluator_test PRIVATE cadflow_core)
+endif()
 
 if (MSVC)
   target_compile_options(cadflow_core PRIVATE /W4 /permissive-)

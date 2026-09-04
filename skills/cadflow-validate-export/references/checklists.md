@@ -38,3 +38,27 @@ Run the builder twice with identical inputs. For flexible meshes compare vertex,
 normal, and triangle arrays exactly. For graph models compare canonical JSON or
 the measured result within documented numeric tolerances. Record the command and
 Python environment used for the check.
+
+## Contact simulation package
+
+```python
+report = cad.validate_contact_simulation_model_rcontactsimulationvalidationreport(
+    simulation, assembly
+)
+report.raise_for_errors()
+analysis = cad.analyze_contact_simulation_model_rcontactsimulationanalysis(
+    simulation, assembly
+)
+manifest = cad.export_contact_simulation_package_rpath(
+    simulation, assembly, output_dir
+)
+```
+
+Require `analysis.backend == "native_cpp_occt"`. For each resolved face, check
+positive area, a unit-length oriented normal, `valid`, component-local BREP,
+SHA-256, and the 3x4 component transform. For each pair, check the intended face
+orientation, minimum distance, signed and solver-adjusted normal gaps,
+overclosure, search tolerance, and candidate count. Reopen every component and
+face BREP and verify its hash. Confirm the unit table matches the target solver;
+contact penalty stiffness is force/length^3, not the force/length stiffness of
+a concentrated connection spring.

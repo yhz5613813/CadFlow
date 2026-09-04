@@ -33,13 +33,15 @@ object at a time.
 The native source tree follows the dependency direction below:
 
 ```text
-c_api.cpp -> runtime / io / kernel -> core
+c_api.cpp -> runtime / io / kernel / physics -> core
 ```
 
 `core` owns no modeling algorithms. `kernel` owns geometry construction and
 inspection. `io` owns serialization formats. `runtime` parses batch programs
-and calls the kernel. Only `c_api.cpp` includes the public ABI boundary, so
-internal OCCT types and module headers are not installed as public API.
+and calls the kernel. `physics` owns reduced connector response and exact BREP
+surface-contact evidence; solver-neutral contact semantics and package assembly
+stay in Python. Only `c_api.cpp` includes the public ABI boundary, so internal
+OCCT types and module headers are not installed as public API.
 
 The native vertical slice implements:
 
@@ -50,6 +52,8 @@ The native vertical slice implements:
 - translate, rotate, mirror, and uniform scale
 - volume, area, and bounding-box queries
 - topology counts
+- face area, centroid, oriented normal, curvature, closest points, gap, and
+  pair-orientation metrics for mechanics preprocessing
 - tessellation into JSON vertex/index buffers
 - optional STEP export
 - compact batch graph execution
@@ -66,3 +70,14 @@ The bundled engine is both the complete feature layer and the behavioral test
 oracle. Geometry-heavy paths move into the native session while metadata,
 serialization, assemblies, constraints, and translators stay in Python. See
 `MIGRATION_MATRIX.md` for the measured boundary and remaining kernel work.
+
+The public `cadflow.simulation` layer binds stable component-local face
+references to materials and distributed contact laws. Its package exporter
+writes component and face BREPs, rigid assembly transforms, hashes, native
+geometry evidence, and explicit units. Meshing and numerical solution remain
+the downstream solver's responsibility.
+
+Known cross-cutting performance debt and its measurement baselines are tracked
+in [`docs/architecture/performance-bottlenecks.md`](docs/architecture/performance-bottlenecks.md).
+The listed optimizations are recorded for future work and are not currently
+implemented.

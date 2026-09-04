@@ -19,6 +19,68 @@ class NativeError(RuntimeError):
     """Raised when the C++ backend rejects an operation."""
 
 
+class _SurfaceFaceMetrics(C.Structure):
+    _fields_ = [
+        ("area", C.c_double),
+        ("centroid", C.c_double * 3),
+        ("normal", C.c_double * 3),
+        ("bbox", C.c_double * 6),
+        ("mean_curvature", C.c_double),
+        ("gaussian_curvature", C.c_double),
+        ("principal_curvature_min", C.c_double),
+        ("principal_curvature_max", C.c_double),
+        ("surface_geometry", C.c_int),
+        ("valid", C.c_int),
+    ]
+
+
+class _SurfacePairMetrics(C.Structure):
+    _fields_ = [
+        ("face_a", _SurfaceFaceMetrics),
+        ("face_b", _SurfaceFaceMetrics),
+        ("closest_a", C.c_double * 3),
+        ("closest_b", C.c_double * 3),
+        ("minimum_distance", C.c_double),
+        ("normal_dot", C.c_double),
+        ("signed_normal_gap", C.c_double),
+        ("tangential_offset", C.c_double),
+    ]
+
+
+_SURFACE_GEOMETRY = {
+    0: "other", 1: "plane", 2: "cylinder", 3: "cone", 4: "sphere",
+    5: "torus", 6: "bspline", 7: "bezier",
+}
+
+
+def _surface_face_metrics_dict(value: _SurfaceFaceMetrics) -> dict[str, object]:
+    return {
+        "area": float(value.area),
+        "centroid": tuple(float(item) for item in value.centroid),
+        "normal": tuple(float(item) for item in value.normal),
+        "bbox": tuple(float(item) for item in value.bbox),
+        "mean_curvature": float(value.mean_curvature),
+        "gaussian_curvature": float(value.gaussian_curvature),
+        "principal_curvature_min": float(value.principal_curvature_min),
+        "principal_curvature_max": float(value.principal_curvature_max),
+        "surface_geometry": _SURFACE_GEOMETRY.get(int(value.surface_geometry), "other"),
+        "valid": bool(value.valid),
+    }
+
+
+def _surface_pair_metrics_dict(value: _SurfacePairMetrics) -> dict[str, object]:
+    return {
+        "face_a": _surface_face_metrics_dict(value.face_a),
+        "face_b": _surface_face_metrics_dict(value.face_b),
+        "closest_a": tuple(float(item) for item in value.closest_a),
+        "closest_b": tuple(float(item) for item in value.closest_b),
+        "minimum_distance": float(value.minimum_distance),
+        "normal_dot": float(value.normal_dot),
+        "signed_normal_gap": float(value.signed_normal_gap),
+        "tangential_offset": float(value.tangential_offset),
+    }
+
+
 def _surface_grid(
     points: Sequence[Sequence[Sequence[float]]],
 ) -> tuple[int, int, list[float]]:
@@ -110,6 +172,14 @@ def _configure(lib: C.CDLL) -> None:
     f64 = C.c_double
     lib.cadflow_session_create.restype = handle
     lib.cadflow_session_destroy.argtypes = [handle]
+    lib.cadflow_surface_face_metrics.argtypes = [
+        handle, u64, C.POINTER(_SurfaceFaceMetrics)
+    ]
+    lib.cadflow_surface_face_metrics.restype = C.c_int
+    lib.cadflow_surface_pair_metrics.argtypes = [
+        handle, u64, u64, C.POINTER(_SurfacePairMetrics)
+    ]
+    lib.cadflow_surface_pair_metrics.restype = C.c_int
     for name, args in {
         "cadflow_box": [handle, f64, f64, f64],
         "cadflow_cylinder": [handle, f64, f64],
@@ -755,6 +825,32 @@ class NativeSession:
             "normal": tuple(float(value) for value in normal),
             "curvature": tuple(float(value) for value in curvature),
         }
+
+    def surface_face_metrics(self, face: ShapeHandle) -> dict[str, object]:
+        """Return solver-neutral geometric evidence for one BREP face."""
+        self._ensure_open()
+        output = _SurfaceFaceMetrics()
+        ok = self._lib.cadflow_surface_face_metrics(
+            self._raw, self._id(face), C.byref(output)
+        )
+        self._check()
+        if not ok:
+            raise NativeError("native surface face measurement failed")
+        return _surface_face_metrics_dict(output)
+
+    def surface_pair_metrics(
+        self, face_a: ShapeHandle, face_b: ShapeHandle
+    ) -> dict[str, object]:
+        """Return exact closest-point and orientation evidence for two faces."""
+        self._ensure_open()
+        output = _SurfacePairMetrics()
+        ok = self._lib.cadflow_surface_pair_metrics(
+            self._raw, self._id(face_a), self._id(face_b), C.byref(output)
+        )
+        self._check()
+        if not ok:
+            raise NativeError("native surface pair measurement failed")
+        return _surface_pair_metrics_dict(output)
 
     def kind(self, shape: ShapeHandle) -> str:
         value = self._lib.cadflow_kind(self._raw, self._id(shape))

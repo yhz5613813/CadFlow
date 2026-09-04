@@ -14,6 +14,7 @@ from . import (
     query,
     scene,
     serialization,
+    simulation,
     sketch,
     stdlib,
     surfaces,
@@ -28,6 +29,8 @@ from .feedback import Diagnostic, OperationReport, OperationResult
 from .frame import CoordinateFrame, Workplane, current_frame, use_frame
 from .physical import *
 from .physical import __all__ as _physical_all
+from .simulation import *
+from .simulation import __all__ as _simulation_all
 from .preview import PreviewMeshBuffer, parse_preview_mesh_buffer, preview_mesh_buffer_to_glb
 from .sketch_api import SketchDocument
 from ._compat_aliases import install as _install_compat_aliases
@@ -82,6 +85,7 @@ __all__ = [
     "query",
     "scene",
     "serialization",
+    "simulation",
     "sketch",
     "stdlib",
     "surfaces",
@@ -95,6 +99,8 @@ __all__ = [
 
 # Keep ``from cadflow import *`` complete for the migrated API as well as the
 # new frontend. The engine is bundled, so this does not pull in another tree.
-__all__ = sorted(set(__all__) | set(_physical_all) | set(legacy_api_module().__all__))
+__all__ = sorted(
+    set(__all__) | set(_physical_all) | set(_simulation_all) | set(legacy_api_module().__all__)
+)
 
 __version__ = "0.2.0"

@@ -89,6 +89,73 @@ jobs:
           python -m pip wheel dist/*.tar.gz --no-deps --no-build-isolation -w sdist-wheel
           test -n "$(find sdist-wheel -name '*.whl' -print -quit)"
 
+  macos-wheel:
+    name: macOS arm64 wheel
+    runs-on: macos-14
+    env:
+      CMAKE_OSX_ARCHITECTURES: arm64
+      MACOSX_DEPLOYMENT_TARGET: "12.0"
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Apple Silicon runner
+        run: test "$(uname -m)" = arm64
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel build twine delocate
+          python -m pip install "cadquery-ocp==7.9.3.1" py-slvs==1.0.6 "ocp-gordon>=0.2,<0.3"
+      - name: Build distributions
+        run: |
+          python -m build --no-isolation
+          python -m twine check dist/*
+      - name: Inspect wheel native dependencies
+        run: |
+          wheel unpack dist/*.whl -d wheel-unpack
+          core="$(find wheel-unpack -name libcadflow_core.dylib -print -quit)"
+          test -n "$core"
+          file "$core" | grep -q arm64
+          if otool -L "$core" | grep -E '/DLC/|/Users/|site-packages'; then
+            echo "wheel contains a non-relocatable native dependency"
+            exit 1
+          fi
+          otool -l "$core" | grep -q '@loader_path/../OCP/.dylibs'
+          otool -l "$core" | grep -q '@loader_path/../vtkmodules/.dylibs'
+      - name: Verify wheel install and regression suite
+        run: |
+          python -m venv "$RUNNER_TEMP/cadflow-wheel"
+          "$RUNNER_TEMP/cadflow-wheel/bin/python" -m pip install dist/*.whl pytest ezdxf matplotlib pillow
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/cadflow-wheel/bin/python" - <<'PY'
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+
+          import cadflow
+
+          with cadflow.NativeSession() as session:
+              assert "occt-7.9.3" in session.version
+          with TemporaryDirectory() as directory, cadflow.Model() as model:
+              box = model.box(2, 3, 4)
+              assert abs(box.volume - 24.0) < 1e-9
+              path = Path(directory) / "box.step"
+              box.export_step(path)
+              imported = model.import_step(path)
+              assert abs(imported.volume - 24.0) < 1e-9
+              assert model.faces(box)[0].surface_metrics()["valid"] is True
+          PY
+          "$RUNNER_TEMP/cadflow-wheel/bin/python" -m pytest \
+            --override-ini pythonpath= \
+            -q --disable-warnings --tb=short \
+            "$GITHUB_WORKSPACE/tests"
+      - name: Rebuild wheel from sdist
+        run: |
+          mkdir "$RUNNER_TEMP/sdist-wheel"
+          python -m pip wheel dist/*.tar.gz --no-deps --no-build-isolation -w "$RUNNER_TEMP/sdist-wheel"
+          test -n "$(find "$RUNNER_TEMP/sdist-wheel" -name '*.whl' -print -quit)"
+
   scene-contract:
     name: Scene TypeScript parity
     runs-on: ubuntu-22.04

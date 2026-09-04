@@ -21,7 +21,7 @@
   <a href="https://www.python.org/"><img alt="Python 3.10–3.13" src="https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white"></a>
   <img alt="C++ 17" src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white">
   <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
-  <img alt="Platform Linux x86-64" src="https://img.shields.io/badge/Platform-Linux%20x86--64-FCC624?logo=linux&logoColor=black">
+  <img alt="Platforms Linux x86-64 and macOS arm64" src="https://img.shields.io/badge/Platforms-Linux%20x86--64%20%7C%20macOS%20arm64-555555">
   <a href="http://119.28.82.252/"><img alt="Documentation" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
   <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness repository" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
@@ -172,17 +172,25 @@ The repository includes progressively disclosed [CAD Skills](skills/) for rigid-
 
 ### Requirements
 
-- Linux x86_64 for the currently tested full OCCT build
-- Python 3.10 through 3.13
+- Linux x86_64 or Apple Silicon macOS 12 and newer
+- Python 3.10 through 3.13 on Linux; Python 3.13 for macOS arm64 wheels
 - CMake 3.16 or newer
 - A C++17 compiler
-- Python development headers
+- Python development headers on Linux, or Xcode Command Line Tools on macOS
 
 On Ubuntu or Debian:
 
 ```bash
 sudo apt update
 sudo apt install build-essential cmake python3-dev
+```
+
+On macOS, install Xcode Command Line Tools and make CMake available. Homebrew is
+one option for CMake, but is not required:
+
+```bash
+xcode-select --install
+brew install cmake
 ```
 
 Clone the repository and install the OpenCascade runtime before building CadFlow:
@@ -256,17 +264,17 @@ For contributors working on the native backend:
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j2
 python -m pytest -q
-python -m pip wheel . --no-deps -w dist
+python -m build --wheel --no-isolation
 ```
 
-The default build uses matching OCCT 7.9.3 headers and libraries when available. Use `-DCADFLOW_USE_OCCT=OFF` for the analytic fallback or `-DCADFLOW_WITH_STEP=OFF` for a smaller native build without STEP writing. The compatibility STEP API remains available through `cadflow.compat`.
+The default build uses matching OCCT 7.9.3 headers and libraries when available. A macOS build requires CPython 3.13, Apple Silicon, and fails if the matching OCCT installation is missing instead of silently producing a fallback wheel. Use `-DCADFLOW_USE_OCCT=OFF` for an explicit analytic fallback or `-DCADFLOW_WITH_STEP=OFF` for a smaller native build without STEP writing. The compatibility STEP API remains available through `cadflow.compat`.
 
 For 2D manufacturing, select a planar face and export its outer boundary and
 holes with `face.export_dxf("profile.dxf")`. See the
 [DXF machining-profile guide](docs/guides/dxf-profile-export.md) for the output
 contract and validation requirements.
 
-Built wheels contain `libcadflow_core`, the stable public header under `cadflow/include/`, and a relative runtime path to OCCT libraries supplied by `cadquery-ocp`. Set `CADFLOW_CORE_LIBRARY` only when deliberately using an externally built core.
+Built wheels contain `libcadflow_core`, the stable public header under `cadflow/include/`, and platform-relative runtime paths to OCCT libraries supplied by `cadquery-ocp`. On macOS, wheel builds default to arm64 and deployment target 12.0. Set `CADFLOW_CORE_LIBRARY` only when deliberately using an externally built core.
 
 ## 🙏 Thanks
 

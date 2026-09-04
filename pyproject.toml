@@ -17,12 +17,13 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Operating System :: MacOS :: MacOS X",
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
   "numpy>=1.21",
   "rich>=14.0",
-  "cadquery-ocp>=7.9.3.1",
+  "cadquery-ocp==7.9.3.1",
   "jsonschema>=4.25.1,<5",
   "rfc8785>=0.1.4,<0.2",
   "typing-extensions>=4.12,<5",

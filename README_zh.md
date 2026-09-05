@@ -57,6 +57,12 @@
 
 CadFlow 是面向**程序化建模与几何驱动智能体**的 CAD SDK。CadFlow 不是 Text-to-3D 模型，也不是 LLM 应用。它是这些系统下方的确定性 Agentic CAD Infra：Python 程序或智能体描述建模意图，CadFlow 构建并测量几何，将可操作的事实反馈给调用方。
 
+<p align="center">
+  <img src="docs/assets/readme/cadflow-hero.svg" width="100%" alt="CadFlow 总览：外部应用与 CAD 智能体通过 Python 程序调用原生几何能力，接收结构化反馈，输出 CAD 交换文件、平面 DXF 轮廓、预览和便携式状态；中央展示真实两级行星减速器的拆解视图。">
+</p>
+
+中央模型由[两级行星减速器示例](examples/16_compact_two_stage_planetary_reducer/)生成。拆解位置和配色仅用于展示，原始装配状态不变。图稿来源与可编辑文件见[配图说明](docs/assets/readme/README.md)。
+
 <a id="why-cadflow"></a>
 
 ## 🧭 为什么选择 CadFlow
@@ -103,6 +109,12 @@ with cad.Model() as model:
 
 `cadflow.Model` 管理原生 Session，返回的每个 `cadflow.Shape` 都归属于该 Session。应用代码无需接触 OpenCascade 对象，即可查询、验证、三角化或导出最终 Shape。
 
+<p align="center">
+  <img src="docs/assets/readme/cadflow-geometry-feedback.svg" width="100%" alt="快速开始中的底板与圆柱通孔切除结果，附可执行 Python 程序和真实原生检查数据：体积 31,095.22 立方毫米、7 个面、15 条边、10 个顶点、1 个实体。">
+</p>
+
+这次本地运行以毫米为设计单位。图中的几何事实用于展示检查接口，基础验证不等同于可制造性认证。
+
 根据工作流选择合适的 API 层：
 
 | API | 适用场景 |
@@ -131,6 +143,14 @@ with cad.Model() as model:
 
 几何密集型操作正逐步迁移到原生 C++ Session。约束、装配、语义、诊断、序列化和其他结构化数据工作流则有意保留在 Python：将它们迁移到 ABI 另一侧只会增加复杂度，并不能消除几何计算瓶颈。
 
+### 使用 CadFlow 构建的示例
+
+<p align="center">
+  <img src="docs/assets/readme/cadflow-examples.svg" width="100%" alt="CadFlow 真实示例渲染：带加强筋的安装支架、拆解展示的两级行星减速器，以及组合构造的陶瓷杯。">
+</p>
+
+可查看对应源码：[安装支架](examples/cadflow_complex_mounting_bracket.py)、[行星减速器](examples/16_compact_two_stage_planetary_reducer/)和[陶瓷杯](examples/cadflow_ceramic_cup.py)。这些是可复现的几何示例，不是 LLM 生成能力评测；杯子是多实体造型组合。
+
 <a id="roadmap"></a>
 
 ## 🗺️ 未来规划
@@ -146,10 +166,19 @@ CadFlow 正在持续开发。后续工作将重点围绕以下方向展开：
 ## 🏗️ 系统架构
 
 <p align="center">
-  <img src="docs/assets/cadflow-architecture.svg" width="100%" alt="CadFlow 系统架构：Python 应用与 CAD 智能体通过公开 Python 前端，跨越稳定 C ABI 进入原生运行时和 OpenCascade，最终生成经过验证的 CAD、预览、Scene 与诊断产物。">
+  <img src="docs/assets/readme/cadflow-native-boundary.svg" width="100%" alt="CadFlow 所有权边界：Python 保留 Model、Shape、Graph 和工程工作流；调用与句柄经 C ABI 进入拥有原生几何的 C++ Session，几何事实和缓冲区返回 Python。">
 </p>
 
 核心路径为：**Python 前端 → 稳定 C ABI → C++ Session / ShapeHandle → OpenCascade**。高层编排保留在 Python，几何所有权和计算密集型任务则留在原生层。
+
+<details>
+<summary>展开查看程序、几何与交付物的完整流程</summary>
+
+<p align="center">
+  <img src="docs/assets/readme/cadflow-overview.svg" width="100%" alt="机制总览：Python API 调用与类型化操作图汇入 CadFlow 原生几何引擎，输出工程产物，并将结构化反馈返回外部调用方。">
+</p>
+
+</details>
 
 如需了解框架模型，请阅读 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
@@ -177,6 +206,12 @@ CadFlow 构建并检查确定性几何
 
 > [!NOTE]
 > [`agent_dsl/`](agent_dsl/) 是用于紧凑有状态指令协议的隔离实验层，它可以大幅度减少生成过程的token消耗，我们将在后续版本逐步优化。
+
+<p align="center">
+  <img src="docs/assets/readme/cadflow-agent-dsl.svg" width="100%" alt="可选的实验性 Agent DSL 将增量指令编译为带版本的模型状态，返回有界 JSON 事实，并发布版本安全的 Scene 预览；回滚将检查点内容恢复为新版本，不会让版本号倒退。">
+</p>
+
+DSL 封装不随核心 SDK 安装。检查点恢复模型内容时，版本号仍继续递增；完整 Model JSON 需要显式导出。详见 [Agent DSL 文档](agent_dsl/README.md)。
 
 ## 📦 从源码安装
 

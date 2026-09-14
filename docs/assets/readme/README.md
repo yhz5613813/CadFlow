@@ -53,6 +53,25 @@ clearance, or numerical-simulation correctness. DXF labels refer to selected
 planar-face profiles. Strict replay uses Model JSON; Scene packages do not
 necessarily embed a source model.
 
-Only the approved figures and editable SVGs are included here. Large CAD
+The approved figures, editable SVGs, and demo media listed below are included here. Large CAD
 exports, local runtime environments, rough layout candidates, and review-only
 PDF/PNG duplicates are intentionally outside this documentation change.
+
+## Demo videos
+
+Updated on 2026-09-14 from the author's existing local CadFlow model viewers.
+Both demonstrations were re-recorded at 1920 × 1080 with the original camera
+and motion sequences. The videos contain no added titles, captions, footnotes,
+or progress bar. Printed labels on the phone model are hidden for presentation.
+The underlying model geometry and assembly motion are otherwise unchanged.
+
+| Model | Full video | Animated preview | Duration |
+| --- | --- | --- | --- |
+| AUREL HAND R1 | [MP4](aurel-hand-r1.mp4) | [GIF](aurel-hand-r1.gif) | 25.8 s |
+| AUREL ONE | [MP4](aurel-one.mp4) | [GIF](aurel-one.gif) | 27.2 s |
+
+The MP4 files use H.264 at 30 fps. Looping GIF previews use the complete video
+timeline at 640 × 360, 8 fps. The hand video shows joint motion and grasping
+poses; the phone video shows the exterior, internal layout, exploded view,
+and motherboard details. These are model demonstrations, not manufacturing
+or numerical-simulation validation.

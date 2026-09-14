@@ -21,7 +21,7 @@
   <a href="https://www.python.org/"><img alt="Python 3.10–3.13" src="https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white"></a>
   <img alt="C++ 17" src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white">
   <img alt="OpenCascade 7.9.3" src="https://img.shields.io/badge/OpenCascade-7.9.3-334155">
-  <img alt="支持 Linux x86-64 和 macOS arm64" src="https://img.shields.io/badge/Platforms-Linux%20x86--64%20%7C%20macOS%20arm64-555555">
+  <img alt="支持 Windows x64、Linux x86-64 和 macOS arm64" src="https://img.shields.io/badge/Platforms-Windows%20x64%20%7C%20Linux%20x86--64%20%7C%20macOS%20arm64-555555">
   <a href="http://119.28.82.252/"><img alt="在线文档" src="https://img.shields.io/badge/Docs-Online-2563EB?logo=readthedocs&logoColor=white"></a>
   <a href="https://github.com/zion-zion-zion/CadFlow-Harness"><img alt="CadFlow-Harness 仓库" src="https://img.shields.io/badge/CadFlow--Harness-GitHub-181717?logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0F766E"></a>
@@ -36,6 +36,7 @@
 
 <p align="center">
   <a href="#latest-news">📰 最新动态</a> ·
+  <a href="#demo-videos">🎬 视频演示</a> ·
   <a href="#why-cadflow">🧭 核心优势</a> ·
   <a href="#quick-start">🚀 快速开始</a> ·
   <a href="#capabilities">🧰 能力概览</a> ·
@@ -62,6 +63,27 @@ CadFlow 是面向**程序化建模与几何驱动智能体**的 CAD SDK。CadFlo
 </p>
 
 中央模型由[两级行星减速器示例](examples/16_compact_two_stage_planetary_reducer/)生成。拆解位置和配色仅用于展示，原始装配状态不变。图稿来源与可编辑文件见[配图说明](docs/assets/readme/README.md)。
+
+<a id="demo-videos"></a>
+
+## 🎬 视频演示
+
+使用 CadFlow 在本地构建的两个模型：灵巧手与手机。点击动图预览可打开完整分辨率的 MP4 视频。
+
+<table>
+  <tr>
+    <th width="50%">AUREL HAND R1 · 灵巧手</th>
+    <th width="50%">AUREL ONE · 手机</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/assets/readme/aurel-hand-r1.mp4"><img src="docs/assets/readme/aurel-hand-r1.gif" width="100%" alt="AUREL HAND R1 灵巧手：结构旋转观察、手指屈伸与抓握姿态演示"></a></td>
+    <td align="center"><a href="docs/assets/readme/aurel-one.mp4"><img src="docs/assets/readme/aurel-one.gif" width="100%" alt="AUREL ONE 手机：外观、内部组件、拆解视图与主板细节演示"></a></td>
+  </tr>
+  <tr>
+    <td>展示关节运动、手指屈伸与抓握姿态。<br><a href="docs/assets/readme/aurel-hand-r1.mp4">▶ 完整视频 · 25.8 秒 · 1080p</a></td>
+    <td>展示外观设计、内部布局、拆解视图与主板细节。<br><a href="docs/assets/readme/aurel-one.mp4">▶ 完整视频 · 27.2 秒 · 1080p</a></td>
+  </tr>
+</table>
 
 <a id="why-cadflow"></a>
 
@@ -157,7 +179,7 @@ with cad.Model() as model:
 
 CadFlow 正在持续开发。后续工作将重点围绕以下方向展开：
 
-- [ ] 支持跨平台部署。
+- [x] 支持跨平台部署：Windows x64、Linux x86_64 和 macOS arm64。
 - [ ] 开源配套的 Agentic Model，以及对应的训练数据和训练代码。
 - [ ] 支持 CUDA 加速。
 
@@ -213,15 +235,29 @@ CadFlow 构建并检查确定性几何
 
 DSL 封装不随核心 SDK 安装。检查点恢复模型内容时，版本号仍继续递增；完整 Model JSON 需要显式导出。详见 [Agent DSL 文档](agent_dsl/README.md)。
 
-## 📦 从源码安装
+## 📦 安装
 
 ### 环境要求
 
-- Linux x86_64，或运行 macOS 12 及更高版本的 Apple Silicon Mac
-- Linux 支持 Python 3.10 至 3.13；macOS arm64 wheel 使用 Python 3.13
-- CMake 3.16 或更高版本
-- 支持 C++17 的编译器
-- Linux 需要 Python 开发头文件，macOS 需要 Xcode Command Line Tools
+- Windows x64、Linux x86_64，或运行 macOS 12 及更高版本的 Apple Silicon Mac
+- Linux 支持 Python 3.10 至 3.13；Windows x64 已使用 CPython 3.12 验证；macOS arm64 wheel 使用 Python 3.13
+- 源码构建需要 CMake 3.16 或更高版本，以及支持 C++17 的编译器
+- 源码构建工具链：Windows 使用 MSVC x64 和匹配的 OCCT 导入库；Linux 需要 Python 开发头文件；macOS 需要 Xcode Command Line Tools
+
+### Windows x64 部署
+
+Windows 构建已在 CPython 3.12 x64 与 OCCT 7.9.3 环境中完成本地验证，覆盖原生建模与 STEP/STL/GLB/DXF 导出。安装时请使用与 Python 版本及架构匹配的 Windows wheel。将已构建的 `cadflow-0.2.0-cp312-cp312-win_amd64.whl` 放在当前目录，然后在 PowerShell 中运行：
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install .\cadflow-0.2.0-cp312-cp312-win_amd64.whl
+.\.venv\Scripts\python.exe -c "import cadflow; s = cadflow.NativeSession(); print(s.version); s.close()"
+```
+
+后端版本应包含 `occt-7.9.3`。使用预编译 wheel 运行时不需要编译器。上述 Windows wheel 已在本地验证，目前尚未通过仓库的发布工作流分发。
+
+### Linux 与 macOS 源码构建
 
 Ubuntu 或 Debian 用户可以执行：
 

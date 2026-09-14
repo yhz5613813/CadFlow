@@ -85,6 +85,17 @@ CadFlow 是面向**程序化建模与几何驱动智能体**的 CAD SDK。CadFlo
   </tr>
 </table>
 
+### CadFlow Studio · 手机编辑工作流
+
+在独立的 CadFlow Studio 应用中，通过 pi 和 GPT-6 实际操作：选择手机零部件、修改后盖颜色、调整摄像头装饰环的金属度与粗糙度、设置后盖透明度、查看内部组件，并将修改结果与原始模型并排对比。
+
+[![CadFlow Studio 中修改后的透明手机与原始模型并排对比](docs/assets/readme/cadflow-studio-phone.png)](docs/assets/readme/cadflow-studio-phone.mp4)
+
+[▶ 观看 Studio 完整演示 · 2 分 13 秒 · 中文字幕](docs/assets/readme/cadflow-studio-phone.mp4)
+
+本视频展示 GLB 材质编辑和视口交互，未重新计算 CAD/BREP 几何。模型文件、修改脚本和验证报告均作为独立项目文件保存，视频已剪去较长的 Agent 等待过程。详见[录制说明](docs/assets/readme/README.md#cadflow-studio-phone-workflow)。
+
+
 <a id="why-cadflow"></a>
 
 ## 🧭 为什么选择 CadFlow

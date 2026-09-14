@@ -75,3 +75,28 @@ timeline at 640 × 360, 8 fps. The hand video shows joint motion and grasping
 poses; the phone video shows the exterior, internal layout, exploded view,
 and motherboard details. These are model demonstrations, not manufacturing
 or numerical-simulation validation.
+
+## CadFlow Studio phone workflow
+
+Recorded on 2026-09-14 in the separate CadFlow Studio application using the pi
+harness and GPT-6. [Full video](cadflow-studio-phone.mp4),
+[preview frame](cadflow-studio-phone.png). Duration: 133 seconds, with Chinese
+chapter captions and no audio. The 1280 × 720 browser capture uses a variable
+capture rate (approximately 1–5 fps); the edited output is 1920 × 1080 H.264
+at 30 fps. Long agent waits are omitted, and title cards are added. The preview
+is an unaltered frame from the finished video at 114.2 seconds.
+
+The recording demonstrates actual GLB edits: rear-cover color `#2563EB`,
+roughness `0.48`, metallicity `0.15`; six camera rings/ring lips in `#D4AF37`,
+metallicity `0.90`, roughness `0.20`; then rear-cover opacity `0.22` with
+`alphaMode: BLEND`. It also shows component visibility, viewport rotation,
+side-by-side comparison, and saved verification reports.
+
+Independent checks confirmed the intended material values and changed-node
+sets for all three versions. Geometry/texture binary chunks, accessors,
+buffer views, primitive geometry references, and node transforms were
+unchanged. The original phone file was preserved byte for byte. This is a
+material-editing and application-workflow demonstration, not a CAD/BREP
+rebuild or a manufacturing-validation result.
+
+Video SHA-256: `afe00140409aeaafb0083e970dc49e42961d1584c3d357d30c0f75b767da47fd`.

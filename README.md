@@ -85,6 +85,17 @@ Two models built locally with CadFlow: a dexterous robotic hand and a smartphone
   </tr>
 </table>
 
+### CadFlow Studio · Phone editing workflow
+
+A recorded workflow in the separate CadFlow Studio app, using pi and GPT-6: select phone components, change the rear-cover color, adjust camera-ring metallicity and roughness, make the rear cover transparent, inspect internal components, and compare the result with the original model.
+
+[![CadFlow Studio showing the edited transparent phone beside the original model](docs/assets/readme/cadflow-studio-phone.png)](docs/assets/readme/cadflow-studio-phone.mp4)
+
+[▶ Watch the full Studio demo · 2 min 13 s · Chinese captions](docs/assets/readme/cadflow-studio-phone.mp4)
+
+The recording demonstrates GLB material edits and viewport interactions; it does not recompute CAD/BREP geometry. Model files, edit scripts, and verification reports are saved as separate project artifacts. Long agent waits are omitted. See [recording details](docs/assets/readme/README.md#cadflow-studio-phone-workflow).
+
+
 ## 🧭 Why CadFlow
 
 ### A CAD boundary designed for agents

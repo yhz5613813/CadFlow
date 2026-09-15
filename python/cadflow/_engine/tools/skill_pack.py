@@ -60,7 +60,13 @@ def _source_checkout_root(package_root: Path) -> Path | None:
 
 def _default_project_root(module_file: Path | str | None = None) -> Path:
     package_root = _package_root_from(module_file)
-    return _source_checkout_root(package_root) or package_root.parent
+    source_root = _source_checkout_root(package_root)
+    if source_root is not None:
+        return source_root
+    # The current tools live one level deeper than the legacy auto_tools layout.
+    if package_root.name == "_engine":
+        return package_root.parent.parent
+    return package_root.parent
 
 
 def _default_output_root(project_root: Path, cwd: Path | None = None) -> Path:

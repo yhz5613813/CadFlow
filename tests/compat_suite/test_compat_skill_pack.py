@@ -49,6 +49,41 @@ class TestSkillPackPathResolution(unittest.TestCase):
 
             self.assertEqual(resolved, site_packages.resolve())
 
+    def test_default_project_root_from_engine_source_checkout(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            project_root = Path(tmp_dir)
+            (project_root / "pyproject.toml").write_text(
+                "[project]\nname = 'cadflow'\n", encoding="utf-8"
+            )
+            module_file = project_root / "python/cadflow/_engine/tools/skill_pack.py"
+            module_file.parent.mkdir(parents=True)
+            module_file.touch()
+
+            self.assertEqual(
+                skill_pack._default_project_root(module_file), project_root.resolve()
+            )
+
+    def test_default_project_root_from_engine_site_packages_install(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            site_packages = Path(tmp_dir) / "site-packages"
+            module_file = site_packages / "cadflow/_engine/tools/skill_pack.py"
+            module_file.parent.mkdir(parents=True)
+            module_file.touch()
+            dist_info = site_packages / "cadflow-0.2.0.dist-info"
+            dist_info.mkdir()
+            (dist_info / "METADATA").write_text(
+                "Metadata-Version: 2.1\nName: cadflow\nVersion: 0.2.0\n\n# README\n",
+                encoding="utf-8",
+            )
+
+            resolved = skill_pack._default_project_root(module_file)
+
+            self.assertEqual(resolved, site_packages.resolve())
+            metadata = skill_pack._load_installed_metadata(resolved)
+            self.assertIsNotNone(metadata)
+            self.assertEqual(metadata.version, "0.2.0")
+            self.assertEqual(metadata.readme_text, "# README")
+
     def test_default_output_root_from_source_checkout(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             project_root = Path(tmp_dir)

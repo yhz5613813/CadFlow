@@ -274,8 +274,10 @@ Ubuntu 或 Debian 用户可以执行：
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake python3-dev
+sudo apt install build-essential cmake python3-dev python3-venv
 ```
+
+`python3-venv` 提供下文创建虚拟环境所需的支持。
 
 在 macOS 上，需要安装 Xcode Command Line Tools 并确保 CMake 可用。Homebrew
 可以用来安装 CMake，但不是硬性依赖：
@@ -351,9 +353,11 @@ CadFlow/
 
 ## 🧪 构建与测试
 
-开发原生后端时可以执行：
+开发原生后端时，请先按上文准备源码构建环境并激活虚拟环境，再安装测试、
+可视化和打包依赖，然后构建并运行回归测试：
 
 ```bash
+python -m pip install --no-build-isolation ".[test,inspect]" build vtk pillow
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j2
 python -m pytest -q

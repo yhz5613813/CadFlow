@@ -269,8 +269,10 @@ On Ubuntu or Debian:
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake python3-dev
+sudo apt install build-essential cmake python3-dev python3-venv
 ```
+
+`python3-venv` provides the virtual-environment support used below.
 
 On macOS, install Xcode Command Line Tools and make CMake available. Homebrew is
 one option for CMake, but is not required:
@@ -345,9 +347,12 @@ Start exploring with:
 
 ## 🧪 Build and test
 
-For contributors working on the native backend:
+For contributors working on the native backend, use the source-build environment
+above with its virtual environment active. Install the test, visualization, and
+packaging dependencies before building and running the regression suite:
 
 ```bash
+python -m pip install --no-build-isolation ".[test,inspect]" build vtk pillow
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j2
 python -m pytest -q

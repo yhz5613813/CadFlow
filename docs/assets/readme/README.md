@@ -13,6 +13,7 @@ a bundled trained model or an autonomous-agent benchmark.
 | [Agent DSL](cadflow-agent-dsl.svg) | Revisioned state, bounded feedback, and preview | [SVG](source/cadflow-agent-dsl.svg) |
 | [Geometry feedback](cadflow-geometry-feedback.svg) | Quick-start plate and actual inspection data | [SVG](source/cadflow-geometry-feedback.svg) |
 | [Model gallery](cadflow-examples.svg) | Real example geometry | [SVG](source/cadflow-examples.svg) |
+| [Smooth fillet](cadflow-smooth-fillet.png) | Circular vs. G2 fillet: zebra and mean curvature | [`examples/cadflow_class_a_fillet.py`](../../../examples/cadflow_class_a_fillet.py) (PNG rendered by `cadflow.surface_analysis.render_png`) |
 
 ## Formats and editing
 

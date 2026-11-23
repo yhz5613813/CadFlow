@@ -51,6 +51,11 @@
 
 ## 📰 Latest News
 
+### 2026-11-24 · Class-A surfaces: G2 blends and fillets
+
+- New surface analysis: `Shape.continuity()` classifies every shared edge as G0/G1/G2, plus curvature maps, zebra renders, and `surface_quality()` diagnostics.
+- New `Model.smooth_fillet(...)` rounds edges with curvature-continuous (G2) transitions, including n-sided corner patches where rounds meet, and `Model.blend_surface(...)` bridges two faces with G0/G1/G2 continuity. See [class-A surfaces](#class-a-surfaces) below.
+
 ### 2026-09-03 · v0.2.0 - Validated 2D machining DXF workflow
 
 - Added native `Shape.export_dxf(...)` support for selected planar faces, including closed outer and inner machining loops, millimeter units, exact line and circular-arc preservation, adaptive approximation with a configurable chord-tolerance target, and atomic file replacement.
@@ -161,9 +166,9 @@ New integrations should begin with `cadflow.Model` or `cadflow.Graph` and use pu
 | --- | --- |
 | Solid modeling | Box, cylinder, sphere, cone, profiles, faces, extrude, revolve, loft, sweep, fillet, chamfer, and shell |
 | Geometry operations | Exact OCCT booleans, rigid transforms, scale, sewing, shell-to-solid conversion, and subshape extraction |
-| Curves and surfaces | Lines, arcs, splines, helices, Bezier surfaces, fitted B-spline surfaces, ruled/filling/Gordon surfaces, and twisted sweeps |
+| Curves and surfaces | Lines, arcs, splines, helices, Bezier surfaces, fitted B-spline surfaces, ruled/filling/Gordon surfaces, twisted sweeps, G2 blend surfaces, and curvature-continuous fillets |
 | Sketch and context | Immutable coordinate frames, workplanes, declarative sketches, constraints, and `py-slvs` solving |
-| Inspection | Volume, area, length, center of mass, distance, bounds, topology counts, normals, curvature, free boundaries, and BREP comparison |
+| Inspection | Volume, area, length, center of mass, distance, bounds, topology counts, normals, curvature, free boundaries, BREP comparison, G0/G1/G2 edge continuity, zebra and curvature maps, and surface quality checks |
 | Exchange and preview | STEP import/export, planar-face DXF profiles, BREP/STL import, STL export, native mesh buffers, and validated triangle GLB previews |
 | Product structure | Assemblies, connectors, constraint reports, semantic tags, source mapping, lineage, materials, and standard parts |
 | Artifacts | Model JSON, strict replay, schema validation, and portable Scene archives containing renderable geometry and structured metadata |
@@ -177,6 +182,36 @@ Geometry-heavy operations increasingly run in the native C++ session. Constraint
 </p>
 
 Explore the source programs: [mounting bracket](examples/cadflow_complex_mounting_bracket.py), [planetary reducer](examples/16_compact_two_stage_planetary_reducer/), and [ceramic cup](examples/cadflow_ceramic_cup.py). These are reproducible geometry examples, not LLM-generation benchmarks; the cup is a multi-solid composition.
+
+<a id="class-a-surfaces"></a>
+
+### Class-A surfaces
+
+A circular fillet is only tangent-continuous (G1): curvature jumps from the face's value to `1/R` at each trim line, which shows as a kink in reflections. `smooth_fillet` keeps the circular fillet's trim lines and topology but rebuilds every round, miter, and corner as a curvature-continuous (G2) surface, and the continuity report measures it.
+
+```python
+import cadflow as cad
+
+with cad.Model() as model:
+    cube = model.box(12.0, 12.0, 12.0)
+    smooth = model.smooth_fillet(cube, 3.0)          # every edge, 3 mm setback
+    levels = {edge["level"] for edge in smooth.continuity()["edges"]}
+    print(levels, smooth.surface_quality()["issues"])   # {'G2'} []
+```
+
+<p align="center">
+  <img src="docs/assets/readme/cadflow-smooth-fillet.png" width="80%" alt="Rounded 12 mm cube, OCCT circular fillet on the left and CadFlow smooth_fillet on the right. Top row: zebra stripes, which bend sharply at the circular fillet's trim lines and flow smoothly across the smooth fillet's. Bottom row: mean curvature, which jumps abruptly at the circular fillet's trim lines and spherical corners, and fades in gradually on the smooth fillet.">
+</p>
+
+| Case (measured with `Shape.continuity()`) | Circular fillet | `smooth_fillet` |
+| --- | --- | --- |
+| Box edge | G1, curvature 0 vs 1/R | G2 |
+| Plane meets a B-spline side | G1, curvature 0.500 vs 0.141 | G2, 0.141 vs 0.141 |
+| Box corner, three rounds | 9 G1 | 15 G2 |
+| All 12 box edges | 48 G1 | 96 G2 |
+| Triangular, pentagonal, and hexagonal prisms, all edges | G1 | all G2 |
+
+`Model.blend_surface(face_a, edge_a, face_b, edge_b, continuity="G2")` bridges two face boundaries with a G2 blend, and `filling_surface` builds exact Coons patches from three or four boundary edges. The figure is reproduced by [`examples/cadflow_class_a_fillet.py`](examples/cadflow_class_a_fillet.py). The [class-A surfacing guide](docs/guides/class-a-surfacing.md) covers the method and current limits, and the [surface analysis guide](docs/guides/surface-analysis.md) covers the inspection tools.
 
 <a id="roadmap"></a>
 

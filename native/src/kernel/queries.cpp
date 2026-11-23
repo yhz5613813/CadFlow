@@ -129,7 +129,9 @@ double volume(const core::Session& session, ShapeId id) {
     case Shape::Kind::RuledSurface:
     case Shape::Kind::FillingSurface:
     case Shape::Kind::GordonSurface:
+    case Shape::Kind::BlendSurface:
     case Shape::Kind::Fillet:
+    case Shape::Kind::SmoothFillet:
     case Shape::Kind::Chamfer:
     case Shape::Kind::Shell:
     case Shape::Kind::Sewing:
@@ -188,11 +190,13 @@ double area(const core::Session& session, ShapeId id) {
     case Shape::Kind::RuledSurface:
     case Shape::Kind::FillingSurface:
     case Shape::Kind::GordonSurface:
+    case Shape::Kind::BlendSurface:
     case Shape::Kind::Imported:
     case Shape::Kind::Sewing:
     case Shape::Kind::Solid:
         return 0.0;
     case Shape::Kind::Fillet:
+    case Shape::Kind::SmoothFillet:
     case Shape::Kind::Chamfer:
     case Shape::Kind::Shell:
         return area(session, shape.left);
@@ -348,6 +352,7 @@ Box3 bounding_box(const core::Session& session, ShapeId id) {
     case Shape::Kind::RuledSurface:
     case Shape::Kind::FillingSurface:
     case Shape::Kind::GordonSurface:
+    case Shape::Kind::BlendSurface:
         return points_box(shape.points);
     case Shape::Kind::Face:
     case Shape::Kind::Revolve:
@@ -424,6 +429,7 @@ Box3 bounding_box(const core::Session& session, ShapeId id) {
     case Shape::Kind::Mirror:
     case Shape::Kind::Scale:
     case Shape::Kind::Fillet:
+    case Shape::Kind::SmoothFillet:
     case Shape::Kind::Chamfer:
     case Shape::Kind::Shell:
     case Shape::Kind::Sewing:
@@ -498,7 +504,9 @@ const char* kind(const Shape& shape) {
     case Shape::Kind::RuledSurface: return "ruled_surface";
     case Shape::Kind::FillingSurface: return "filling_surface";
     case Shape::Kind::GordonSurface: return "gordon_surface";
+    case Shape::Kind::BlendSurface: return "blend_surface";
     case Shape::Kind::Fillet: return "fillet";
+    case Shape::Kind::SmoothFillet: return "smooth_fillet";
     case Shape::Kind::Chamfer: return "chamfer";
     case Shape::Kind::Shell: return "shell";
     case Shape::Kind::Sewing: return "sewing";

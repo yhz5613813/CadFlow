@@ -58,6 +58,25 @@ assert all(u > l for l, u in zip(lower, upper))
 Query expected dimensions and tolerances explicitly. A valid shape with the
 wrong dimensions is a failed deliverable.
 
+## Surface-quality gate
+
+For freeform or styled surfaces, and whenever smoothness is part of the
+request, measure it instead of judging a render:
+
+```python
+report = final_shape.continuity()
+assert report["summary"]["gap"] == 0
+smooth_edges = [e for e in report["edges"] if e["edge_index"] in required_smooth]
+assert all(e["level"] in {"G1", "G2"} for e in smooth_edges)
+quality = final_shape.surface_quality()
+assert not [i for i in quality["issues"] if i["severity"] == "error"]
+```
+
+Report each required boundary's level with its `max_angle_degrees` and
+`max_curvature_ratio`. A round fillet is G1, not G2. Attach a zebra render
+(`cadflow.surface_analysis.render_png(mesh, path, mode="zebra")`) when
+smoothness is claimed. See `docs/guides/surface-analysis.md`.
+
 ## Flexible-mesh gate
 
 ```python

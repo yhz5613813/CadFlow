@@ -1,15 +1,18 @@
 #include "cadflow_core.h"
 
+#include "analysis/surface_analysis.h"
 #include "core/session.h"
 #include "flexible/shell_mesh.h"
 #include "io/exchange.h"
 #include "io/dxf_profile.h"
 #include "kernel/construction.h"
 #include "kernel/advanced.h"
+#include "kernel/blend.h"
 #include "kernel/edge_features.h"
 #include "kernel/features.h"
 #include "kernel/operations.h"
 #include "kernel/queries.h"
+#include "kernel/smooth_fillet.h"
 #include "kernel/surfaces.h"
 #include "physics/connections.h"
 #include "physics/surface_contact.h"
@@ -686,6 +689,116 @@ int cadflow_surface_pair_metrics_brep(
         throw std::runtime_error(
             "surface contact metrics require the OCCT native backend");
 #endif
+    });
+}
+
+unsigned long long cadflow_blend_surface(
+    cad_session_t handle,
+    unsigned long long face_a, unsigned long long edge_a,
+    int continuity_a, double tension_a,
+    unsigned long long face_b, unsigned long long edge_b,
+    int continuity_b, double tension_b,
+    double tolerance, size_t sections, int reverse_b) {
+    return cadflow::core::guarded([&] {
+        const cadflow::kernel::BlendSide side_a {face_a, edge_a, continuity_a, tension_a};
+        const cadflow::kernel::BlendSide side_b {face_b, edge_b, continuity_b, tension_b};
+        const cadflow::kernel::BlendOptions options {tolerance, sections, reverse_b};
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::blend_surface(session, side_a, side_b, options);
+        });
+    });
+}
+
+unsigned long long cadflow_smooth_fillet(
+    cad_session_t handle, unsigned long long shape, double setback,
+    const size_t* edge_indices, size_t edge_count,
+    int continuity, double tension, double tolerance) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            return cadflow::kernel::smooth_fillet(
+                session, shape, setback, edge_indices, edge_count,
+                continuity, tension, tolerance);
+        });
+    });
+}
+
+int cadflow_continuity_report(
+    cad_session_t handle, unsigned long long shape, size_t samples,
+    double position_tolerance, double angle_tolerance_degrees,
+    double curvature_ratio_tolerance, char** result) {
+    return cadflow::core::guarded([&] {
+        if (!result) {
+            throw std::invalid_argument("continuity result is null");
+        }
+        const cadflow::analysis::ContinuityTolerances tolerances {
+            position_tolerance, angle_tolerance_degrees, curvature_ratio_tolerance};
+        return with_session(handle, [&](Session& session) {
+            *result = cadflow::core::copy_string(cadflow::analysis::continuity_json(
+                session, shape, samples, tolerances));
+            return 1;
+        });
+    });
+}
+
+int cadflow_face_pair_continuity(
+    cad_session_t handle, unsigned long long face_a, unsigned long long face_b,
+    size_t samples, double position_tolerance, double angle_tolerance_degrees,
+    double curvature_ratio_tolerance, char** result) {
+    return cadflow::core::guarded([&] {
+        if (!result) {
+            throw std::invalid_argument("continuity result is null");
+        }
+        const cadflow::analysis::ContinuityTolerances tolerances {
+            position_tolerance, angle_tolerance_degrees, curvature_ratio_tolerance};
+        return with_session(handle, [&](Session& session) {
+            *result = cadflow::core::copy_string(
+                cadflow::analysis::face_pair_continuity_json(
+                    session, face_a, face_b, samples, tolerances));
+            return 1;
+        });
+    });
+}
+
+int cadflow_face_curvature_samples(
+    cad_session_t handle, unsigned long long face,
+    size_t u_count, size_t v_count, cad_surface_sample_t* output) {
+    return cadflow::core::guarded([&] {
+        return with_session(handle, [&](Session& session) {
+            cadflow::analysis::curvature_samples(session, face, u_count, v_count, output);
+            return 1;
+        });
+    });
+}
+
+int cadflow_curvature_mesh_buffer(
+    cad_session_t handle, unsigned long long shape, double deflection,
+    char** result, size_t* result_size) {
+    return cadflow::core::guarded([&] {
+        if (!result || !result_size) {
+            throw std::invalid_argument("curvature mesh result and size are required");
+        }
+        return with_session(handle, [&](Session& session) {
+            const std::string buffer =
+                cadflow::analysis::curvature_mesh_buffer(session, shape, deflection);
+            *result = cadflow::core::copy_string(buffer);
+            *result_size = buffer.size();
+            return 1;
+        });
+    });
+}
+
+int cadflow_surface_quality_report(
+    cad_session_t handle, unsigned long long shape, size_t samples,
+    int check_self_intersection, char** result) {
+    return cadflow::core::guarded([&] {
+        if (!result) {
+            throw std::invalid_argument("surface quality result is null");
+        }
+        return with_session(handle, [&](Session& session) {
+            *result = cadflow::core::copy_string(cadflow::analysis::surface_quality_json(
+                session, shape, samples, check_self_intersection != 0));
+            return 1;
+        });
     });
 }
 

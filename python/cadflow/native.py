@@ -47,6 +47,23 @@ class _SurfacePairMetrics(C.Structure):
     ]
 
 
+class _SurfaceSample(C.Structure):
+    _fields_ = [
+        ("u", C.c_double),
+        ("v", C.c_double),
+        ("point", C.c_double * 3),
+        ("normal", C.c_double * 3),
+        ("principal_curvature_min", C.c_double),
+        ("principal_curvature_max", C.c_double),
+        ("mean_curvature", C.c_double),
+        ("gaussian_curvature", C.c_double),
+        ("direction_min", C.c_double * 3),
+        ("direction_max", C.c_double * 3),
+        ("inside", C.c_int),
+        ("singular", C.c_int),
+    ]
+
+
 _SURFACE_GEOMETRY = {
     0: "other", 1: "plane", 2: "cylinder", 3: "cone", 4: "sphere",
     5: "torus", 6: "bspline", 7: "bezier",
@@ -180,6 +197,10 @@ def _configure(lib: C.CDLL) -> None:
         handle, u64, u64, C.POINTER(_SurfacePairMetrics)
     ]
     lib.cadflow_surface_pair_metrics.restype = C.c_int
+    lib.cadflow_face_curvature_samples.argtypes = [
+        handle, u64, C.c_size_t, C.c_size_t, C.POINTER(_SurfaceSample)
+    ]
+    lib.cadflow_face_curvature_samples.restype = C.c_int
     for name, args in {
         "cadflow_box": [handle, f64, f64, f64],
         "cadflow_cylinder": [handle, f64, f64],
@@ -219,6 +240,12 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_filling_surface": [handle, C.POINTER(u64), C.c_size_t, f64],
         "cadflow_gordon_surface": [handle, C.POINTER(u64), C.c_size_t, C.POINTER(u64), C.c_size_t, f64],
         "cadflow_sew": [handle, C.POINTER(u64), C.c_size_t, f64],
+        "cadflow_smooth_fillet": [
+            handle, u64, f64, C.POINTER(C.c_size_t), C.c_size_t, C.c_int, f64, f64
+        ],
+        "cadflow_blend_surface": [
+            handle, u64, u64, C.c_int, f64, u64, u64, C.c_int, f64, f64, C.c_size_t, C.c_int
+        ],
         "cadflow_shell_to_solid": [handle, u64],
         "cadflow_cut": [handle, u64, u64],
         "cadflow_union": [handle, u64, u64],
@@ -249,6 +276,18 @@ def _configure(lib: C.CDLL) -> None:
             C.POINTER(C.c_size_t),
         ],
         "cadflow_execute": [handle, C.c_char_p, C.POINTER(C.c_char_p)],
+        "cadflow_continuity_report": [
+            handle, u64, C.c_size_t, f64, f64, f64, C.POINTER(C.c_char_p)
+        ],
+        "cadflow_face_pair_continuity": [
+            handle, u64, u64, C.c_size_t, f64, f64, f64, C.POINTER(C.c_char_p)
+        ],
+        "cadflow_curvature_mesh_buffer": [
+            handle, u64, f64, C.POINTER(C.c_char_p), C.POINTER(C.c_size_t)
+        ],
+        "cadflow_surface_quality_report": [
+            handle, u64, C.c_size_t, C.c_int, C.POINTER(C.c_char_p)
+        ],
     }.items():
         getattr(lib, name).argtypes = args
     for name in (
@@ -265,6 +304,7 @@ def _configure(lib: C.CDLL) -> None:
         "cadflow_sweep",
         "cadflow_bspline", "cadflow_twisted_sweep", "cadflow_ruled_surface",
         "cadflow_filling_surface", "cadflow_gordon_surface", "cadflow_sew",
+        "cadflow_blend_surface", "cadflow_smooth_fillet",
         "cadflow_shell_to_solid",
         "cadflow_cut", "cadflow_union", "cadflow_intersect", "cadflow_translate",
         "cadflow_rotate", "cadflow_mirror", "cadflow_scale",
@@ -291,6 +331,11 @@ def _configure(lib: C.CDLL) -> None:
     lib.cadflow_topology_counts.argtypes = [handle, u64, C.POINTER(u64)]
     lib.cadflow_topology_counts.restype = C.c_int
     lib.cadflow_execute.restype = C.c_int
+    for name in (
+        "cadflow_continuity_report", "cadflow_face_pair_continuity",
+        "cadflow_curvature_mesh_buffer", "cadflow_surface_quality_report",
+    ):
+        getattr(lib, name).restype = C.c_int
     lib.cadflow_free_string.argtypes = [C.c_char_p]
     lib.cadflow_last_error.restype = C.c_char_p
     lib.cadflow_version.restype = C.c_char_p
@@ -683,6 +728,46 @@ class NativeSession:
         return self._handle(self._lib.cadflow_gordon_surface(
             self._raw, profile_values, profile_count, guide_values, guide_count, tolerance))
 
+    def smooth_fillet(
+        self,
+        shape: ShapeHandle,
+        setback: float,
+        edge_indices: Sequence[int] | None = None,
+        *,
+        continuity: int = 2,
+        tension: float = 0.0,
+        tolerance: float = 1e-6,
+    ) -> ShapeHandle:
+        """Round edges with a G2 (or G1) blend placed on circular-fillet trim lines."""
+        self._ensure_open()
+        values, count = _subshape_indices(edge_indices)
+        return self._handle(self._lib.cadflow_smooth_fillet(
+            self._raw, self._id(shape), float(setback), values, count,
+            int(continuity), float(tension), float(tolerance)))
+
+    def blend_surface(
+        self,
+        face_a: ShapeHandle,
+        edge_a: ShapeHandle,
+        face_b: ShapeHandle,
+        edge_b: ShapeHandle,
+        *,
+        continuity_a: int = 2,
+        continuity_b: int = 2,
+        tension_a: float = 0.0,
+        tension_b: float = 0.0,
+        tolerance: float = 1e-6,
+        sections: int = 0,
+        reverse_b: bool | None = None,
+    ) -> ShapeHandle:
+        """Bridge two face boundary edges with a G0/G1/G2 blend surface."""
+        self._ensure_open()
+        reverse = -1 if reverse_b is None else int(bool(reverse_b))
+        return self._handle(self._lib.cadflow_blend_surface(
+            self._raw, self._id(face_a), self._id(edge_a), int(continuity_a), float(tension_a),
+            self._id(face_b), self._id(edge_b), int(continuity_b), float(tension_b),
+            float(tolerance), int(sections), reverse))
+
     def sew(self, faces: Sequence[ShapeHandle], *, tolerance: float = 1e-6) -> ShapeHandle:
         values, count = _u64_array([self._id(face) for face in faces], "sewing faces")
         return self._handle(self._lib.cadflow_sew(self._raw, values, count, tolerance))
@@ -851,6 +936,119 @@ class NativeSession:
         if not ok:
             raise NativeError("native surface pair measurement failed")
         return _surface_pair_metrics_dict(output)
+
+    def _json_result(self, call, failure: str) -> dict[str, object]:
+        import json
+
+        result = C.c_char_p()
+        ok = call(C.byref(result))
+        self._check()
+        if not ok or not result.value:
+            raise NativeError(failure)
+        try:
+            return json.loads(result.value.decode("utf-8"))
+        finally:
+            self._lib.cadflow_free_string(result)
+
+    def continuity_report(
+        self,
+        shape: ShapeHandle,
+        *,
+        samples: int = 16,
+        position_tolerance: float = 1e-3,
+        angle_tolerance_degrees: float = 0.5,
+        curvature_ratio_tolerance: float = 0.05,
+    ) -> dict[str, object]:
+        """Classify every edge shared by two faces as G2, G1, G0, or gap."""
+        self._ensure_open()
+        return self._json_result(
+            lambda result: self._lib.cadflow_continuity_report(
+                self._raw, self._id(shape), int(samples), float(position_tolerance),
+                float(angle_tolerance_degrees), float(curvature_ratio_tolerance), result),
+            "native continuity analysis failed",
+        )
+
+    def face_pair_continuity(
+        self,
+        face_a: ShapeHandle,
+        face_b: ShapeHandle,
+        *,
+        samples: int = 16,
+        position_tolerance: float = 1e-3,
+        angle_tolerance_degrees: float = 0.5,
+        curvature_ratio_tolerance: float = 0.05,
+    ) -> dict[str, object]:
+        """Measure continuity where two separate faces' boundaries coincide."""
+        self._ensure_open()
+        return self._json_result(
+            lambda result: self._lib.cadflow_face_pair_continuity(
+                self._raw, self._id(face_a), self._id(face_b), int(samples),
+                float(position_tolerance), float(angle_tolerance_degrees),
+                float(curvature_ratio_tolerance), result),
+            "native face-pair continuity analysis failed",
+        )
+
+    def curvature_samples(
+        self, face: ShapeHandle, u_count: int = 16, v_count: int = 16
+    ) -> list[dict[str, object]]:
+        """Sample exact curvature on a row-major u-by-v grid of one face."""
+        self._ensure_open()
+        if u_count < 2 or v_count < 2:
+            raise NativeError("curvature sample counts must be at least 2")
+        output = (_SurfaceSample * (u_count * v_count))()
+        ok = self._lib.cadflow_face_curvature_samples(
+            self._raw, self._id(face), u_count, v_count, output)
+        self._check()
+        if not ok:
+            raise NativeError("native curvature sampling failed")
+        return [
+            {
+                "u": float(item.u),
+                "v": float(item.v),
+                "point": tuple(float(value) for value in item.point),
+                "normal": tuple(float(value) for value in item.normal),
+                "principal_curvature_min": float(item.principal_curvature_min),
+                "principal_curvature_max": float(item.principal_curvature_max),
+                "mean_curvature": float(item.mean_curvature),
+                "gaussian_curvature": float(item.gaussian_curvature),
+                "direction_min": tuple(float(value) for value in item.direction_min),
+                "direction_max": tuple(float(value) for value in item.direction_max),
+                "inside": bool(item.inside),
+                "singular": bool(item.singular),
+            }
+            for item in output
+        ]
+
+    def curvature_mesh_buffer(self, shape: ShapeHandle, deflection: float = 0.1) -> bytes:
+        """Return the versioned tessellation-with-curvature buffer."""
+        self._ensure_open()
+        result = C.c_char_p()
+        size = C.c_size_t()
+        ok = self._lib.cadflow_curvature_mesh_buffer(
+            self._raw, self._id(shape), float(deflection), C.byref(result), C.byref(size))
+        self._check()
+        if not ok or not result or size.value == 0:
+            raise NativeError("native curvature mesh generation failed")
+        try:
+            return C.string_at(result, size.value)
+        finally:
+            self._lib.cadflow_free_string(result)
+
+    def surface_quality_report(
+        self,
+        shape: ShapeHandle,
+        *,
+        samples: int = 24,
+        check_self_intersection: bool = False,
+    ) -> dict[str, object]:
+        """Return per-face surface-definition and curvature-quality diagnostics."""
+        self._ensure_open()
+        return self._json_result(
+            lambda result: self._lib.cadflow_surface_quality_report(
+                self._raw, self._id(shape), int(samples), int(check_self_intersection),
+                result),
+            "native surface quality analysis failed",
+        )
 
     def kind(self, shape: ShapeHandle) -> str:
         value = self._lib.cadflow_kind(self._raw, self._id(shape))

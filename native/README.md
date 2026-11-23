@@ -8,6 +8,7 @@ c_api -> runtime -> kernel -> core
   +--------> io -------+
 
 c_api -> flexible
+c_api -> analysis -> core
 ```
 
 ## Boundaries
@@ -20,6 +21,11 @@ c_api -> flexible
   multi-handle topology/curvature queries.
 - `src/kernel/features` creates solids from profiles and paths.
 - `src/kernel/surfaces` creates Bezier and fitted-grid surfaces.
+- `src/kernel/blend` builds G0/G1/G2 quintic Hermite blends between face
+  boundaries; `src/kernel/smooth_fillet` uses it to replace circular rounds,
+  with n-sided G2 corner patches where rounds meet at a vertex.
+- `src/kernel/differential.h` holds the shared exact surface differential
+  geometry used by the kernel builders and by `src/analysis`.
 - `src/kernel/edge_features` owns indexed fillet, chamfer, and shell operations.
 - `src/kernel/operations` owns booleans and transforms.
 - `src/kernel/queries` owns measurements and topology inspection.
@@ -27,6 +33,9 @@ c_api -> flexible
 - `src/runtime` parses and executes batch graphs.
 - `src/flexible` owns stateless static surface sampling and thin-shell mesh
   construction. It has no dependency on the session-owned BREP kernel.
+- `src/analysis` owns read-only surface-quality measurement: boundary
+  continuity, exact curvature sampling, curvature-annotated tessellation, and
+  surface-definition diagnostics. It never creates session shapes.
 - `src/c_api.cpp` validates ABI arguments, locks a session, and delegates.
 
 ## Rules

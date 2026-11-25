@@ -33,6 +33,11 @@ The C++ `Session` owns every shape created through `cadflow.Model` or
   BREP/STL import, subshape extraction, free-boundary extraction, face normal
   and curvature queries, transformed face metrics, and exact face-pair closest
   points/gap evidence for contact preprocessing
+- class-A construction: G0/G1/G2 quintic blends between face boundaries,
+  curvature-continuous fillets, exact Coons and plate boundary filling
+- surface analysis: G0/G1/G2 boundary continuity for shells and unsewn face
+  pairs, exact curvature samples, curvature-annotated tessellation, and
+  per-face surface-quality diagnostics
 - execution: multi-operation graph in one C ABI call
 
 ## Python By Design

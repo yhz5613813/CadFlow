@@ -91,6 +91,75 @@ class Shape:
             raise ValueError("both faces must belong to the same Model")
         return self._session.surface_pair_metrics(self._handle, other._handle)
 
+    def continuity(
+        self,
+        *,
+        samples: int = 16,
+        position_tolerance: float = 1e-3,
+        angle_tolerance_degrees: float = 0.5,
+        curvature_ratio_tolerance: float = 0.05,
+    ) -> dict[str, object]:
+        """Classify each edge shared by two faces as G2, G1, G0, or gap.
+
+        G0 compares boundary positions, G1 the angle between oriented normals,
+        and G2 the relative cross-boundary normal-curvature difference. Edge
+        and face indices follow ``Model.faces`` and ``Model.fillet`` order.
+        """
+        return self._session.continuity_report(
+            self._handle,
+            samples=samples,
+            position_tolerance=position_tolerance,
+            angle_tolerance_degrees=angle_tolerance_degrees,
+            curvature_ratio_tolerance=curvature_ratio_tolerance,
+        )
+
+    def continuity_with(
+        self,
+        other: "Shape",
+        *,
+        samples: int = 16,
+        position_tolerance: float = 1e-3,
+        angle_tolerance_degrees: float = 0.5,
+        curvature_ratio_tolerance: float = 0.05,
+    ) -> dict[str, object]:
+        """Measure continuity where this face's boundary meets another face.
+
+        The faces need not be sewn: coincident boundary edges are matched
+        geometrically, and unsewn normals are compared as unoriented lines.
+        """
+        if other._session is not self._session:
+            raise ValueError("both faces must belong to the same Model")
+        return self._session.face_pair_continuity(
+            self._handle,
+            other._handle,
+            samples=samples,
+            position_tolerance=position_tolerance,
+            angle_tolerance_degrees=angle_tolerance_degrees,
+            curvature_ratio_tolerance=curvature_ratio_tolerance,
+        )
+
+    def curvature_samples(self, u_count: int = 16, v_count: int = 16) -> list[dict[str, object]]:
+        """Exact principal curvatures and directions on this face's UV grid."""
+        return self._session.curvature_samples(self._handle, u_count, v_count)
+
+    def curvature_mesh(self, deflection: float = 0.1):
+        """Tessellate and attach exact per-vertex curvature for visual analysis."""
+        from .surface_analysis import parse_curvature_mesh_buffer
+
+        return parse_curvature_mesh_buffer(
+            self._session.curvature_mesh_buffer(self._handle, deflection)
+        )
+
+    def surface_quality(
+        self, *, samples: int = 24, check_self_intersection: bool = False
+    ) -> dict[str, object]:
+        """Per-face definition, curvature, and defect diagnostics with hints."""
+        return self._session.surface_quality_report(
+            self._handle,
+            samples=samples,
+            check_self_intersection=check_self_intersection,
+        )
+
     def export_stl(self, path: str, *, binary: bool = True) -> None:
         self._session.export_stl(self._handle, path, binary=binary)
 
@@ -375,6 +444,91 @@ class Model:
         return Shape(self.session, self.session.gordon_surface(
             [value._handle for value in profiles], [value._handle for value in guides], tolerance=tolerance))
 
+    def smooth_fillet(
+        self,
+        shape: Shape,
+        setback: float,
+        edges: Sequence[int] | None = None,
+        *,
+        continuity: str = "G2",
+        tension: float | None = None,
+        tolerance: float = 1e-6,
+    ) -> Shape:
+        """Round edges with a curvature-continuous blend instead of an arc.
+
+        A circular fillet is only G1 against its neighbours: curvature jumps
+        from 0 to 1/R at the trim lines, which shows as a highlight break. Here
+        the circular fillet of radius ``setback`` only places the trim lines;
+        each round face is replaced by a quintic blend matching the adjacent
+        faces' tangent planes and (for ``"G2"``) normal curvature, and the end
+        faces are re-bounded by the blend's end sections. ``tension`` fixes
+        the handle-length factor; by default the factor minimizing curvature
+        variation is chosen, which gives a single, central curvature peak
+        whatever the corner angle. ``edges`` uses the
+        ``fillet`` index order; empty means all edges. Rounds meeting at a
+        vertex get an n-sided G2 corner patch; two rounds meeting at an angle
+        are mitred. Tapered corners, unequal setbacks at a corner, and
+        non-planar end faces are not supported yet.
+        """
+        self._same_model(shape)
+        orders = {"G1": 1, "G2": 2}
+        try:
+            order = orders[str(continuity).upper()]
+        except KeyError:
+            raise ValueError("continuity must be 'G1' or 'G2'") from None
+        return Shape(self.session, self.session.smooth_fillet(
+            shape._handle, setback, edges,
+            continuity=order, tension=0.0 if tension is None else float(tension),
+            tolerance=tolerance,
+        ))
+
+    def blend_surface(
+        self,
+        face_a: Shape,
+        edge_a: Shape,
+        face_b: Shape,
+        edge_b: Shape,
+        *,
+        continuity: str | tuple[str, str] = "G2",
+        tension: float | tuple[float | None, float | None] | None = None,
+        tolerance: float = 1e-6,
+        sections: int = 0,
+        reverse_b: bool | None = None,
+    ) -> Shape:
+        """Bridge a boundary edge of one face to a boundary edge of another.
+
+        Each side meets its support face with ``"G0"`` (position), ``"G1"``
+        (tangent plane), or ``"G2"`` (curvature) continuity; pass a pair to
+        choose per side. Cross sections are quintic Hermite curves built from
+        the exact support position, tangent plane, and normal curvature, so
+        G2 is matched analytically rather than by fitting. ``tension`` fixes
+        the handle-length factor per side (1.0 spaces the poles evenly along a
+        straight bridge); ``None`` picks the factor that minimizes curvature
+        variation over the whole blend. Sections double until the boundary
+        deviates from the edges by less than ``tolerance``. Verify with
+        ``blend.continuity_with(face)``.
+        """
+        self._same_model(face_a, edge_a, face_b, edge_b)
+        levels = (continuity, continuity) if isinstance(continuity, str) else tuple(continuity)
+        tensions = (
+            (tension, tension) if tension is None or isinstance(tension, (int, float))
+            else tuple(tension)
+        )
+        if len(levels) != 2 or len(tensions) != 2:
+            raise ValueError("continuity and tension take one value or a pair")
+        orders = {"G0": 0, "G1": 1, "G2": 2}
+        try:
+            order_a, order_b = (orders[str(level).upper()] for level in levels)
+        except KeyError:
+            raise ValueError("continuity must be 'G0', 'G1', or 'G2'") from None
+        return Shape(self.session, self.session.blend_surface(
+            face_a._handle, edge_a._handle, face_b._handle, edge_b._handle,
+            continuity_a=order_a, continuity_b=order_b,
+            tension_a=0.0 if tensions[0] is None else float(tensions[0]),
+            tension_b=0.0 if tensions[1] is None else float(tensions[1]),
+            tolerance=tolerance, sections=sections, reverse_b=reverse_b,
+        ))
+
     def sew(self, faces, *, tolerance: float = 1e-6) -> Shape:
         self._same_model(*faces)
         return Shape(self.session, self.session.sew([value._handle for value in faces], tolerance=tolerance))
@@ -390,6 +544,10 @@ class Model:
     def faces(self, shape: Shape) -> tuple[Shape, ...]:
         """Return deterministic zero-based OCCT face handles for a shape."""
         return self.subshapes(shape, 4)
+
+    def edges(self, shape: Shape) -> tuple[Shape, ...]:
+        """Return unique edges in the zero-based order used by ``fillet``."""
+        return self.subshapes(shape, 6)
 
     def free_boundaries(self, shape: Shape, *, tolerance: float = 1e-6) -> tuple[Shape, ...]:
         self._same_model(shape)
@@ -463,6 +621,7 @@ class Model:
             "frontend": [
                 "primitives", "profiles", "sketch", "workplane", "features",
                 "booleans", "transforms", "inspection", "exchange", "feedback",
+                "surface_analysis",
             ],
             "native_operations": sorted(
                 operation for operation in (
@@ -472,7 +631,9 @@ class Model:
                     "twisted_sweep", "ruled_surface", "filling_surface", "gordon_surface",
                     "sew", "shell_to_solid", "intersect", "translate", "rotate", "mirror", "scale",
                     "import_step", "import_brep", "import_stl", "subshapes", "free_boundaries",
-                    "face_properties",
+                    "face_properties", "continuity", "continuity_with",
+                    "curvature_samples", "curvature_mesh", "surface_quality",
+                    "blend_surface", "smooth_fillet", "edges",
                 ) if self.session is not None
             ),
             "selection": {"indices": True, "semantic": False},

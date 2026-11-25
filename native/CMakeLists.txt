@@ -3,16 +3,19 @@ project(cadflow_core LANGUAGES CXX)
 
 add_library(cadflow_core SHARED
   src/c_api.cpp
+  src/analysis/surface_analysis.cpp
   src/core/session.cpp
   src/flexible/shell_mesh.cpp
   src/io/dxf_profile.cpp
   src/io/exchange.cpp
   src/kernel/construction.cpp
   src/kernel/advanced.cpp
+  src/kernel/blend.cpp
   src/kernel/edge_features.cpp
   src/kernel/features.cpp
   src/kernel/operations.cpp
   src/kernel/queries.cpp
+  src/kernel/smooth_fillet.cpp
   src/kernel/surfaces.cpp
   src/physics/connections.cpp
   src/physics/surface_contact.cpp

@@ -20,11 +20,16 @@
 #include <BRepBuilderAPI_Sewing.hxx>
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepFill_TypeOfContact.hxx>
+#include <BRepOffsetAPI_MakeFilling.hxx>
 #include <BRepOffsetAPI_MakePipeShell.hxx>
 #include <BRepOffsetAPI_ThruSections.hxx>
 #include <BRep_Tool.hxx>
 #include <BRep_Builder.hxx>
 #include <GeomAPI_PointsToBSplineSurface.hxx>
+#include <GeomConvert.hxx>
+#include <GeomFill_BSplineCurves.hxx>
+#include <Geom_TrimmedCurve.hxx>
+#include <TopLoc_Location.hxx>
 #include <Geom_BSplineCurve.hxx>
 #include <Geom_BSplineSurface.hxx>
 #include <Geom_CylindricalSurface.hxx>
@@ -310,34 +315,106 @@ ShapeId ruled_surface(core::Session& session, ShapeId edge_a_id, ShapeId edge_b_
 #endif
 }
 
+#ifdef CADFLOW_WITH_OCCT
+namespace {
+
+/* Exact B-spline image of one oriented edge. */
+Handle(Geom_BSplineCurve) edge_bspline(const TopoDS_Edge& edge) {
+    TopLoc_Location location;
+    double first = 0.0;
+    double last = 0.0;
+    Handle(Geom_Curve) curve = BRep_Tool::Curve(edge, location, first, last);
+    if (curve.IsNull()) throw std::invalid_argument("filling edge has no 3D curve");
+    curve = Handle(Geom_Curve)::DownCast(curve->Transformed(location.Transformation()));
+    Handle(Geom_BSplineCurve) bspline =
+        GeomConvert::CurveToBSplineCurve(new Geom_TrimmedCurve(curve, first, last));
+    if (edge.Orientation() == TopAbs_REVERSED) bspline->Reverse();
+    /* Coons filling needs at least four poles per side; elevation is exact. */
+    if (bspline->Degree() < 3) bspline->IncreaseDegree(3);
+    return bspline;
+}
+
+/* Chain boundary curves head-to-tail within tolerance and snap each shared
+   corner to the mean of the two endpoints, so the patch closes exactly. */
+std::vector<Handle(Geom_BSplineCurve)> closed_loop(
+    std::vector<Handle(Geom_BSplineCurve)> curves, double tolerance) {
+    std::vector<Handle(Geom_BSplineCurve)> loop {curves.front()};
+    curves.erase(curves.begin());
+    while (!curves.empty()) {
+        const gp_Pnt end = loop.back()->EndPoint();
+        auto best = curves.end();
+        bool reverse = false;
+        double best_distance = tolerance;
+        for (auto it = curves.begin(); it != curves.end(); ++it) {
+            const double forward = end.Distance((*it)->StartPoint());
+            const double backward = end.Distance((*it)->EndPoint());
+            if (forward <= best_distance) { best = it; reverse = false; best_distance = forward; }
+            if (backward < best_distance) { best = it; reverse = true; best_distance = backward; }
+        }
+        if (best == curves.end()) {
+            throw std::invalid_argument("filling edges do not form a closed loop within tolerance");
+        }
+        if (reverse) (*best)->Reverse();
+        loop.push_back(*best);
+        curves.erase(best);
+    }
+    if (loop.back()->EndPoint().Distance(loop.front()->StartPoint()) > tolerance) {
+        throw std::invalid_argument("filling edges do not form a closed loop within tolerance");
+    }
+    for (std::size_t i = 0; i < loop.size(); ++i) {
+        Handle(Geom_BSplineCurve)& current = loop[i];
+        Handle(Geom_BSplineCurve)& next = loop[(i + 1) % loop.size()];
+        const gp_Pnt corner(
+            (current->EndPoint().XYZ() + next->StartPoint().XYZ()) * 0.5);
+        current->SetPole(current->NbPoles(), corner);
+        next->SetPole(1, corner);
+    }
+    return loop;
+}
+
+}  // namespace
+#endif
+
 ShapeId filling_surface(core::Session& session, const ShapeId* edges, std::size_t edge_count, double tolerance) {
-    if (!edges || edge_count < 3 || edge_count > 4 || !(tolerance > 0.0)) throw std::invalid_argument("filling requires 3 or 4 edges and positive tolerance");
-    for (std::size_t i = 0; i < edge_count; ++i) if (core::get_shape(session, edges[i]).kind != Shape::Kind::Wire) throw std::invalid_argument("filling inputs must be wires");
+    if (!edges || edge_count < 3 || !(tolerance > 0.0)) throw std::invalid_argument("filling requires at least 3 boundary edges and positive tolerance");
 #ifdef CADFLOW_WITH_OCCT
     std::vector<TopoDS_Edge> boundary;
     for (std::size_t i = 0; i < edge_count; ++i) {
-        const auto current = ordered_edges(TopoDS::Wire(core::get_shape(session, edges[i]).native));
+        const TopoDS_Shape& input = core::get_shape(session, edges[i]).native;
+        if (!input.IsNull() && input.ShapeType() == TopAbs_EDGE) {
+            boundary.push_back(TopoDS::Edge(input));
+            continue;
+        }
+        if (input.IsNull() || input.ShapeType() != TopAbs_WIRE) throw std::invalid_argument("filling inputs must be edges or one-edge wires");
+        const auto current = ordered_edges(TopoDS::Wire(input));
         if (current.size() != 1) throw std::invalid_argument("filling currently requires one-edge wires");
         boundary.push_back(current.front());
     }
-    std::vector<gp_Pnt> samples;
-    for (const TopoDS_Edge& edge : boundary) {
-        BRepAdaptor_Curve adaptor(edge);
-        for (int i = 0; i < 9; ++i) samples.push_back(adaptor.Value(adaptor.FirstParameter() + (adaptor.LastParameter() - adaptor.FirstParameter()) * i / 8.0));
+    if (boundary.size() <= 4) {
+        /* Coons patch: interpolates every boundary curve exactly. */
+        std::vector<Handle(Geom_BSplineCurve)> curves;
+        for (const TopoDS_Edge& edge : boundary) curves.push_back(edge_bspline(edge));
+        const auto loop = closed_loop(std::move(curves), tolerance);
+        GeomFill_BSplineCurves coons;
+        if (loop.size() == 3) coons.Init(loop[0], loop[1], loop[2], GeomFill_CoonsStyle);
+        else coons.Init(loop[0], loop[1], loop[2], loop[3], GeomFill_CoonsStyle);
+        const Handle(Geom_BSplineSurface) surface = coons.Surface();
+        if (surface.IsNull()) throw std::runtime_error("Coons filling failed");
+        return store_native(session, Shape::Kind::FillingSurface, make_surface_face(surface));
     }
-    const std::size_t rows = 3;
-    const std::size_t cols = 3;
-    std::vector<double> grid(rows * cols * 3);
-    for (std::size_t r = 0; r < rows; ++r) for (std::size_t c = 0; c < cols; ++c) {
-        const gp_Pnt& p = samples[(r * 3 + c) % samples.size()];
-        grid[(r * cols + c) * 3] = p.X(); grid[(r * cols + c) * 3 + 1] = p.Y(); grid[(r * cols + c) * 3 + 2] = p.Z();
+    /* N-sided boundary: plate surface constrained to pass through every edge. */
+    BRepOffsetAPI_MakeFilling plate;
+    for (const TopoDS_Edge& edge : boundary) plate.Add(edge, GeomAbs_C0, true);
+    plate.Build();
+    if (!plate.IsDone()) throw std::runtime_error("N-sided filling failed");
+    if (plate.G0Error() > tolerance) {
+        throw std::runtime_error(
+            "N-sided filling deviates " + std::to_string(plate.G0Error())
+            + " from its boundary, above tolerance");
     }
-    TColgp_Array2OfPnt points = TColgp_Array2OfPnt(1, rows, 1, cols);
-    for (std::size_t r = 0; r < rows; ++r) for (std::size_t c = 0; c < cols; ++c) points.SetValue(r + 1, c + 1, gp_Pnt(grid[(r * cols + c) * 3], grid[(r * cols + c) * 3 + 1], grid[(r * cols + c) * 3 + 2]));
-    GeomAPI_PointsToBSplineSurface fit(points, 1, 3, GeomAbs_C0, tolerance);
-    if (!fit.IsDone()) throw std::runtime_error("filling surface fit failed");
-    return store_native(session, Shape::Kind::FillingSurface, make_surface_face(fit.Surface()));
+    return store_native(session, Shape::Kind::FillingSurface, plate.Shape());
 #else
+    (void)session;
     require_occt(); return 0;
 #endif
 }
@@ -380,7 +457,10 @@ ShapeId sew(core::Session& session, const ShapeId* faces, std::size_t face_count
     BRepBuilderAPI_Sewing builder(tolerance);
     for (std::size_t i = 0; i < face_count; ++i) {
         const Shape& face = core::get_shape(session, faces[i]);
-        if (face.kind != Shape::Kind::Face && face.kind != Shape::Kind::Surface && face.kind != Shape::Kind::FillingSurface && face.kind != Shape::Kind::RuledSurface) throw std::invalid_argument("sewing inputs must be faces");
+        /* Judge by topology, not by the constructor that produced the handle:
+           imported, extracted, Gordon, and blend faces are all sewable. */
+        const TopAbs_ShapeEnum type = face.native.IsNull() ? TopAbs_SHAPE : face.native.ShapeType();
+        if (type != TopAbs_FACE && type != TopAbs_SHELL) throw std::invalid_argument("sewing inputs must be faces or shells");
         builder.Add(face.native);
     }
     builder.Perform();

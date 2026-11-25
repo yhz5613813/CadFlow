@@ -50,6 +50,13 @@ signature or operation boundary matters.
   returning an arbitrary component of a compound.
 - Query faces/edges before indexed fillet, chamfer, or shell selections.
   Topology indices can change after any topology-changing operation.
+- A circular `fillet` is only G1 (curvature jumps to 1/R). When the request
+  asks for smooth, styled, or reflection-quality transitions, use
+  `model.smooth_fillet(shape, setback, edges)` for G2 rounds (box and prism
+  corners included; a part with 12 rounded corners takes about 1 s) and
+  `model.blend_surface(face_a, edge_a, face_b, edge_b)` to bridge surfaces;
+  confirm the levels with `shape.continuity()` or `blend.continuity_with(face)`.
+  See `docs/guides/class-a-surfacing.md` for supported configurations.
 - Apply repeated holes or pockets sequentially unless fused tools are known to
   overlap and the fused tool has been validated.
 - Use positive, finite dimensions and reject impossible radii before invoking

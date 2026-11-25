@@ -51,6 +51,11 @@
 
 ## 📰 最新动态
 
+### 2026-11-24 · A 级曲面：G2 桥接曲面与曲率连续圆角
+
+- 新增曲面分析：`Shape.continuity()` 把每条公共边判定为 G0/G1/G2，另有曲率图、斑马纹渲染和 `surface_quality()` 质量诊断。
+- 新增 `Model.smooth_fillet(...)`，生成曲率连续（G2）的圆角，多个圆角相交的顶点处生成 n 边角区补面；新增 `Model.blend_surface(...)`，在两个面之间生成 G0/G1/G2 桥接曲面。详见下文 [A 级曲面](#class-a-surfaces)。
+
 ### 2026-09-03 · v0.2.0 - 经过验证的二维加工 DXF 工作流
 
 - 新增原生 `Shape.export_dxf(...)` 平面面导出能力，支持闭合外轮廓和内轮廓、毫米单位、直线与圆弧的精确保留、基于可配置弦距容差目标的自适应近似，以及原子文件替换。
@@ -167,9 +172,9 @@ with cad.Model() as model:
 | --- | --- |
 | 实体建模 | 长方体、圆柱、球体、圆台、轮廓、面、拉伸、旋转、放样、扫掠、圆角、倒角和抽壳 |
 | 几何操作 | 精确 OCCT 布尔运算、刚体变换、缩放、缝合、壳转实体和子形状提取 |
-| 曲线与曲面 | 直线、圆弧、样条、螺旋线、Bezier 曲面、拟合 B-spline 曲面、直纹/填充/Gordon 曲面和扭转扫掠 |
+| 曲线与曲面 | 直线、圆弧、样条、螺旋线、Bezier 曲面、拟合 B-spline 曲面、直纹/填充/Gordon 曲面、扭转扫掠、G2 桥接曲面和曲率连续圆角 |
 | 草图与上下文 | 不可变坐标系、工作平面、声明式草图、约束和 `py-slvs` 求解 |
-| 几何检查 | 体积、面积、长度、质心、距离、包围盒、拓扑计数、法向、曲率、自由边界和 BREP 对比 |
+| 几何检查 | 体积、面积、长度、质心、距离、包围盒、拓扑计数、法向、曲率、自由边界、BREP 对比、G0/G1/G2 边连续性、斑马纹与曲率图和曲面质量检查 |
 | 数据交换与预览 | STEP 导入导出、平面面 DXF 加工轮廓、BREP/STL 导入、STL 导出、原生网格缓冲区和经过验证的三角形 GLB 预览 |
 | 产品结构 | 装配、连接器、约束报告、语义标签、来源映射、谱系、材料和标准件 |
 | 结构化产物 | Model JSON、严格重放、Schema 验证，以及包含可渲染几何和结构化元数据的便携式 Scene 归档 |
@@ -183,6 +188,36 @@ with cad.Model() as model:
 </p>
 
 可查看对应源码：[安装支架](examples/cadflow_complex_mounting_bracket.py)、[行星减速器](examples/16_compact_two_stage_planetary_reducer/)和[陶瓷杯](examples/cadflow_ceramic_cup.py)。这些是可复现的几何示例，不是 LLM 生成能力评测；杯子是多实体造型组合。
+
+<a id="class-a-surfaces"></a>
+
+### A 级曲面
+
+普通圆角只有切线连续（G1）：在每条修剪线处，曲率从相邻面的值突跳到 `1/R`，在反光里表现为折痕。`smooth_fillet` 保留普通圆角的修剪线和拓扑，但把每个圆角面、斜接和角区都重建为曲率连续（G2）曲面，并由连续性报告实测验证。
+
+```python
+import cadflow as cad
+
+with cad.Model() as model:
+    cube = model.box(12.0, 12.0, 12.0)
+    smooth = model.smooth_fillet(cube, 3.0)          # 全部棱，倒圆距离 3 mm
+    levels = {edge["level"] for edge in smooth.continuity()["edges"]}
+    print(levels, smooth.surface_quality()["issues"])   # {'G2'} []
+```
+
+<p align="center">
+  <img src="docs/assets/readme/cadflow-smooth-fillet.png" width="80%" alt="12 mm 立方体全部棱倒圆，左为 OCCT 普通圆角，右为 CadFlow smooth_fillet。上排为斑马纹：普通圆角的条纹在修剪线处急折，smooth_fillet 的条纹平滑穿过。下排为平均曲率：普通圆角在修剪线和球面角处曲率突变，smooth_fillet 则逐渐过渡。">
+</p>
+
+| 情况（用 `Shape.continuity()` 实测） | 普通圆角 | `smooth_fillet` |
+| --- | --- | --- |
+| 盒子一条棱 | G1，曲率 0 对 1/R | G2 |
+| 平面与 B-spline 侧面相交 | G1，曲率 0.500 对 0.141 | G2，0.141 对 0.141 |
+| 盒子一个角，三个圆角相交 | 9 处 G1 | 15 处 G2 |
+| 盒子全部 12 条棱 | 48 处 G1 | 96 处 G2 |
+| 三棱柱、五棱柱、六棱柱，全部棱 | G1 | 全部 G2 |
+
+`Model.blend_surface(face_a, edge_a, face_b, edge_b, continuity="G2")` 在两个面的边界之间生成 G2 桥接曲面；`filling_surface` 用三条或四条边界边生成精确的 Coons 补面。上图可由 [`examples/cadflow_class_a_fillet.py`](examples/cadflow_class_a_fillet.py) 复现。方法与当前限制见 [A 级曲面构造指南](docs/guides/class-a-surfacing.md)，检查工具见 [曲面分析指南](docs/guides/surface-analysis.md)。
 
 <a id="roadmap"></a>
 

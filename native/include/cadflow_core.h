@@ -103,6 +103,24 @@ typedef struct cad_surface_pair_metrics_t {
     double tangential_offset;
 } cad_surface_pair_metrics_t;
 
+/* One exact differential-geometry sample of a face. Curvatures use inverse
+   model-length units and are signed against the oriented face normal, matching
+   cad_surface_face_metrics_t. Singular samples have NaN curvature fields. */
+typedef struct cad_surface_sample_t {
+    double u;
+    double v;
+    double point[3];
+    double normal[3];
+    double principal_curvature_min;
+    double principal_curvature_max;
+    double mean_curvature;
+    double gaussian_curvature;
+    double direction_min[3];
+    double direction_max[3];
+    int inside;
+    int singular;
+} cad_surface_sample_t;
+
 typedef enum cad_presentation_alpha_mode_t {
     CADFLOW_PRESENTATION_ALPHA_OPAQUE = 0,
     CADFLOW_PRESENTATION_ALPHA_MASK = 1,
@@ -204,6 +222,14 @@ CADFLOW_API unsigned long long cadflow_revolve(
 CADFLOW_API unsigned long long cadflow_fillet(
     cad_session_t session, unsigned long long shape, double radius,
     const size_t *edge_indices, size_t edge_count);
+/* Round edges with a curvature-continuous (continuity 2) or tangent (1)
+   blend. A circular fillet of radius setback places the trim lines; each
+   round face is replaced by a quintic Hermite blend between them. Tension 0
+   selects minimum-variation handles automatically. */
+CADFLOW_API unsigned long long cadflow_smooth_fillet(
+    cad_session_t session, unsigned long long shape, double setback,
+    const size_t *edge_indices, size_t edge_count,
+    int continuity, double tension, double tolerance);
 CADFLOW_API unsigned long long cadflow_chamfer(
     cad_session_t session, unsigned long long shape, double distance,
     const size_t *edge_indices, size_t edge_count);
@@ -236,6 +262,19 @@ CADFLOW_API unsigned long long cadflow_gordon_surface(
     cad_session_t session, const unsigned long long *profiles,
     size_t profile_count, const unsigned long long *guides,
     size_t guide_count, double tolerance);
+/* Bridge boundary edge_a of face_a and edge_b of face_b with a surface that
+   meets each support with continuity 0 (G0), 1 (G1), or 2 (G2). Tension
+   scales the cross-section handle lengths; 0 picks the factor that
+   minimizes curvature variation over the whole blend. Sections refine until the boundary
+   deviates less than tolerance; sections 0 starts at 16. reverse_b -1 picks
+   the edge coupling automatically, 0 keeps it, 1 flips edge B. */
+CADFLOW_API unsigned long long cadflow_blend_surface(
+    cad_session_t session,
+    unsigned long long face_a, unsigned long long edge_a,
+    int continuity_a, double tension_a,
+    unsigned long long face_b, unsigned long long edge_b,
+    int continuity_b, double tension_b,
+    double tolerance, size_t sections, int reverse_b);
 CADFLOW_API unsigned long long cadflow_sew(
     cad_session_t session, const unsigned long long *faces,
     size_t face_count, double tolerance);
@@ -305,6 +344,32 @@ CADFLOW_API int cadflow_surface_pair_metrics_brep(
     const char *brep_a, size_t brep_a_size, const double transform_a[12],
     const char *brep_b, size_t brep_b_size, const double transform_b[12],
     cad_surface_pair_metrics_t *output);
+/* Surface analysis. JSON and binary results are owned by the caller and must
+   be released with cadflow_free_string. Continuity reports measure positional
+   gap (G0), normal angle in degrees (G1), and the relative cross-boundary
+   normal-curvature difference (G2) at samples along each boundary. */
+CADFLOW_API int cadflow_continuity_report(
+    cad_session_t session, unsigned long long shape, size_t samples,
+    double position_tolerance, double angle_tolerance_degrees,
+    double curvature_ratio_tolerance, char **result);
+CADFLOW_API int cadflow_face_pair_continuity(
+    cad_session_t session, unsigned long long face_a,
+    unsigned long long face_b, size_t samples,
+    double position_tolerance, double angle_tolerance_degrees,
+    double curvature_ratio_tolerance, char **result);
+/* Fill u_count * v_count row-major samples (v varies fastest) over the
+   face's trimmed UV bounds. */
+CADFLOW_API int cadflow_face_curvature_samples(
+    cad_session_t session, unsigned long long face,
+    size_t u_count, size_t v_count, cad_surface_sample_t *output);
+/* Versioned "CFCA" buffer: float32 positions/normals, float32 per-vertex
+   (k_min, k_max, mean, gaussian), uint32 face indices, uint32 triangles. */
+CADFLOW_API int cadflow_curvature_mesh_buffer(
+    cad_session_t session, unsigned long long shape, double deflection,
+    char **result, size_t *result_size);
+CADFLOW_API int cadflow_surface_quality_report(
+    cad_session_t session, unsigned long long shape, size_t samples,
+    int check_self_intersection, char **result);
 /* Resolve one Presentation against a compiled scene. Unset appearance and
    camera-parent indices are returned as (size_t)-1. */
 CADFLOW_API int cadflow_evaluate_presentation(

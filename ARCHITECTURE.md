@@ -33,7 +33,7 @@ object at a time.
 The native source tree follows the dependency direction below:
 
 ```text
-c_api.cpp -> runtime / io / kernel / physics -> core
+c_api.cpp -> runtime / io / kernel / physics / analysis -> core
 ```
 
 `core` owns no modeling algorithms. `kernel` owns geometry construction and
@@ -55,6 +55,11 @@ The native vertical slice implements:
 - face area, centroid, oriented normal, curvature, closest points, gap, and
   pair-orientation metrics for mechanics preprocessing
 - tessellation into JSON vertex/index buffers
+- G0/G1/G2 blend surfaces between face boundaries and curvature-continuous
+  fillets (see `docs/guides/class-a-surfacing.md`)
+- surface analysis: G0/G1/G2 boundary continuity, principal curvatures and
+  directions, curvature-annotated tessellation, and surface-definition
+  diagnostics (see `docs/guides/surface-analysis.md`)
 - optional STEP export
 - compact batch graph execution
 
